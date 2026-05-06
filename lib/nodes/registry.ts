@@ -378,6 +378,29 @@ const aiNodeSchema = baseSchema.extend({
   outputFormat: z.enum(['text', 'json']).optional(),
 });
 
+const prismNodeSchema = baseSchema.extend({
+  provider: z.enum(PRISM_PROVIDER_KEYS).default('openai'),
+  model: z.string().min(1).default('gpt-4o'),
+  apiKey: z.string().optional(),
+  temperature: z.number().min(0).max(2).optional(),
+  maxTokens: z.number().int().positive().optional(),
+  systemPrompt: z.string().optional(),
+  baseUrl: z.string().optional(),
+  streamOutput: z.boolean().optional(),
+  timeout: z.number().int().positive().optional(),
+  prompt: z.string().optional(),
+  inputVariable: z.string().optional(),
+});
+
+const verdictNodeSchema = baseSchema.extend({
+  judgeProvider: z.enum(['openai', 'anthropic', 'google', 'custom']).optional(),
+  judgeModel: z.string().min(1).optional(),
+  judgeApiKey: z.string().optional(),
+  judgeBaseUrl: z.string().optional(),
+  threshold: z.number().min(0).max(1).optional(),
+  timeout: z.number().int().positive().optional(),
+});
+
 const parameterDefinitionSchema = z.object({
   name: z.string().min(1),
   type: z.enum(['string', 'number', 'boolean', 'array']),
@@ -1642,6 +1665,32 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     defaultConfig: { operation: 'upsert', keyPrefix: 'vec', topK: 5 },
     inputs: [{ name: 'input', type: 'object', required: false }],
     outputs: [{ name: 'output', type: 'object' }],
+  },
+
+  [NodeType.PRISM_LLM]: {
+    type: NodeType.PRISM_LLM,
+    category: NodeCategory.PRISM,
+    name: 'Prism LLM',
+    description: 'Universal LLM gateway across 50+ providers and models',
+    icon: 'Sparkles',
+    color: '#7c3aed',
+    configSchema: prismNodeSchema,
+    defaultConfig: {
+      provider: 'openai',
+      model: 'gpt-4o',
+      systemPrompt: '',
+      temperature: 0.7,
+      maxTokens: 1024,
+      streamOutput: false,
+    },
+    inputs: [{ name: 'prompt', type: 'string', required: false }],
+    outputs: [
+      { name: 'text', type: 'string' },
+      { name: 'usage', type: 'object' },
+      { name: 'model', type: 'string' },
+      { name: 'provider', type: 'string' },
+      { name: 'cost', type: 'number' },
+    ],
   },
 
   ['ai.llm']: {
@@ -3683,6 +3732,182 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
+  },
+
+  [NodeType.VERDICT_FAITHFULNESS]: {
+    type: NodeType.VERDICT_FAITHFULNESS,
+    category: NodeCategory.VERDICT,
+    name: 'Faithfulness',
+    description: 'Score whether an answer stays grounded in the provided context',
+    icon: 'Scale',
+    color: '#10b981',
+    configSchema: verdictNodeSchema,
+    defaultConfig: { judgeProvider: 'openai', judgeModel: 'gpt-4o-mini', threshold: 0.7, timeout: 30000 },
+    inputs: [
+      { name: 'answer', type: 'string', required: true },
+      { name: 'context', type: 'string[]', required: true },
+    ],
+    outputs: [
+      { name: 'score', type: 'number' },
+      { name: 'verdict', type: 'string' },
+      { name: 'reasoning', type: 'string' },
+      { name: 'claims', type: 'array' },
+      { name: 'supported_claims', type: 'array' },
+    ],
+  },
+
+  [NodeType.VERDICT_CORRECTNESS]: {
+    type: NodeType.VERDICT_CORRECTNESS,
+    category: NodeCategory.VERDICT,
+    name: 'Correctness',
+    description: 'Compare an answer against ground truth facts',
+    icon: 'CheckCircle',
+    color: '#10b981',
+    configSchema: verdictNodeSchema,
+    defaultConfig: { judgeProvider: 'openai', judgeModel: 'gpt-4o-mini', threshold: 0.7, timeout: 30000 },
+    inputs: [
+      { name: 'answer', type: 'string', required: true },
+      { name: 'ground_truth', type: 'string', required: true },
+      { name: 'question', type: 'string', required: false },
+    ],
+    outputs: [
+      { name: 'score', type: 'number' },
+      { name: 'verdict', type: 'string' },
+      { name: 'reasoning', type: 'string' },
+      { name: 'matched_facts', type: 'array' },
+      { name: 'missed_facts', type: 'array' },
+    ],
+  },
+
+  [NodeType.VERDICT_RELEVANCE]: {
+    type: NodeType.VERDICT_RELEVANCE,
+    category: NodeCategory.VERDICT,
+    name: 'Relevance',
+    description: 'Judge how directly the answer addresses the question',
+    icon: 'Target',
+    color: '#10b981',
+    configSchema: verdictNodeSchema,
+    defaultConfig: { judgeProvider: 'openai', judgeModel: 'gpt-4o-mini', threshold: 0.7, timeout: 30000 },
+    inputs: [
+      { name: 'answer', type: 'string', required: true },
+      { name: 'question', type: 'string', required: true },
+    ],
+    outputs: [
+      { name: 'score', type: 'number' },
+      { name: 'verdict', type: 'string' },
+      { name: 'reasoning', type: 'string' },
+    ],
+  },
+
+  [NodeType.VERDICT_CONTEXT_PRECISION]: {
+    type: NodeType.VERDICT_CONTEXT_PRECISION,
+    category: NodeCategory.VERDICT,
+    name: 'Context Precision',
+    description: 'Measure how much retrieved context was actually useful',
+    icon: 'Filter',
+    color: '#10b981',
+    configSchema: verdictNodeSchema,
+    defaultConfig: { judgeProvider: 'openai', judgeModel: 'gpt-4o-mini', threshold: 0.7, timeout: 30000 },
+    inputs: [
+      { name: 'question', type: 'string', required: true },
+      { name: 'context', type: 'string[]', required: true },
+      { name: 'answer', type: 'string', required: true },
+    ],
+    outputs: [
+      { name: 'score', type: 'number' },
+      { name: 'verdict', type: 'string' },
+      { name: 'reasoning', type: 'string' },
+      { name: 'useful_chunks', type: 'array' },
+      { name: 'irrelevant_chunks', type: 'array' },
+    ],
+  },
+
+  [NodeType.VERDICT_CONTEXT_RECALL]: {
+    type: NodeType.VERDICT_CONTEXT_RECALL,
+    category: NodeCategory.VERDICT,
+    name: 'Context Recall',
+    description: 'Measure whether retrieval found all needed information',
+    icon: 'Search',
+    color: '#10b981',
+    configSchema: verdictNodeSchema,
+    defaultConfig: { judgeProvider: 'openai', judgeModel: 'gpt-4o-mini', threshold: 0.7, timeout: 30000 },
+    inputs: [
+      { name: 'question', type: 'string', required: true },
+      { name: 'context', type: 'string[]', required: true },
+      { name: 'ground_truth', type: 'string', required: true },
+    ],
+    outputs: [
+      { name: 'score', type: 'number' },
+      { name: 'verdict', type: 'string' },
+      { name: 'reasoning', type: 'string' },
+      { name: 'covered_aspects', type: 'array' },
+      { name: 'missing_aspects', type: 'array' },
+    ],
+  },
+
+  [NodeType.VERDICT_HALLUCINATION]: {
+    type: NodeType.VERDICT_HALLUCINATION,
+    category: NodeCategory.VERDICT,
+    name: 'Hallucination Detector',
+    description: 'Find unsupported claims in an answer',
+    icon: 'AlertTriangle',
+    color: '#10b981',
+    configSchema: verdictNodeSchema,
+    defaultConfig: { judgeProvider: 'openai', judgeModel: 'gpt-4o-mini', threshold: 0.7, timeout: 30000 },
+    inputs: [
+      { name: 'answer', type: 'string', required: true },
+      { name: 'context', type: 'string[]', required: true },
+      { name: 'question', type: 'string', required: false },
+    ],
+    outputs: [
+      { name: 'score', type: 'number' },
+      { name: 'verdict', type: 'string' },
+      { name: 'hallucinated_claims', type: 'array' },
+      { name: 'reasoning', type: 'string' },
+    ],
+  },
+
+  [NodeType.VERDICT_TOXICITY]: {
+    type: NodeType.VERDICT_TOXICITY,
+    category: NodeCategory.VERDICT,
+    name: 'Toxicity',
+    description: 'Score whether generated text is safe and non-toxic',
+    icon: 'Shield',
+    color: '#10b981',
+    configSchema: verdictNodeSchema,
+    defaultConfig: { judgeProvider: 'openai', judgeModel: 'gpt-4o-mini', threshold: 0.7, timeout: 30000 },
+    inputs: [{ name: 'text', type: 'string', required: true }],
+    outputs: [
+      { name: 'score', type: 'number' },
+      { name: 'verdict', type: 'string' },
+      { name: 'categories', type: 'array' },
+      { name: 'reasoning', type: 'string' },
+    ],
+  },
+
+  [NodeType.VERDICT_BATCH]: {
+    type: NodeType.VERDICT_BATCH,
+    category: NodeCategory.VERDICT,
+    name: 'Batch Verdict',
+    description: 'Run multiple answer quality evaluations in one node',
+    icon: 'LayoutList',
+    color: '#10b981',
+    configSchema: verdictNodeSchema,
+    defaultConfig: { judgeProvider: 'openai', judgeModel: 'gpt-4o-mini', threshold: 0.7, timeout: 30000 },
+    inputs: [
+      { name: 'answer', type: 'string', required: true },
+      { name: 'question', type: 'string', required: true },
+      { name: 'context', type: 'string[]', required: true },
+      { name: 'ground_truth', type: 'string', required: false },
+    ],
+    outputs: [
+      { name: 'faithfulness', type: 'object' },
+      { name: 'correctness', type: 'object' },
+      { name: 'relevance', type: 'object' },
+      { name: 'overall_score', type: 'number' },
+      { name: 'passed', type: 'boolean' },
+      { name: 'report', type: 'object' },
+    ],
   },
 
   ['data.csv_read']: {

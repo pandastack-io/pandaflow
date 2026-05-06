@@ -5,11 +5,12 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
-import { NodeType } from '@/types/nodes';
+import { NodeType, PRISM_PROVIDERS } from '@/types/nodes';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { getNodeForm } from '@/components/workflow/forms/index';
 
 type SecretSummary = {
@@ -218,6 +219,132 @@ const AI_MODELS: Partial<Record<NodeType, string[]>> = {
   [NodeType.AI_OLLAMA]: ['llama3.2', 'mistral', 'gemma2', 'phi3'],
 };
 
+const PRISM_PROVIDER_OPTIONS = Object.entries(PRISM_PROVIDERS) as Array<[
+  keyof typeof PRISM_PROVIDERS,
+  (typeof PRISM_PROVIDERS)[keyof typeof PRISM_PROVIDERS]
+]>;
+
+const PRISM_PROVIDER_ACCENTS: Record<string, string> = {
+  openai: '#10a37f',
+  anthropic: '#d4a373',
+  google: '#4285f4',
+  groq: '#f97316',
+  deepseek: '#2563eb',
+  perplexity: '#0f172a',
+  together: '#7c3aed',
+  fireworks: '#ef4444',
+  openrouter: '#8b5cf6',
+  ollama: '#14b8a6',
+  lmstudio: '#f59e0b',
+  azure: '#0ea5e9',
+  mistral: '#ff7000',
+  cohere: '#334155',
+  xai: '#111827',
+  sambanova: '#ec4899',
+};
+
+const PRISM_BASE_URL_PROVIDERS = new Set(['ollama', 'lmstudio', 'azure', 'openrouter']);
+
+const VERDICT_NODE_TYPES: NodeType[] = [
+  NodeType.VERDICT_FAITHFULNESS,
+  NodeType.VERDICT_CORRECTNESS,
+  NodeType.VERDICT_RELEVANCE,
+  NodeType.VERDICT_CONTEXT_PRECISION,
+  NodeType.VERDICT_CONTEXT_RECALL,
+  NodeType.VERDICT_HALLUCINATION,
+  NodeType.VERDICT_TOXICITY,
+  NodeType.VERDICT_BATCH,
+];
+
+function VerdictConfigForm({
+  nodeType,
+  config,
+  onChange,
+}: {
+  nodeType: NodeType;
+  config: Record<string, any>;
+  onChange: (config: any) => void;
+}) {
+  const metricLabel =
+    ({
+      [NodeType.VERDICT_FAITHFULNESS]: 'Faithfulness',
+      [NodeType.VERDICT_CORRECTNESS]: 'Correctness',
+      [NodeType.VERDICT_RELEVANCE]: 'Relevance',
+      [NodeType.VERDICT_CONTEXT_PRECISION]: 'Context Precision',
+      [NodeType.VERDICT_CONTEXT_RECALL]: 'Context Recall',
+      [NodeType.VERDICT_HALLUCINATION]: 'Hallucination',
+      [NodeType.VERDICT_TOXICITY]: 'Toxicity',
+      [NodeType.VERDICT_BATCH]: 'Batch Verdict',
+    } as Partial<Record<NodeType, string>>)[nodeType] ?? 'Verdict';
+
+  return (
+    <div className="space-y-4">
+      <Section
+        title="Judge Configuration"
+        description={`${metricLabel} uses an LLM-as-judge evaluator. Lower threshold = more lenient.`}
+      >
+        <Field label="Judge Provider">
+          <Select
+            value={config.judgeProvider || 'openai'}
+            onValueChange={(value) => onChange({ ...config, judgeProvider: value })}
+          >
+            <SelectTrigger className="h-9 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="openai">OpenAI</SelectItem>
+              <SelectItem value="anthropic">Anthropic</SelectItem>
+              <SelectItem value="google">Google</SelectItem>
+              <SelectItem value="custom">Custom</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+
+        <Field label="Judge Model" hint="Default: gpt-4o-mini for cost-efficient evaluation.">
+          <Input
+            value={config.judgeModel || ''}
+            onChange={(event) => updateConfig(config, onChange, 'judgeModel', event.target.value)}
+            placeholder="gpt-4o-mini"
+            className="h-9 text-sm"
+          />
+        </Field>
+
+        <Field label="Judge API Key">
+          <Input
+            type="password"
+            value={config.judgeApiKey || ''}
+            onChange={(event) => updateConfig(config, onChange, 'judgeApiKey', event.target.value)}
+            placeholder="sk-..."
+            className="h-9 text-sm"
+          />
+        </Field>
+
+        {(config.judgeProvider || 'openai') === 'custom' ? (
+          <Field label="Base URL" hint="Use for OpenAI-compatible endpoints such as Ollama or self-hosted gateways.">
+            <Input
+              value={config.judgeBaseUrl || ''}
+              onChange={(event) => updateConfig(config, onChange, 'judgeBaseUrl', event.target.value)}
+              placeholder="http://localhost:11434/v1"
+              className="h-9 text-sm"
+            />
+          </Field>
+        ) : null}
+
+        <RangeField
+          label="Threshold"
+          value={typeof config.threshold === 'number' ? config.threshold : 0.7}
+          onChange={(value) => updateConfig(config, onChange, 'threshold', value)}
+          min={0}
+          max={1}
+          step={0.05}
+          formatter={(value) => value.toFixed(2)}
+          hint="This node uses an LLM to evaluate quality. Lower threshold = more lenient."
+        />
+      </Section>
+    </div>
+  );
+}
+
 function LLMEnterpriseForm({
   nodeType,
   config,
@@ -333,6 +460,188 @@ function LLMEnterpriseForm({
             className="min-h-[120px] text-sm"
           />
         </Field>
+      </Section>
+    </div>
+  );
+}
+
+function PrismLLMConfigForm({
+  config,
+  onChange,
+  secrets,
+}: {
+  config: Record<string, any>;
+  onChange: (config: any) => void;
+  secrets: SecretSummary[];
+}) {
+  const providerKey = (typeof config.provider === 'string' && config.provider in PRISM_PROVIDERS
+    ? config.provider
+    : 'openai') as keyof typeof PRISM_PROVIDERS;
+  const providerConfig = PRISM_PROVIDERS[providerKey];
+  const models = [...providerConfig.models] as string[];
+  const currentModel = typeof config.model === 'string' && config.model.trim() ? config.model : models[0] ?? '';
+  const selectedModel = models.includes(currentModel) ? currentModel : '__custom__';
+  const linkedSecret = config.apiKeySecret || parseSecretReference(config.apiKey);
+  const showBaseUrl = PRISM_BASE_URL_PROVIDERS.has(providerKey);
+
+  return (
+    <div className="space-y-4">
+      <Section title="Gateway" description="Choose a provider, pick a model, and route through Prism's unified chat interface.">
+        <Field label="Provider">
+          <Select
+            value={providerKey}
+            onValueChange={(value) => {
+              const nextProvider = value as keyof typeof PRISM_PROVIDERS;
+              const nextProviderConfig = PRISM_PROVIDERS[nextProvider];
+              const currentBaseUrl = typeof config.baseUrl === 'string' ? config.baseUrl : '';
+              onChange({
+                ...config,
+                provider: nextProvider,
+                model: ([...nextProviderConfig.models] as string[]).includes(currentModel) ? currentModel : nextProviderConfig.models[0] ?? '',
+                baseUrl: PRISM_BASE_URL_PROVIDERS.has(nextProvider)
+                  ? (currentBaseUrl || nextProviderConfig.baseUrl || '')
+                  : '',
+              });
+            }}
+          >
+            <SelectTrigger className="h-9 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PRISM_PROVIDER_OPTIONS.map(([key, value]) => (
+                <SelectItem key={key} value={key}>
+                  <span className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: PRISM_PROVIDER_ACCENTS[key] ?? '#7c3aed' }} />
+                    <span>{value.label}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+
+        <Field label="Model">
+          <Select
+            value={selectedModel || '__custom__'}
+            onValueChange={(value) => {
+              if (value === '__custom__') {
+                updateConfig(config, onChange, 'model', currentModel || '');
+                return;
+              }
+              updateConfig(config, onChange, 'model', value);
+            }}
+          >
+            <SelectTrigger className="h-9 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {models.map((model) => (
+                <SelectItem key={model} value={model}>
+                  {model}
+                </SelectItem>
+              ))}
+              <SelectItem value="__custom__">Custom model…</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+
+        {selectedModel === '__custom__' && (
+          <Field label="Custom Model ID">
+            <Input
+              value={currentModel}
+              onChange={(event) => updateConfig(config, onChange, 'model', event.target.value)}
+              placeholder="Enter any provider model string"
+              className="h-9 text-sm"
+            />
+          </Field>
+        )}
+      </Section>
+
+      <Section title="Authentication" description={`Provide an API key directly or set ${providerConfig.envKey} in your environment.`}>
+        <Field label={`API Key (${providerConfig.envKey})`} hint="Supports raw keys or {{secret.NAME}} references.">
+          <Input
+            type="password"
+            value={config.apiKey || ''}
+            onChange={(event) =>
+              onChange({
+                ...config,
+                apiKey: event.target.value,
+                apiKeySecret: undefined,
+              })
+            }
+            placeholder={`Set ${providerConfig.envKey} or paste a key`}
+            className="h-9 text-sm"
+          />
+        </Field>
+
+        <SecretSelect
+          label="Link to Secret"
+          value={linkedSecret}
+          onChange={(secretName) =>
+            onChange({
+              ...config,
+              apiKeySecret: secretName || undefined,
+              apiKey: secretName ? toSecretTemplate(secretName) : '',
+            })
+          }
+          secrets={secrets}
+          hint="Optional: store the API key in /api/secrets and reference it at runtime."
+        />
+      </Section>
+
+      <Section title="Prompting" description="Tune the runtime behavior for every Prism call.">
+        <Field label="System Prompt" hint="Applied before the incoming prompt input.">
+          <Textarea
+            value={config.systemPrompt || ''}
+            onChange={(event) => updateConfig(config, onChange, 'systemPrompt', event.target.value)}
+            placeholder="You are a helpful assistant..."
+            className="min-h-[140px] font-mono text-xs"
+          />
+        </Field>
+
+        <div className="grid gap-3 md:grid-cols-2">
+          <RangeField
+            label="Temperature"
+            value={typeof config.temperature === 'number' ? config.temperature : 0.7}
+            onChange={(value) => updateConfig(config, onChange, 'temperature', value)}
+            min={0}
+            max={2}
+            step={0.1}
+            formatter={(value) => value.toFixed(1)}
+          />
+          <Field label="Max Tokens">
+            <Input
+              type="number"
+              min={1}
+              value={config.maxTokens ?? 1024}
+              onChange={(event) => updateConfig(config, onChange, 'maxTokens', Number(event.target.value) || 0)}
+              className="h-9 text-sm"
+            />
+          </Field>
+        </div>
+      </Section>
+
+      {showBaseUrl && (
+        <Section title="Endpoint" description="Override the base URL for compatible gateways, local runtimes, or Azure deployments.">
+          <Field label="Base URL" hint={providerKey === 'azure' ? 'Use the full Azure chat completions endpoint including api-version.' : undefined}>
+            <Input
+              value={config.baseUrl || providerConfig.baseUrl || ''}
+              onChange={(event) => updateConfig(config, onChange, 'baseUrl', event.target.value)}
+              placeholder={providerConfig.baseUrl || ''}
+              className="h-9 text-sm"
+            />
+          </Field>
+        </Section>
+      )}
+
+      <Section title="Output" description="Streaming can be enabled for downstream consumers that expect incremental text.">
+        <div className="flex items-center justify-between rounded-md border border-border/60 bg-background/60 px-3 py-2">
+          <div>
+            <Label className="text-sm">Stream output</Label>
+            <p className="text-xs text-muted-foreground">Persist the stream preference on the node configuration.</p>
+          </div>
+          <Switch checked={Boolean(config.streamOutput)} onCheckedChange={(checked) => updateConfig(config, onChange, 'streamOutput', checked)} />
+        </div>
       </Section>
     </div>
   );
@@ -706,8 +1015,16 @@ export function NodeConfigForm({ nodeType, config, onChange, nodeId }: NodeConfi
   const secrets = useSecrets();
 
   const enhancedForm = useMemo(() => {
+    if (nodeType === NodeType.PRISM_LLM) {
+      return <PrismLLMConfigForm config={config ?? {}} onChange={onChange} secrets={secrets} />;
+    }
+
     if ([NodeType.AI_LLM, NodeType.AI_ANTHROPIC, NodeType.AI_MISTRAL, NodeType.AI_GROQ, NodeType.AI_OLLAMA].includes(nodeType)) {
       return <LLMEnterpriseForm nodeType={nodeType} config={config ?? {}} onChange={onChange} secrets={secrets} />;
+    }
+
+    if (VERDICT_NODE_TYPES.includes(nodeType)) {
+      return <VerdictConfigForm nodeType={nodeType} config={config ?? {}} onChange={onChange} />;
     }
 
     if ([NodeType.VECTORSTORE_PINECONE, NodeType.VECTORSTORE_QDRANT, NodeType.VECTORSTORE_CHROMA, NodeType.VECTORSTORE_WEAVIATE, NodeType.VECTORSTORE_PGVECTOR, NodeType.VECTORSTORE_REDIS].includes(nodeType)) {

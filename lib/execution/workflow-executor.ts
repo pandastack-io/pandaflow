@@ -9,7 +9,7 @@ import { Parser } from 'expr-eval';
 import { JSONPath } from 'jsonpath-plus';
 import jmespath from 'jmespath';
 import { getNodeExecutor } from './node-executors/index';
-import { generateText } from './node-executors/ai';
+import { generateText, prismChat } from './node-executors/ai';
 import { getNodeByType } from '@/lib/nodes/registry';
 import type { ExecutorContext } from './node-executors/types';
 import { executionEmitter } from './execution-emitter';
@@ -1256,6 +1256,10 @@ export class WorkflowExecutor {
         result = await this.executeSandflareScrape(node, context);
         break;
 
+      case NodeType.PRISM_LLM:
+        result = await this.executePrismLLM(node, definition, context);
+        break;
+
       case NodeType.AI_LLM:
         result = await this.executeAILLM(node, context);
         break;
@@ -1718,6 +1722,33 @@ export class WorkflowExecutor {
       html: result.html,
       text: result.text,
       extractedData: result.extractedData,
+    };
+  }
+
+  private async executePrismLLM(
+    node: Node<WorkflowNodeData>,
+    definition: { nodes: Node<WorkflowNodeData>[]; edges: Edge[] },
+    context: ExecutionContext
+  ): Promise<any> {
+    const config = (node.data.config ?? {}) as Record<string, any>;
+    const inputText = this.extractTextValue(this.getNodeInput(node, context, definition)).trim();
+    const promptTemplate = typeof config.prompt === 'string' ? this.interpolateText(config.prompt, context).trim() : '';
+    const prompt = [promptTemplate, inputText].filter(Boolean).join('\n\n').trim();
+
+    if (!prompt) {
+      throw new Error('Prism LLM requires prompt input');
+    }
+
+    const response = await prismChat(config, [{ role: 'user', content: prompt }], context);
+
+    return {
+      output: response.text,
+      text: response.text,
+      usage: response.usage,
+      provider: response.provider,
+      model: response.model,
+      cost: response.cost ?? 0,
+      raw: response.raw,
     };
   }
 
