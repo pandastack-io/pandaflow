@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { NodeCategory, NodeType } from '@/types/nodes';
+import { NodeCategory, NodeType, type SubNodeRole, getSubNodeRoleForType } from '@/types/nodes';
 import { nodeRegistry } from '@/lib/nodes/registry';
 import { useWorkflowStore } from '@/lib/stores/workflow-store';
 import * as LucideIcons from 'lucide-react';
@@ -151,10 +151,14 @@ function PaletteNodeItem({
 
 export function NodePalette({
   autoFocusSearch = false,
+  filterRole,
+  onAddNode,
   onNodeAdded,
 }: {
   autoFocusSearch?: boolean;
-  onNodeAdded?: () => void;
+  filterRole?: SubNodeRole;
+  onAddNode?: (nodeType: NodeType) => void;
+  onNodeAdded?: (nodeType: NodeType) => void;
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -192,8 +196,12 @@ export function NodePalette({
   }, [autoFocusSearch]);
 
   const handleAddNode = (nodeType: NodeType) => {
-    addNode(nodeType, { x: 250, y: 150 });
-    onNodeAdded?.();
+    if (onAddNode) {
+      onAddNode(nodeType);
+    } else {
+      addNode(nodeType, { x: 250, y: 150 }, { subNodeRole: null });
+    }
+    onNodeAdded?.(nodeType);
   };
 
   const handleTogglePin = (nodeType: NodeType) => {
@@ -219,6 +227,10 @@ export function NodePalette({
   };
 
   const filteredNodes = useMemo(() => Object.values(nodeRegistry).filter((node) => {
+    const matchesRole = !filterRole || getSubNodeRoleForType(node.type, node.category) === filterRole;
+    if (!matchesRole) {
+      return false;
+    }
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
@@ -227,7 +239,7 @@ export function NodePalette({
       node.type.toLowerCase().includes(query) ||
       String(node.category).toLowerCase().includes(query)
     );
-  }), [searchQuery]);
+  }), [filterRole, searchQuery]);
 
   const pinnedVisibleNodes = useMemo(
     () => pinnedNodes.filter((nodeType) => filteredNodes.some((node) => node.type === nodeType)),
@@ -247,7 +259,8 @@ export function NodePalette({
   return (
     <div className="flex h-full flex-col border-r border-border bg-card">
       <div className="border-b border-border p-4">
-        <h3 className="mb-3 font-semibold">Nodes</h3>
+        <h3 className="mb-1 font-semibold">Nodes</h3>
+        {filterRole && <div className="mb-3 text-xs text-muted-foreground">Filtered for {filterRole} sub-nodes</div>}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input

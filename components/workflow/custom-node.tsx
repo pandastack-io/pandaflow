@@ -10,7 +10,7 @@ import { getNodeByType } from '@/lib/nodes/registry';
 import { validateNodeConfig } from '@/lib/nodes/validation';
 import { useWorkflowStore } from '@/lib/stores/workflow-store';
 import { cn } from '@/lib/utils';
-import { NodeType, type NodeExecutionOutput, type WorkflowNodeData } from '@/types/nodes';
+import { AGENT_NODE_TYPES, NodeType, type NodeExecutionOutput, type WorkflowNodeData } from '@/types/nodes';
 
 const DEFAULT_ICON = 'Box';
 
@@ -41,6 +41,7 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
   const setOutputPanelNodeId = useWorkflowStore((state) => state.setOutputPanelNodeId);
   const debugPausedAtNode = useWorkflowStore((state) => state.debugPausedAtNode);
   const connectionPreview = useWorkflowStore((state) => state.connectionPreview);
+  const edges = useWorkflowStore((state) => state.edges);
   const [isHovered, setIsHovered] = useState(false);
   const [showCompletedBadge, setShowCompletedBadge] = useState(false);
   const runtimeData = data as RuntimeNodeData;
@@ -50,6 +51,7 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
   const status = executionState?.status || data.executionStatus || fallbackStatus;
   const durationLabel = formatDuration(executionState?.durationMs);
   const isDebugPaused = debugPausedAtNode === id;
+  const isAgentNode = (AGENT_NODE_TYPES as readonly NodeType[]).includes(data.type);
 
   useEffect(() => {
     if (status !== 'completed') {
@@ -119,6 +121,7 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
     status === 'completed' &&
     typeof executionOutput !== 'undefined' &&
     (typeof executionOutput.output !== 'undefined' || Boolean(executionOutput.error));
+  const connectedToolCount = edges.filter((edge) => edge.target === id && edge.targetHandle === 'tool' && edge.data?.isDependency).length;
 
   const handleShowOutput = () => {
     selectNode(id);
@@ -135,6 +138,10 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
 
   const handleRunSingleNode = () => {
     window.dispatchEvent(new CustomEvent('run-single-node', { detail: { nodeId: id } }));
+  };
+
+  const handleOpenToolPalette = () => {
+    window.dispatchEvent(new CustomEvent('open-sub-node-palette', { detail: { nodeId: id, role: 'tool' } }));
   };
 
   return (
@@ -211,7 +218,7 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
         </div>
       )}
 
-      {nodeInfo.inputs.length > 0 && (
+      {(nodeInfo.inputs.length > 0 || isAgentNode) && (
         <>
           <Handle
             type="target"
@@ -286,6 +293,48 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
         </div>
         <div className={cn('h-2 w-2 rounded-full', statusDotColors[status])} />
       </div>
+
+      {isAgentNode && (
+        <div className="mt-3 border-t border-dashed border-border/70 pt-3">
+          <div className="grid grid-cols-[repeat(3,minmax(0,1fr))_auto] items-start gap-2">
+            {[
+              { id: 'model', label: 'Chat Model*', color: 'text-violet-300', handle: '!bg-violet-500' },
+              { id: 'memory', label: 'Memory', color: 'text-emerald-300', handle: '!bg-emerald-500' },
+              { id: 'tool', label: connectedToolCount > 0 ? `Tool (${connectedToolCount})` : 'Tool', color: 'text-amber-300', handle: '!bg-amber-500' },
+            ].map((slot) => (
+              <div key={slot.id} className="relative flex flex-col items-center gap-3 text-center">
+                <Handle
+                  type="target"
+                  position={Position.Bottom}
+                  id={slot.id}
+                  className={cn(
+                    '!top-auto !h-3 !w-3 !border-2 !border-background !bg-transparent',
+                    slot.handle
+                  )}
+                  style={{
+                    left: '50%',
+                    bottom: -18,
+                    borderRadius: 2,
+                    transform: 'translateX(-50%) rotate(45deg)',
+                  }}
+                />
+                <div className={cn('text-[10px] font-semibold uppercase tracking-[0.14em]', slot.color)}>{slot.label}</div>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                handleOpenToolPalette();
+              }}
+              className="nowheel nodrag nopan flex h-7 w-7 items-center justify-center self-center rounded-full border border-dashed border-amber-500/60 bg-amber-500/10 text-amber-300 transition hover:bg-amber-500/20"
+              title="Attach tool sub-node"
+            >
+              <LucideIcons.Plus className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {(executionState?.error || data.error) && status === 'failed' && (
         <div className="group/err absolute -bottom-2 left-1/2 z-20 -translate-x-1/2">

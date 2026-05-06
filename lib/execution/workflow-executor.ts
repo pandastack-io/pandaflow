@@ -120,7 +120,7 @@ function buildNodeInputSnapshot(
   definition: { nodes: Node<WorkflowNodeData>[]; edges: Edge[] },
   context: ExecutionContext
 ) {
-  const incomingEdges = definition.edges.filter((edge) => edge.target === node.id);
+  const incomingEdges = definition.edges.filter((edge) => edge.target === node.id && !edge.data?.isDependency);
 
   if (incomingEdges.length === 0) {
     return Object.keys(context.variables).length > 0
@@ -385,7 +385,7 @@ export class WorkflowExecutor {
     context: ExecutionContext
   ): any[] {
     return definition.edges
-      .filter((edge) => edge.target === node.id)
+      .filter((edge) => edge.target === node.id && !edge.data?.isDependency)
       .map((edge) => context.nodeOutputs[edge.source])
       .filter((value) => value !== undefined);
   }
@@ -1534,7 +1534,7 @@ export class WorkflowExecutor {
     // to this parent node.
 
       // Find and execute connected nodes — respect branch routing for condition/switch nodes
-      const outgoingEdges = definition.edges.filter((edge) => edge.source === node.id);
+      const outgoingEdges = definition.edges.filter((edge) => edge.source === node.id && !edge.data?.isDependency);
 
       // Determine active branch if this is a branching node
       const activeBranch: string | null = (() => {

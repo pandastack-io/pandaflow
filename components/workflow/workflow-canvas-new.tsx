@@ -8,6 +8,7 @@ import ReactFlow, {
   MiniMap,
   ReactFlowProvider,
   NodeTypes,
+  type Connection,
   type Edge,
   type IsValidConnection,
   type Node,
@@ -21,14 +22,19 @@ import { Button } from '@/components/ui/button';
 import { useWorkflowStore } from '@/lib/stores/workflow-store';
 import { getNodeByType } from '@/lib/nodes/registry';
 import { CustomNode } from './custom-node';
+import { SubNode } from './sub-node';
 import { StickyNoteNode, type StickyNoteNodeData } from './sticky-note-node';
 import { NodePalette } from './node-palette';
 import { NodeConfigPanel } from './node-config-panel';
 import {
+  AGENT_NODE_TYPES,
   WorkflowNodeData,
   type NodeExecutionOutput,
   NodeType,
   type StickyNote,
+  getSubNodeRoleForType,
+  isDependencyHandleId,
+  type SubNodeRole,
 } from '@/types/nodes';
 import type { NodeExecutionState as StreamNodeExecutionState } from '@/hooks/use-execution-stream';
 import { cn } from '@/lib/utils';
@@ -38,8 +44,32 @@ const STICKY_NOTE_HEIGHT = 200;
 
 const nodeTypes: NodeTypes = {
   custom: CustomNode,
+  subNode: SubNode,
   stickyNote: StickyNoteNode,
 };
+
+const dependencyEdgeStyle = {
+  strokeDasharray: '6 4',
+  stroke: 'rgba(148,163,184,0.5)',
+  strokeWidth: 1.5,
+  opacity: 0.85,
+};
+
+function getDependencyDropTarget(target: EventTarget | null): { nodeId: string; role: SubNodeRole } | null {
+  if (!(target instanceof HTMLElement)) {
+    return null;
+  }
+
+  const handle = target.closest('.react-flow__handle') as HTMLElement | null;
+  const handleId = handle?.getAttribute('data-handleid') ?? handle?.dataset.handleid ?? null;
+  const nodeId = handle?.getAttribute('data-nodeid') ?? handle?.dataset.nodeid ?? null;
+
+  if (!isDependencyHandleId(handleId) || !nodeId) {
+    return null;
+  }
+
+  return { nodeId, role: handleId };
+}
 
 type CanvasExecutionStatus = NonNullable<WorkflowNodeData['executionStatus']>;
 
@@ -144,6 +174,8 @@ function WorkflowCanvasInner({
   const [selectedStickyNoteId, setSelectedStickyNoteId] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{ screenX: number; screenY: number; flowX: number; flowY: number } | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [paletteFilterRole, setPaletteFilterRole] = useState<SubNodeRole | undefined>();
+  const [paletteTargetNodeId, setPaletteTargetNodeId] = useState<string | null>(null);
   const [variablesOpen, setVariablesOpen] = useState(false);
   const [copiedVariable, setCopiedVariable] = useState<string | null>(null);
 
@@ -192,6 +224,67 @@ function WorkflowCanvasInner({
     return () => window.clearTimeout(timeout);
   }, [copiedVariable]);
 
+  const closePalette = useCallback(() => {
+    setPaletteOpen(false);
+    setPaletteFilterRole(undefined);
+    setPaletteTargetNodeId(null);
+  }, []);
+
+  const getPaletteNodePosition = useCallback((targetNodeId: string, role: SubNodeRole) => {
+    const targetNode = nodes.find((node) => node.id === targetNodeId);
+    if (!targetNode) {
+      return null;
+    }
+
+    const connectedCount = edges.filter((edge) => edge.target === targetNodeId && edge.targetHandle === role && edge.data?.isDependency).length;
+    const roleOffset = role === 'model' ? -120 : role === 'memory' ? 0 : 120 + connectedCount * 110;
+
+    return {
+      x: targetNode.position.x + roleOffset,
+      y: targetNode.position.y + 170,
+    };
+  }, [edges, nodes]);
+
+  const addNodeFromPalette = useCallback((nodeType: NodeType) => {
+    if (!reactFlowWrapper.current) {
+      return;
+    }
+
+    const explicitRole = paletteFilterRole ?? getSubNodeRoleForType(nodeType, getNodeByType(nodeType)?.category);
+    if (paletteTargetNodeId && paletteFilterRole && explicitRole === paletteFilterRole) {
+      const position = getPaletteNodePosition(paletteTargetNodeId, paletteFilterRole);
+      const newNode = addNode(nodeType, position ?? undefined, { subNodeRole: paletteFilterRole });
+      if (newNode) {
+        onConnect({
+          source: newNode.id,
+          sourceHandle: 'output',
+          target: paletteTargetNodeId,
+          targetHandle: paletteFilterRole,
+        } as Connection);
+      }
+      return;
+    }
+
+    const bounds = reactFlowWrapper.current.getBoundingClientRect();
+    const center = project({ x: bounds.width / 2, y: bounds.height / 2 });
+    addNode(nodeType, { x: center.x - 110, y: center.y - 50 }, { subNodeRole: null });
+  }, [addNode, getPaletteNodePosition, onConnect, paletteFilterRole, paletteTargetNodeId, project]);
+
+  useEffect(() => {
+    const handleOpenSubNodePalette = (event: Event) => {
+      const detail = (event as CustomEvent<{ nodeId?: string; role?: SubNodeRole }>).detail;
+      if (!detail?.nodeId || !detail.role) {
+        return;
+      }
+      setPaletteTargetNodeId(detail.nodeId);
+      setPaletteFilterRole(detail.role);
+      setPaletteOpen(true);
+    };
+
+    window.addEventListener('open-sub-node-palette', handleOpenSubNodePalette as EventListener);
+    return () => window.removeEventListener('open-sub-node-palette', handleOpenSubNodePalette as EventListener);
+  }, []);
+
   const availableVariables = useMemo(
     () =>
       nodes.flatMap((node) =>
@@ -217,6 +310,7 @@ function WorkflowCanvasInner({
 
       return {
         ...node,
+        type: node.data.subNodeRole ? 'subNode' : node.type,
         data: {
           ...(node.data as WorkflowNodeData & {
             executionState?: CanvasNodeExecutionState;
@@ -253,51 +347,64 @@ function WorkflowCanvasInner({
     return [...workflowNodes, ...noteNodes];
   }, [executionOutputs, nodeExecutionMap, nodes, selectedStickyNoteId, stickyNotes]);
 
-  const animatedEdges = useMemo<Edge[]>(() => {
-    if (!executionId) {
-      return edges;
+  const animatedEdges = useMemo<Edge[]>(() => edges.map((edge) => {
+    if (edge.data?.isDependency) {
+      return {
+        ...edge,
+        animated: false,
+        style: {
+          ...edge.style,
+          ...dependencyEdgeStyle,
+        },
+      };
     }
 
-    return edges.map((edge) => {
-      const sourceState = nodeExecutionMap[edge.source]?.status;
-      const targetState = nodeExecutionMap[edge.target]?.status;
-      const isFlowing = isRunning && sourceState === 'completed' && targetState === 'running';
-      const isFailedPath = sourceState === 'failed' || targetState === 'failed';
-
-      if (isFlowing) {
-        return {
-          ...edge,
-          animated: true,
-          style: {
-            ...edge.style,
-            stroke: '#3b82f6',
-            strokeWidth: 2,
-            opacity: 1,
-            filter: 'drop-shadow(0 0 6px rgba(59,130,246,0.45))',
-          },
-        };
-      }
-
-      if (isFailedPath) {
-        return {
-          ...edge,
-          animated: false,
-          style: {
-            ...edge.style,
-            stroke: 'var(--color-red-500)',
-            strokeWidth: 2.5,
-            opacity: 0.95,
-          },
-        };
-      }
-
+    if (!executionId) {
       return {
         ...edge,
         animated: false,
         style: edge.style ? { ...edge.style } : undefined,
       };
-    });
-  }, [edges, executionId, isRunning, nodeExecutionMap]);
+    }
+
+    const sourceState = nodeExecutionMap[edge.source]?.status;
+    const targetState = nodeExecutionMap[edge.target]?.status;
+    const isFlowing = isRunning && sourceState === 'completed' && targetState === 'running';
+    const isFailedPath = sourceState === 'failed' || targetState === 'failed';
+
+    if (isFlowing) {
+      return {
+        ...edge,
+        animated: true,
+        style: {
+          ...edge.style,
+          stroke: '#3b82f6',
+          strokeWidth: 2,
+          opacity: 1,
+          filter: 'drop-shadow(0 0 6px rgba(59,130,246,0.45))',
+        },
+      };
+    }
+
+    if (isFailedPath) {
+      return {
+        ...edge,
+        animated: false,
+        style: {
+          ...edge.style,
+          stroke: 'var(--color-red-500)',
+          strokeWidth: 2.5,
+          opacity: 0.95,
+        },
+      };
+    }
+
+    return {
+      ...edge,
+      animated: false,
+      style: edge.style ? { ...edge.style } : undefined,
+    };
+  }), [edges, executionId, isRunning, nodeExecutionMap]);
 
   useEffect(() => {
     onFitViewReady?.(() => fitView({ padding: 0.2, duration: 400 }));
@@ -336,6 +443,8 @@ function WorkflowCanvasInner({
 
       if (event.code === 'Space') {
         event.preventDefault();
+        setPaletteFilterRole(undefined);
+        setPaletteTargetNodeId(null);
         setPaletteOpen(true);
         return;
       }
@@ -495,11 +604,27 @@ function WorkflowCanvasInner({
         x: (event.clientX - reactFlowBounds.left - viewport.x) / viewport.zoom - 110,
         y: (event.clientY - reactFlowBounds.top - viewport.y) / viewport.zoom - 50,
       };
+      const dropTarget = getDependencyDropTarget(document.elementFromPoint(event.clientX, event.clientY) ?? event.target);
+      const subNodeRole = getSubNodeRoleForType(nodeType, getNodeByType(nodeType)?.category);
 
-      addNode(nodeType, position);
+      if (dropTarget && subNodeRole === dropTarget.role) {
+        const dependencyPosition = getPaletteNodePosition(dropTarget.nodeId, dropTarget.role) ?? position;
+        const newNode = addNode(nodeType, dependencyPosition, { subNodeRole: dropTarget.role });
+        if (newNode) {
+          onConnect({
+            source: newNode.id,
+            sourceHandle: 'output',
+            target: dropTarget.nodeId,
+            targetHandle: dropTarget.role,
+          } as Connection);
+        }
+      } else {
+        addNode(nodeType, position, { subNodeRole: null });
+      }
+
       setSelectedStickyNoteId(null);
     },
-    [addNode, getViewport]
+    [addNode, getPaletteNodePosition, getViewport, onConnect]
   );
 
   const onNodeClick = useCallback(
@@ -538,9 +663,15 @@ function WorkflowCanvasInner({
       return false;
     }
 
+    const sourceNode = nodes.find((node) => node.id === connection.source);
     const targetNode = nodes.find((node) => node.id === connection.target);
-    if (!targetNode) {
+    if (!sourceNode || !targetNode) {
       return false;
+    }
+
+    if (isDependencyHandleId(connection.targetHandle)) {
+      const sourceRole = sourceNode.data.subNodeRole ?? getSubNodeRoleForType(sourceNode.data.type, sourceNode.data.category);
+      return sourceRole === connection.targetHandle && (AGENT_NODE_TYPES as readonly NodeType[]).includes(targetNode.data.type);
     }
 
     const targetInfo = getNodeByType(targetNode.data.type);
@@ -554,10 +685,15 @@ function WorkflowCanvasInner({
       return;
     }
 
+    const sourceNode = nodes.find((node) => node.id === sourceNodeId);
+    const sourceRole = sourceNode ? (sourceNode.data.subNodeRole ?? getSubNodeRoleForType(sourceNode.data.type, sourceNode.data.category)) : undefined;
     const compatibleTargetNodeIds = nodes
       .filter((node) => node.id !== sourceNodeId)
       .filter((node) => !stickyNoteIds.has(node.id))
       .filter((node) => {
+        if (sourceRole) {
+          return (AGENT_NODE_TYPES as readonly NodeType[]).includes(node.data.type);
+        }
         const nodeInfo = getNodeByType(node.data.type);
         return Boolean(nodeInfo && nodeInfo.inputs.length > 0);
       })
@@ -590,11 +726,19 @@ function WorkflowCanvasInner({
   return (
     <div className="relative flex h-full min-h-0">
       <div className="relative min-h-0 flex-1" ref={reactFlowWrapper}>
-        {paletteOpen && <div className="absolute inset-0 z-[25] bg-background/40 backdrop-blur-[1px]" onClick={() => setPaletteOpen(false)} />}
+        {paletteOpen && <div className="absolute inset-0 z-[25] bg-background/40 backdrop-blur-[1px]" onClick={closePalette} />}
 
         <button
           type="button"
-          onClick={() => setPaletteOpen((current) => !current)}
+          onClick={() => {
+            if (paletteOpen && !paletteFilterRole) {
+              closePalette();
+              return;
+            }
+            setPaletteFilterRole(undefined);
+            setPaletteTargetNodeId(null);
+            setPaletteOpen(true);
+          }}
           title={paletteOpen ? 'Close node palette' : 'Open node palette'}
           aria-label={paletteOpen ? 'Close node palette' : 'Open node palette'}
           className={cn(
@@ -611,7 +755,12 @@ function WorkflowCanvasInner({
             paletteOpen ? 'translate-x-0 opacity-100' : 'pointer-events-none -translate-x-full opacity-0'
           )}
         >
-          <NodePalette autoFocusSearch={paletteOpen} onNodeAdded={() => setPaletteOpen(false)} />
+          <NodePalette
+            autoFocusSearch={paletteOpen}
+            filterRole={paletteFilterRole}
+            onAddNode={addNodeFromPalette}
+            onNodeAdded={() => closePalette()}
+          />
         </div>
         {!hasCanvasNodes && (
           <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
