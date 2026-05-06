@@ -24,6 +24,7 @@ import { integrationDevtoolsExecutors } from './integration-devtools';
 import { integrationPaymentExecutors } from './integration-payment';
 import { integrationAnalyticsExecutors } from './integration-analytics';
 import { ragExecutors } from './rag';
+import { verdictExecutors } from './verdict';
 
 export const nodeExecutorRegistry: Partial<Record<NodeType, NodeExecutorFn>> = {
   ...triggerExecutors,
@@ -33,6 +34,7 @@ export const nodeExecutorRegistry: Partial<Record<NodeType, NodeExecutorFn>> = {
   ...memoryExecutors,
   ...aiExecutors,
   ...ragExecutors,
+  ...verdictExecutors,
   ...transformExecutors,
   ...controlExecutors,
   ...integrationApiExecutors,

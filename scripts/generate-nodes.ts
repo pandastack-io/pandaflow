@@ -196,6 +196,16 @@ const allNodes = [
   { type: NodeType.UTILITY_TEMPLATE, category: NodeCategory.UTILITY, name: 'Template', description: 'Template engine', icon: 'FileText' },
   { type: NodeType.UTILITY_RANDOM, category: NodeCategory.UTILITY, name: 'Random', description: 'Random data', icon: 'Shuffle' },
 
+  // Verdict (8)
+  { type: NodeType.VERDICT_FAITHFULNESS, category: NodeCategory.VERDICT, name: 'Faithfulness', description: 'Score whether an answer stays grounded in the provided context', icon: 'Scale' },
+  { type: NodeType.VERDICT_CORRECTNESS, category: NodeCategory.VERDICT, name: 'Correctness', description: 'Compare an answer against ground truth facts', icon: 'CheckCircle' },
+  { type: NodeType.VERDICT_RELEVANCE, category: NodeCategory.VERDICT, name: 'Relevance', description: 'Judge how directly the answer addresses the question', icon: 'Target' },
+  { type: NodeType.VERDICT_CONTEXT_PRECISION, category: NodeCategory.VERDICT, name: 'Context Precision', description: 'Measure how much retrieved context was actually useful', icon: 'Filter' },
+  { type: NodeType.VERDICT_CONTEXT_RECALL, category: NodeCategory.VERDICT, name: 'Context Recall', description: 'Measure whether retrieval found all needed information', icon: 'Search' },
+  { type: NodeType.VERDICT_HALLUCINATION, category: NodeCategory.VERDICT, name: 'Hallucination Detector', description: 'Find unsupported claims in an answer', icon: 'AlertTriangle' },
+  { type: NodeType.VERDICT_TOXICITY, category: NodeCategory.VERDICT, name: 'Toxicity', description: 'Score whether generated text is safe and non-toxic', icon: 'Shield' },
+  { type: NodeType.VERDICT_BATCH, category: NodeCategory.VERDICT, name: 'Batch Verdict', description: 'Run multiple answer quality evaluations in one node', icon: 'LayoutList' },
+
   // Data Sources (5)
   { type: NodeType.DATA_CSV_READ, category: NodeCategory.DATA, name: 'Read CSV', description: 'Read CSV file', icon: 'FileText' },
   { type: NodeType.DATA_JSON_READ, category: NodeCategory.DATA, name: 'Read JSON', description: 'Read JSON file', icon: 'Braces' },
@@ -224,6 +234,7 @@ function generateRegistry() {
     [NodeCategory.OUTPUT]: '#84cc16',
     [NodeCategory.UTILITY]: '#94a3b8',
     [NodeCategory.DATA]: '#f97316',
+    [NodeCategory.VERDICT]: '#10b981',
   };
 
   let code = `import { z } from 'zod';

@@ -313,7 +313,6 @@ export enum NodeType {
 
   // Prism - Universal LLM Gateway
   PRISM_LLM = 'prism.llm',
-
   // Data Sources (5 types)
   DATA_CSV_READ = 'data.csv_read',
   DATA_JSON_READ = 'data.json_read',
@@ -1002,7 +1001,6 @@ export const AGENT_NODE_TYPES = [
   NodeType.AGENT_WORKER,
   NodeType.AGENT_PLANNER,
 ] as const;
-
 export const DEPENDENCY_HANDLE_IDS = ['model', 'memory', 'tool'] as const satisfies readonly SubNodeRole[];
 
 export function isDependencyHandleId(value?: string | null): value is SubNodeRole {
@@ -1018,7 +1016,7 @@ export function getSubNodeRoleForType(type: NodeType, category?: NodeCategory): 
     return 'memory';
   }
 
-  if (type === NodeType.AGENT_TOOL || category === NodeCategory.INTEGRATION || category === NodeCategory.TOOL) {
+  if (type === NodeType.AGENT_TOOL || category === NodeCategory.TOOL || category === NodeCategory.INTEGRATION) {
     return 'tool';
   }
 
