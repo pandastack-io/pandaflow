@@ -1,0 +1,267 @@
+{
+  "metadata": {
+    "name": "Loop Workflow",
+    "description": "Test workflow that loops over an array, executes code for each item, and aggregates results",
+    "version": "1.0.0",
+    "tags": ["test", "loop", "iteration", "aggregate"]
+  },
+  "nodes": [
+    {
+      "id": "trigger-manual-1",
+      "type": "custom",
+      "position": {
+        "x": 100,
+        "y": 200
+      },
+      "data": {
+        "type": "trigger.manual",
+        "category": "trigger",
+        "config": {
+          "label": "Start Loop Process",
+          "description": "Manual trigger to initiate array processing",
+          "inputSchema": {
+            "numbers": {
+              "type": "array",
+              "description": "Array of numbers to process (default: [1,2,3,4,5])"
+            }
+          }
+        },
+        "status": "idle"
+      }
+    },
+    {
+      "id": "transform-prepare-1",
+      "type": "custom",
+      "position": {
+        "x": 400,
+        "y": 200
+      },
+      "data": {
+        "type": "transform.data",
+        "category": "transform",
+        "config": {
+          "label": "Prepare Array",
+          "description": "Prepare the input array with default values if needed",
+          "transformType": "javascript",
+          "transformation": "return {\n  numbers: input.numbers || [1, 2, 3, 4, 5],\n  totalItems: (input.numbers || [1, 2, 3, 4, 5]).length,\n  startTime: Date.now()\n};"
+        },
+        "status": "idle"
+      }
+    },
+    {
+      "id": "loop-1",
+      "type": "custom",
+      "position": {
+        "x": 700,
+        "y": 200
+      },
+      "data": {
+        "type": "control.loop",
+        "category": "control",
+        "config": {
+          "label": "Loop Over Numbers",
+          "description": "Iterate over each number in the array",
+          "loopType": "forEach",
+          "array": "{{transform-prepare-1.output.numbers}}",
+          "maxIterations": 100,
+          "parallel": false,
+          "batchSize": null
+        },
+        "status": "idle"
+      }
+    },
+    {
+      "id": "sandflare-execute-1",
+      "type": "custom",
+      "position": {
+        "x": 1000,
+        "y": 200
+      },
+      "data": {
+        "type": "sandflare.execute",
+        "category": "sandflare",
+        "config": {
+          "label": "Process Each Item",
+          "description": "Execute Python code to process each array item",
+          "language": "python",
+          "code": "import json\nimport math\n\n# Get the current item and index from loop\nitem = input_json.get('item', 0)\nindex = input_json.get('index', 0)\n\n# Process the item - calculate multiple properties\nresult = {\n    'index': index,\n    'original': item,\n    'squared': item ** 2,\n    'cubed': item ** 3,\n    'sqrt': math.sqrt(item) if item >= 0 else 0,\n    'doubled': item * 2,\n    'is_even': item % 2 == 0,\n    'is_prime': is_prime(item),\n    'factorial': math.factorial(item) if item >= 0 and item <= 20 else None\n}\n\ndef is_prime(n):\n    if n < 2:\n        return False\n    for i in range(2, int(math.sqrt(n)) + 1):\n        if n % i == 0:\n            return False\n    return True\n\n# Add the prime check result\nresult['is_prime'] = is_prime(item)\n\nprint(f\"Processed item {index}: {item} -> {json.dumps(result)}\")\noutput_json = result",
+          "environment": {
+            "PYTHON_VERSION": "3.11"
+          },
+          "packages": [],
+          "timeout": 30000,
+          "memoryLimit": 512
+        },
+        "status": "idle"
+      }
+    },
+    {
+      "id": "log-iteration-1",
+      "type": "custom",
+      "position": {
+        "x": 1300,
+        "y": 200
+      },
+      "data": {
+        "type": "utility.log",
+        "category": "utility",
+        "config": {
+          "label": "Log Each Result",
+          "description": "Log the processing result for each iteration"
+        },
+        "status": "idle"
+      }
+    },
+    {
+      "id": "aggregate-1",
+      "type": "custom",
+      "position": {
+        "x": 1000,
+        "y": 400
+      },
+      "data": {
+        "type": "transform.aggregate",
+        "category": "transform",
+        "config": {
+          "label": "Aggregate Results",
+          "description": "Aggregate all loop results into summary statistics",
+          "groupBy": [],
+          "aggregations": [
+            {
+              "field": "squared",
+              "function": "sum",
+              "alias": "total_squared"
+            },
+            {
+              "field": "cubed",
+              "function": "sum",
+              "alias": "total_cubed"
+            },
+            {
+              "field": "original",
+              "function": "count",
+              "alias": "total_count"
+            },
+            {
+              "field": "original",
+              "function": "avg",
+              "alias": "average_value"
+            },
+            {
+              "field": "original",
+              "function": "min",
+              "alias": "min_value"
+            },
+            {
+              "field": "original",
+              "function": "max",
+              "alias": "max_value"
+            }
+          ]
+        },
+        "status": "idle"
+      }
+    },
+    {
+      "id": "transform-summary-1",
+      "type": "custom",
+      "position": {
+        "x": 1300,
+        "y": 400
+      },
+      "data": {
+        "type": "transform.data",
+        "category": "transform",
+        "config": {
+          "label": "Create Summary",
+          "description": "Create a final summary with all aggregated data",
+          "transformType": "javascript",
+          "transformation": "return {\n  summary: {\n    totalProcessed: input.total_count,\n    sumOfSquares: input.total_squared,\n    sumOfCubes: input.total_cubed,\n    average: input.average_value,\n    min: input.min_value,\n    max: input.max_value,\n    range: input.max_value - input.min_value\n  },\n  metadata: {\n    workflow: 'Loop Workflow Test',\n    completedAt: new Date().toISOString()\n  }\n};"
+        },
+        "status": "idle"
+      }
+    },
+    {
+      "id": "output-response-1",
+      "type": "custom",
+      "position": {
+        "x": 1600,
+        "y": 400
+      },
+      "data": {
+        "type": "output.response",
+        "category": "output",
+        "config": {
+          "label": "Return Summary",
+          "description": "Return the final aggregated summary as workflow output"
+        },
+        "status": "idle"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-trigger-prepare",
+      "source": "trigger-manual-1",
+      "target": "transform-prepare-1",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "default"
+    },
+    {
+      "id": "edge-prepare-loop",
+      "source": "transform-prepare-1",
+      "target": "loop-1",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "default"
+    },
+    {
+      "id": "edge-loop-execute",
+      "source": "loop-1",
+      "target": "sandflare-execute-1",
+      "sourceHandle": "item",
+      "targetHandle": null,
+      "type": "default",
+      "label": "FOR EACH"
+    },
+    {
+      "id": "edge-execute-log",
+      "source": "sandflare-execute-1",
+      "target": "log-iteration-1",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "default"
+    },
+    {
+      "id": "edge-loop-aggregate",
+      "source": "loop-1",
+      "target": "aggregate-1",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "default",
+      "label": "ALL RESULTS"
+    },
+    {
+      "id": "edge-aggregate-summary",
+      "source": "aggregate-1",
+      "target": "transform-summary-1",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "default"
+    },
+    {
+      "id": "edge-summary-output",
+      "source": "transform-summary-1",
+      "target": "output-response-1",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "default"
+    }
+  ],
+  "variables": {
+    "defaultArray": [1, 2, 3, 4, 5],
+    "processingMode": "sequential",
+    "description": "This workflow demonstrates array iteration with code execution and result aggregation"
+  }
+}

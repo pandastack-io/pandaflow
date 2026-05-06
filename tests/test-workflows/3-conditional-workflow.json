@@ -1,0 +1,223 @@
+{
+  "metadata": {
+    "name": "Conditional Workflow",
+    "description": "Test workflow with conditional branching based on numeric value comparison",
+    "version": "1.0.0",
+    "tags": ["test", "conditional", "branching", "control-flow"]
+  },
+  "nodes": [
+    {
+      "id": "trigger-manual-1",
+      "type": "custom",
+      "position": {
+        "x": 100,
+        "y": 200
+      },
+      "data": {
+        "type": "trigger.manual",
+        "category": "trigger",
+        "config": {
+          "label": "Start with Input",
+          "description": "Manual trigger that accepts a numeric value",
+          "inputSchema": {
+            "value": {
+              "type": "number",
+              "description": "Numeric value to evaluate (default: 15)"
+            }
+          }
+        },
+        "status": "idle"
+      }
+    },
+    {
+      "id": "condition-1",
+      "type": "custom",
+      "position": {
+        "x": 400,
+        "y": 200
+      },
+      "data": {
+        "type": "control.condition",
+        "category": "control",
+        "config": {
+          "label": "Check if Value > 10",
+          "description": "Evaluate if the input value is greater than 10",
+          "condition": "input.value > 10",
+          "evaluationType": "expression"
+        },
+        "status": "idle"
+      }
+    },
+    {
+      "id": "transform-true-1",
+      "type": "custom",
+      "position": {
+        "x": 700,
+        "y": 100
+      },
+      "data": {
+        "type": "transform.data",
+        "category": "transform",
+        "config": {
+          "label": "High Value Transform",
+          "description": "Transform data for high values (> 10)",
+          "transformType": "javascript",
+          "transformation": "return {\n  result: 'HIGH',\n  originalValue: input.value,\n  category: 'above_threshold',\n  message: `Value ${input.value} is greater than 10`,\n  multiplier: input.value * 2\n};"
+        },
+        "status": "idle"
+      }
+    },
+    {
+      "id": "transform-false-1",
+      "type": "custom",
+      "position": {
+        "x": 700,
+        "y": 300
+      },
+      "data": {
+        "type": "transform.data",
+        "category": "transform",
+        "config": {
+          "label": "Low Value Transform",
+          "description": "Transform data for low values (<= 10)",
+          "transformType": "javascript",
+          "transformation": "return {\n  result: 'LOW',\n  originalValue: input.value,\n  category: 'below_threshold',\n  message: `Value ${input.value} is less than or equal to 10`,\n  divider: input.value / 2\n};"
+        },
+        "status": "idle"
+      }
+    },
+    {
+      "id": "log-true-1",
+      "type": "custom",
+      "position": {
+        "x": 1000,
+        "y": 100
+      },
+      "data": {
+        "type": "utility.log",
+        "category": "utility",
+        "config": {
+          "label": "Log High Value",
+          "description": "Log the high value result"
+        },
+        "status": "idle"
+      }
+    },
+    {
+      "id": "log-false-1",
+      "type": "custom",
+      "position": {
+        "x": 1000,
+        "y": 300
+      },
+      "data": {
+        "type": "utility.log",
+        "category": "utility",
+        "config": {
+          "label": "Log Low Value",
+          "description": "Log the low value result"
+        },
+        "status": "idle"
+      }
+    },
+    {
+      "id": "output-true-1",
+      "type": "custom",
+      "position": {
+        "x": 1300,
+        "y": 100
+      },
+      "data": {
+        "type": "output.response",
+        "category": "output",
+        "config": {
+          "label": "High Value Output",
+          "description": "Return high value response"
+        },
+        "status": "idle"
+      }
+    },
+    {
+      "id": "output-false-1",
+      "type": "custom",
+      "position": {
+        "x": 1300,
+        "y": 300
+      },
+      "data": {
+        "type": "output.response",
+        "category": "output",
+        "config": {
+          "label": "Low Value Output",
+          "description": "Return low value response"
+        },
+        "status": "idle"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-trigger-condition",
+      "source": "trigger-manual-1",
+      "target": "condition-1",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "default"
+    },
+    {
+      "id": "edge-condition-true",
+      "source": "condition-1",
+      "target": "transform-true-1",
+      "sourceHandle": "true",
+      "targetHandle": null,
+      "type": "default",
+      "label": "TRUE"
+    },
+    {
+      "id": "edge-condition-false",
+      "source": "condition-1",
+      "target": "transform-false-1",
+      "sourceHandle": "false",
+      "targetHandle": null,
+      "type": "default",
+      "label": "FALSE"
+    },
+    {
+      "id": "edge-transform-true-log",
+      "source": "transform-true-1",
+      "target": "log-true-1",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "default"
+    },
+    {
+      "id": "edge-transform-false-log",
+      "source": "transform-false-1",
+      "target": "log-false-1",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "default"
+    },
+    {
+      "id": "edge-log-true-output",
+      "source": "log-true-1",
+      "target": "output-true-1",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "default"
+    },
+    {
+      "id": "edge-log-false-output",
+      "source": "log-false-1",
+      "target": "output-false-1",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "default"
+    }
+  ],
+  "variables": {
+    "threshold": 10,
+    "testValue": 15,
+    "description": "This workflow tests conditional branching with two distinct paths"
+  }
+}

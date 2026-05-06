@@ -1,0 +1,107 @@
+{
+  "metadata": {
+    "name": "Simple Scraping Workflow",
+    "description": "Test workflow that scrapes a website and sends results to a webhook",
+    "version": "1.0.0",
+    "tags": ["test", "scraping", "http"]
+  },
+  "nodes": [
+    {
+      "id": "trigger-manual-1",
+      "type": "custom",
+      "position": {
+        "x": 100,
+        "y": 100
+      },
+      "data": {
+        "type": "trigger.manual",
+        "category": "trigger",
+        "config": {
+          "label": "Start Scraping",
+          "description": "Manual trigger to start the scraping workflow"
+        },
+        "status": "idle"
+      }
+    },
+    {
+      "id": "scraper-1",
+      "type": "custom",
+      "position": {
+        "x": 400,
+        "y": 100
+      },
+      "data": {
+        "type": "sandflare.scrape",
+        "category": "sandflare",
+        "config": {
+          "label": "Scrape Example.com",
+          "description": "Scrape the example.com website",
+          "url": "https://example.com",
+          "javascript": false,
+          "screenshot": false,
+          "pdfGeneration": false,
+          "extractionRules": {
+            "title": "h1",
+            "content": "p"
+          },
+          "waitFor": null
+        },
+        "status": "idle"
+      }
+    },
+    {
+      "id": "http-request-1",
+      "type": "custom",
+      "position": {
+        "x": 700,
+        "y": 100
+      },
+      "data": {
+        "type": "integration.http",
+        "category": "integration",
+        "config": {
+          "label": "Send to Webhook",
+          "description": "Send scraped results to webhook.site for testing",
+          "url": "https://webhook.site/unique-id-here",
+          "method": "POST",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "source": "example.com",
+            "timestamp": "{{timestamp}}",
+            "data": "{{scraper-1.output.data}}"
+          },
+          "timeout": 30000,
+          "auth": {
+            "type": "none",
+            "config": {}
+          }
+        },
+        "status": "idle"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-trigger-scraper",
+      "source": "trigger-manual-1",
+      "target": "scraper-1",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "default"
+    },
+    {
+      "id": "edge-scraper-http",
+      "source": "scraper-1",
+      "target": "http-request-1",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "default"
+    }
+  ],
+  "variables": {
+    "timestamp": "{{Date.now()}}",
+    "webhookUrl": "https://webhook.site/unique-id-here"
+  }
+}

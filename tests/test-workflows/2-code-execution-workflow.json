@@ -1,0 +1,122 @@
+{
+  "metadata": {
+    "name": "Code Execution Workflow",
+    "description": "Test workflow that executes Python code for data analysis and logs the output",
+    "version": "1.0.0",
+    "tags": ["test", "code-execution", "python", "data-analysis"]
+  },
+  "nodes": [
+    {
+      "id": "trigger-manual-1",
+      "type": "custom",
+      "position": {
+        "x": 100,
+        "y": 100
+      },
+      "data": {
+        "type": "trigger.manual",
+        "category": "trigger",
+        "config": {
+          "label": "Start Analysis",
+          "description": "Manual trigger to start data analysis",
+          "inputSchema": {
+            "data": {
+              "type": "array",
+              "description": "Input dataset for analysis"
+            }
+          }
+        },
+        "status": "idle"
+      }
+    },
+    {
+      "id": "sandflare-execute-1",
+      "type": "custom",
+      "position": {
+        "x": 400,
+        "y": 100
+      },
+      "data": {
+        "type": "sandflare.execute",
+        "category": "sandflare",
+        "config": {
+          "label": "Python Data Analysis",
+          "description": "Analyze data using Python with pandas and numpy",
+          "language": "python",
+          "code": "import json\nimport statistics\n\n# Get input data from previous node\ninput_data = input_json.get('data', [1, 2, 3, 4, 5, 10, 15, 20, 25, 30])\n\n# Perform statistical analysis\nresults = {\n    'count': len(input_data),\n    'sum': sum(input_data),\n    'mean': statistics.mean(input_data),\n    'median': statistics.median(input_data),\n    'stdev': statistics.stdev(input_data) if len(input_data) > 1 else 0,\n    'min': min(input_data),\n    'max': max(input_data),\n    'range': max(input_data) - min(input_data)\n}\n\n# Calculate quartiles\nsorted_data = sorted(input_data)\nresults['q1'] = statistics.median(sorted_data[:len(sorted_data)//2])\nresults['q3'] = statistics.median(sorted_data[(len(sorted_data)+1)//2:])\n\n# Output results\nprint(json.dumps(results, indent=2))\noutput_json = results",
+          "environment": {
+            "PYTHON_VERSION": "3.11"
+          },
+          "packages": [],
+          "timeout": 30000,
+          "memoryLimit": 512
+        },
+        "status": "idle"
+      }
+    },
+    {
+      "id": "log-1",
+      "type": "custom",
+      "position": {
+        "x": 700,
+        "y": 100
+      },
+      "data": {
+        "type": "utility.log",
+        "category": "utility",
+        "config": {
+          "label": "Log Analysis Results",
+          "description": "Log the statistical analysis results for debugging"
+        },
+        "status": "idle"
+      }
+    },
+    {
+      "id": "output-response-1",
+      "type": "custom",
+      "position": {
+        "x": 1000,
+        "y": 100
+      },
+      "data": {
+        "type": "output.response",
+        "category": "output",
+        "config": {
+          "label": "Return Results",
+          "description": "Return the analysis results as workflow output"
+        },
+        "status": "idle"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-trigger-execute",
+      "source": "trigger-manual-1",
+      "target": "sandflare-execute-1",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "default"
+    },
+    {
+      "id": "edge-execute-log",
+      "source": "sandflare-execute-1",
+      "target": "log-1",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "default"
+    },
+    {
+      "id": "edge-log-output",
+      "source": "log-1",
+      "target": "output-response-1",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "default"
+    }
+  ],
+  "variables": {
+    "sampleData": [1, 2, 3, 4, 5, 10, 15, 20, 25, 30],
+    "analysisType": "statistical"
+  }
+}
