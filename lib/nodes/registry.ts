@@ -392,12 +392,13 @@ const prismNodeSchema = baseSchema.extend({
   inputVariable: z.string().optional(),
 });
 const verdictNodeSchema = baseSchema.extend({
-  judgeProvider: z.enum(['openai', 'anthropic', 'google', 'custom']).optional(),
-  judgeModel: z.string().min(1).optional(),
+  judgeProvider: z.enum(['openai', 'anthropic', 'google', 'custom']).default('openai'),
+  judgeModel: z.string().min(1).default('gpt-4o-mini'),
   judgeApiKey: z.string().optional(),
+  judgeApiKeySecret: z.string().optional(),
   judgeBaseUrl: z.string().optional(),
-  threshold: z.number().min(0).max(1).optional(),
-  timeout: z.number().int().positive().optional(),
+  threshold: z.number().min(0).max(1).default(0.7),
+  timeout: z.number().int().positive().default(30000),
 });
 
 const parameterDefinitionSchema = z.object({
@@ -3733,6 +3734,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     outputs: [{ name: 'output', type: 'any' }],
   },
 
+
   [NodeType.VERDICT_FAITHFULNESS]: {
     type: NodeType.VERDICT_FAITHFULNESS,
     category: NodeCategory.VERDICT,
@@ -3752,6 +3754,10 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
       { name: 'reasoning', type: 'string' },
       { name: 'claims', type: 'array' },
       { name: 'supported_claims', type: 'array' },
+      { name: 'unsupported_claims', type: 'array' },
+      { name: 'usage', type: 'object' },
+      { name: 'model', type: 'string' },
+      { name: 'provider', type: 'string' },
     ],
   },
 
@@ -3775,6 +3781,9 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
       { name: 'reasoning', type: 'string' },
       { name: 'matched_facts', type: 'array' },
       { name: 'missed_facts', type: 'array' },
+      { name: 'usage', type: 'object' },
+      { name: 'model', type: 'string' },
+      { name: 'provider', type: 'string' },
     ],
   },
 
@@ -3795,6 +3804,9 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
       { name: 'score', type: 'number' },
       { name: 'verdict', type: 'string' },
       { name: 'reasoning', type: 'string' },
+      { name: 'usage', type: 'object' },
+      { name: 'model', type: 'string' },
+      { name: 'provider', type: 'string' },
     ],
   },
 
@@ -3818,6 +3830,9 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
       { name: 'reasoning', type: 'string' },
       { name: 'useful_chunks', type: 'array' },
       { name: 'irrelevant_chunks', type: 'array' },
+      { name: 'usage', type: 'object' },
+      { name: 'model', type: 'string' },
+      { name: 'provider', type: 'string' },
     ],
   },
 
@@ -3841,6 +3856,9 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
       { name: 'reasoning', type: 'string' },
       { name: 'covered_aspects', type: 'array' },
       { name: 'missing_aspects', type: 'array' },
+      { name: 'usage', type: 'object' },
+      { name: 'model', type: 'string' },
+      { name: 'provider', type: 'string' },
     ],
   },
 
@@ -3862,7 +3880,11 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
       { name: 'score', type: 'number' },
       { name: 'verdict', type: 'string' },
       { name: 'hallucinated_claims', type: 'array' },
+      { name: 'claims', type: 'array' },
       { name: 'reasoning', type: 'string' },
+      { name: 'usage', type: 'object' },
+      { name: 'model', type: 'string' },
+      { name: 'provider', type: 'string' },
     ],
   },
 
@@ -3881,6 +3903,9 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
       { name: 'verdict', type: 'string' },
       { name: 'categories', type: 'array' },
       { name: 'reasoning', type: 'string' },
+      { name: 'usage', type: 'object' },
+      { name: 'model', type: 'string' },
+      { name: 'provider', type: 'string' },
     ],
   },
 
@@ -3897,15 +3922,25 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
       { name: 'answer', type: 'string', required: true },
       { name: 'question', type: 'string', required: true },
       { name: 'context', type: 'string[]', required: true },
-      { name: 'ground_truth', type: 'string', required: false },
+      { name: 'ground_truth', type: 'string', required: true },
     ],
     outputs: [
+      { name: 'score', type: 'number' },
+      { name: 'verdict', type: 'string' },
+      { name: 'reasoning', type: 'string' },
       { name: 'faithfulness', type: 'object' },
       { name: 'correctness', type: 'object' },
       { name: 'relevance', type: 'object' },
+      { name: 'context_precision', type: 'object' },
+      { name: 'context_recall', type: 'object' },
+      { name: 'hallucination', type: 'object' },
+      { name: 'toxicity', type: 'object' },
       { name: 'overall_score', type: 'number' },
       { name: 'passed', type: 'boolean' },
       { name: 'report', type: 'object' },
+      { name: 'usage', type: 'object' },
+      { name: 'model', type: 'string' },
+      { name: 'provider', type: 'string' },
     ],
   },
 

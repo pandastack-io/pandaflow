@@ -259,10 +259,12 @@ function VerdictConfigForm({
   nodeType,
   config,
   onChange,
+  secrets,
 }: {
   nodeType: NodeType;
   config: Record<string, any>;
   onChange: (config: any) => void;
+  secrets: SecretSummary[];
 }) {
   const metricLabel =
     ({
@@ -275,12 +277,13 @@ function VerdictConfigForm({
       [NodeType.VERDICT_TOXICITY]: 'Toxicity',
       [NodeType.VERDICT_BATCH]: 'Batch Verdict',
     } as Partial<Record<NodeType, string>>)[nodeType] ?? 'Verdict';
+  const linkedSecret = config.judgeApiKeySecret || parseSecretReference(config.judgeApiKey);
 
   return (
     <div className="space-y-4">
       <Section
         title="Judge Configuration"
-        description={`${metricLabel} uses an LLM-as-judge evaluator. Lower threshold = more lenient.`}
+        description={`${metricLabel} uses an LLM-as-judge evaluator. The runtime first resolves direct keys or linked secrets, then falls back to provider-specific environment variables.`}
       >
         <Field label="Judge Provider">
           <Select
@@ -299,27 +302,47 @@ function VerdictConfigForm({
           </Select>
         </Field>
 
-        <Field label="Judge Model" hint="Default: gpt-4o-mini for cost-efficient evaluation.">
+        <Field label="Judge Model" hint="Use a reliable chat model that can follow structured JSON instructions.">
           <Input
-            value={config.judgeModel || ''}
+            value={config.judgeModel || 'gpt-4o-mini'}
             onChange={(event) => updateConfig(config, onChange, 'judgeModel', event.target.value)}
             placeholder="gpt-4o-mini"
             className="h-9 text-sm"
           />
         </Field>
 
-        <Field label="Judge API Key">
+        <Field label="Judge API Key" hint="Optional when provider-specific environment variables are available at runtime.">
           <Input
             type="password"
             value={config.judgeApiKey || ''}
-            onChange={(event) => updateConfig(config, onChange, 'judgeApiKey', event.target.value)}
+            onChange={(event) =>
+              onChange({
+                ...config,
+                judgeApiKey: event.target.value,
+                judgeApiKeySecret: undefined,
+              })
+            }
             placeholder="sk-..."
             className="h-9 text-sm"
           />
         </Field>
 
+        <SecretSelect
+          label="Link Judge Secret"
+          value={linkedSecret}
+          onChange={(secretName) =>
+            onChange({
+              ...config,
+              judgeApiKeySecret: secretName || undefined,
+              judgeApiKey: secretName ? toSecretTemplate(secretName) : '',
+            })
+          }
+          secrets={secrets}
+          hint="Linked secrets are stored as {{secret.NAME}} templates and resolved before env fallbacks."
+        />
+
         {(config.judgeProvider || 'openai') === 'custom' ? (
-          <Field label="Base URL" hint="Use for OpenAI-compatible endpoints such as Ollama or self-hosted gateways.">
+          <Field label="Base URL" hint="Required for OpenAI-compatible endpoints such as Ollama or self-hosted gateways.">
             <Input
               value={config.judgeBaseUrl || ''}
               onChange={(event) => updateConfig(config, onChange, 'judgeBaseUrl', event.target.value)}
@@ -337,7 +360,7 @@ function VerdictConfigForm({
           max={1}
           step={0.05}
           formatter={(value) => value.toFixed(2)}
-          hint="This node uses an LLM to evaluate quality. Lower threshold = more lenient."
+          hint="Lower thresholds are more lenient. Batch verdicts require question, answer, context, and ground truth."
         />
       </Section>
     </div>
@@ -1023,7 +1046,7 @@ export function NodeConfigForm({ nodeType, config, onChange, nodeId }: NodeConfi
     }
 
     if (VERDICT_NODE_TYPES.includes(nodeType)) {
-      return <VerdictConfigForm nodeType={nodeType} config={config ?? {}} onChange={onChange} />;
+      return <VerdictConfigForm nodeType={nodeType} config={config ?? {}} onChange={onChange} secrets={secrets} />;
     }
 
     if ([NodeType.VECTORSTORE_PINECONE, NodeType.VECTORSTORE_QDRANT, NodeType.VECTORSTORE_CHROMA, NodeType.VECTORSTORE_WEAVIATE, NodeType.VECTORSTORE_PGVECTOR, NodeType.VECTORSTORE_REDIS].includes(nodeType)) {
