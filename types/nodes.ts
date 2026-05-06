@@ -13,6 +13,7 @@ export enum NodeCategory {
   AGENT = 'agent',
   MEMORY = 'memory',
   AI = 'ai',
+  PRISM = 'prism',
   TOOL = 'tool',
   ANALYTICS = 'analytics',
   RAG = 'rag',
@@ -25,6 +26,7 @@ export enum NodeCategory {
   OUTPUT = 'output',
   UTILITY = 'utility',
   DATA = 'data',
+  VERDICT = 'verdict',
 }
 
 // Node type definitions
@@ -297,6 +299,19 @@ export enum NodeType {
   UTILITY_TEMPLATE = 'utility.template',
   UTILITY_RANDOM = 'utility.random',
 
+  // Verdict - AI Evaluation Framework
+  VERDICT_FAITHFULNESS = 'verdict.faithfulness',
+  VERDICT_CORRECTNESS = 'verdict.correctness',
+  VERDICT_RELEVANCE = 'verdict.relevance',
+  VERDICT_CONTEXT_PRECISION = 'verdict.context_precision',
+  VERDICT_CONTEXT_RECALL = 'verdict.context_recall',
+  VERDICT_HALLUCINATION = 'verdict.hallucination',
+  VERDICT_TOXICITY = 'verdict.toxicity',
+  VERDICT_BATCH = 'verdict.batch',
+
+  // Prism - Universal LLM Gateway
+  PRISM_LLM = 'prism.llm',
+
   // Data Sources (5 types)
   DATA_CSV_READ = 'data.csv_read',
   DATA_JSON_READ = 'data.json_read',
@@ -307,6 +322,126 @@ export enum NodeType {
   DATA_LIST_OPERATOR = 'data.list_operator',
   DATA_VARIABLE_AGGREGATOR = 'data.variable_aggregator',
 }
+
+export const PRISM_PROVIDER_KEYS = [
+  'openai',
+  'anthropic',
+  'google',
+  'groq',
+  'deepseek',
+  'perplexity',
+  'together',
+  'fireworks',
+  'openrouter',
+  'ollama',
+  'lmstudio',
+  'azure',
+  'mistral',
+  'cohere',
+  'xai',
+  'sambanova',
+] as const;
+
+export const PRISM_PROVIDERS = {
+  openai: {
+    label: 'OpenAI',
+    baseUrl: 'https://api.openai.com',
+    envKey: 'OPENAI_API_KEY',
+    models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo', 'o1', 'o1-mini', 'o3-mini'],
+  },
+  anthropic: {
+    label: 'Anthropic',
+    baseUrl: 'https://api.anthropic.com',
+    envKey: 'ANTHROPIC_API_KEY',
+    models: ['claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022', 'claude-3-opus-20240229'],
+  },
+  google: {
+    label: 'Google Gemini',
+    baseUrl: 'https://generativelanguage.googleapis.com',
+    envKey: 'GEMINI_API_KEY',
+    models: ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'],
+  },
+  groq: {
+    label: 'Groq',
+    baseUrl: 'https://api.groq.com/openai',
+    envKey: 'GROQ_API_KEY',
+    models: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'mixtral-8x7b-32768', 'gemma2-9b-it'],
+  },
+  deepseek: {
+    label: 'DeepSeek',
+    baseUrl: 'https://api.deepseek.com',
+    envKey: 'DEEPSEEK_API_KEY',
+    models: ['deepseek-chat', 'deepseek-reasoner'],
+  },
+  perplexity: {
+    label: 'Perplexity',
+    baseUrl: 'https://api.perplexity.ai',
+    envKey: 'PERPLEXITY_API_KEY',
+    models: ['llama-3.1-sonar-large-128k-online', 'llama-3.1-sonar-small-128k-online', 'llama-3.1-sonar-huge-128k-online'],
+  },
+  together: {
+    label: 'Together AI',
+    baseUrl: 'https://api.together.xyz/v1',
+    envKey: 'TOGETHER_API_KEY',
+    models: ['meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo', 'mistralai/Mixtral-8x7B-Instruct-v0.1', 'google/gemma-2-27b-it'],
+  },
+  fireworks: {
+    label: 'Fireworks',
+    baseUrl: 'https://api.fireworks.ai/inference/v1',
+    envKey: 'FIREWORKS_API_KEY',
+    models: ['accounts/fireworks/models/llama-v3p1-70b-instruct', 'accounts/fireworks/models/mixtral-8x7b-instruct'],
+  },
+  openrouter: {
+    label: 'OpenRouter',
+    baseUrl: 'https://openrouter.ai/api/v1',
+    envKey: 'OPENROUTER_API_KEY',
+    models: ['openai/gpt-4o', 'anthropic/claude-3.5-sonnet', 'google/gemini-pro-1.5', 'meta-llama/llama-3.1-405b-instruct'],
+  },
+  ollama: {
+    label: 'Ollama',
+    baseUrl: 'http://localhost:11434/v1',
+    envKey: 'OLLAMA_API_KEY',
+    models: ['llama3', 'mistral', 'codellama'],
+  },
+  lmstudio: {
+    label: 'LM Studio',
+    baseUrl: 'http://localhost:1234/v1',
+    envKey: 'LMSTUDIO_API_KEY',
+    models: ['local-model'],
+  },
+  azure: {
+    label: 'Azure OpenAI',
+    baseUrl: 'https://{resource}.openai.azure.com/openai/deployments/{deployment}/chat/completions?api-version=2024-02-01',
+    envKey: 'AZURE_OPENAI_API_KEY',
+    models: ['gpt-4o', 'gpt-4o-mini'],
+  },
+  mistral: {
+    label: 'Mistral',
+    baseUrl: 'https://api.mistral.ai',
+    envKey: 'MISTRAL_API_KEY',
+    models: ['mistral-large-latest', 'mistral-small-latest', 'open-mixtral-8x7b'],
+  },
+  cohere: {
+    label: 'Cohere',
+    baseUrl: 'https://api.cohere.com',
+    envKey: 'COHERE_API_KEY',
+    models: ['command-r-plus', 'command-r'],
+  },
+  xai: {
+    label: 'xAI',
+    baseUrl: 'https://api.x.ai/v1',
+    envKey: 'XAI_API_KEY',
+    models: ['grok-beta', 'grok-2'],
+  },
+  sambanova: {
+    label: 'SambaNova',
+    baseUrl: 'https://api.sambanova.ai/v1',
+    envKey: 'SAMBANOVA_API_KEY',
+    models: ['Meta-Llama-3.1-405B-Instruct', 'Meta-Llama-3.3-70B-Instruct'],
+  },
+} as const;
+
+export type PrismProvider = keyof typeof PRISM_PROVIDERS;
 
 // Trigger Nodes
 export interface ManualTriggerConfig extends BaseNodeConfig {
@@ -570,6 +705,17 @@ export interface LLMConfig extends BaseNodeConfig {
   temperature?: number;
   maxTokens?: number;
   outputFormat?: 'text' | 'json';
+}
+
+export interface PrismLLMConfig extends BaseNodeConfig {
+  provider: PrismProvider;
+  model: string;
+  apiKey?: string;
+  systemPrompt?: string;
+  temperature?: number;
+  maxTokens?: number;
+  baseUrl?: string;
+  streamOutput?: boolean;
 }
 
 export interface VectorSearchConfig extends BaseNodeConfig {

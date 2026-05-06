@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NodeType } from '@/types/nodes';
+import { NodeType, PRISM_PROVIDERS } from '@/types/nodes';
 import { NodeExecutorFn, ExecutorContext, ExecutorDeps } from './types';
 import {
   interpolate,
@@ -30,6 +30,7 @@ type ProviderResult = {
   finishReason?: string;
   model: string;
   provider: string;
+  cost?: number;
 };
 
 type ExecutorHandlerArgs = {
@@ -48,6 +49,85 @@ const DEFAULT_GOOGLE_MODEL = 'gemini-2.5-pro';
 const DEFAULT_COHERE_MODEL = 'command-r-plus';
 const DEFAULT_MISTRAL_MODEL = 'mistral-large-latest';
 
+const OPENAI_COMPATIBLE_PRISM_PROVIDERS = new Set([
+  'openai',
+  'groq',
+  'deepseek',
+  'perplexity',
+  'together',
+  'fireworks',
+  'openrouter',
+  'ollama',
+  'lmstudio',
+  'azure',
+  'xai',
+  'sambanova',
+]);
+
+const PRISM_PROVIDER_ENV_KEYS: Record<string, string[]> = {
+  openai: [PRISM_PROVIDERS.openai.envKey],
+  anthropic: [PRISM_PROVIDERS.anthropic.envKey],
+  google: ['GOOGLE_AI_API_KEY', 'GOOGLE_API_KEY', 'GEMINI_API_KEY'],
+  gemini: ['GOOGLE_AI_API_KEY', 'GOOGLE_API_KEY', 'GEMINI_API_KEY'],
+  groq: [PRISM_PROVIDERS.groq.envKey],
+  deepseek: [PRISM_PROVIDERS.deepseek.envKey],
+  perplexity: [PRISM_PROVIDERS.perplexity.envKey],
+  together: [PRISM_PROVIDERS.together.envKey],
+  fireworks: [PRISM_PROVIDERS.fireworks.envKey],
+  openrouter: [PRISM_PROVIDERS.openrouter.envKey],
+  ollama: [PRISM_PROVIDERS.ollama.envKey],
+  lmstudio: [PRISM_PROVIDERS.lmstudio.envKey],
+  azure: [PRISM_PROVIDERS.azure.envKey],
+  mistral: [PRISM_PROVIDERS.mistral.envKey],
+  cohere: [PRISM_PROVIDERS.cohere.envKey],
+  xai: [PRISM_PROVIDERS.xai.envKey],
+  sambanova: [PRISM_PROVIDERS.sambanova.envKey],
+};
+
+const PRICE_PER_1K_TOKENS: Record<string, { input: number; output: number }> = {
+  'gpt-4o': { input: 0.0025, output: 0.01 },
+  'gpt-4o-mini': { input: 0.00015, output: 0.0006 },
+  'gpt-4-turbo': { input: 0.01, output: 0.03 },
+  'gpt-3.5-turbo': { input: 0.0005, output: 0.0015 },
+  'o1': { input: 0.015, output: 0.06 },
+  'o1-mini': { input: 0.003, output: 0.012 },
+  'o3-mini': { input: 0.0011, output: 0.0044 },
+  'claude-3-5-sonnet-20241022': { input: 0.003, output: 0.015 },
+  'claude-3-5-haiku-20241022': { input: 0.0008, output: 0.004 },
+  'claude-3-opus-20240229': { input: 0.015, output: 0.075 },
+  'gemini-2.5-pro': { input: 0.0035, output: 0.0105 },
+  'gemini-2.5-flash': { input: 0.00035, output: 0.00105 },
+  'gemini-1.5-pro': { input: 0.00125, output: 0.005 },
+  'gemini-1.5-flash': { input: 0.000075, output: 0.0003 },
+  'llama-3.3-70b-versatile': { input: 0.00059, output: 0.00079 },
+  'llama-3.1-8b-instant': { input: 0.00005, output: 0.00008 },
+  'mixtral-8x7b-32768': { input: 0.00024, output: 0.00024 },
+  'gemma2-9b-it': { input: 0.0002, output: 0.0002 },
+  'deepseek-chat': { input: 0.00027, output: 0.0011 },
+  'deepseek-reasoner': { input: 0.00055, output: 0.00219 },
+  'llama-3.1-sonar-large-128k-online': { input: 0.001, output: 0.001 },
+  'llama-3.1-sonar-small-128k-online': { input: 0.0002, output: 0.0002 },
+  'llama-3.1-sonar-huge-128k-online': { input: 0.005, output: 0.005 },
+  'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo': { input: 0.00088, output: 0.00088 },
+  'mistralai/Mixtral-8x7B-Instruct-v0.1': { input: 0.0006, output: 0.0006 },
+  'google/gemma-2-27b-it': { input: 0.0008, output: 0.0008 },
+  'accounts/fireworks/models/llama-v3p1-70b-instruct': { input: 0.0009, output: 0.0009 },
+  'accounts/fireworks/models/mixtral-8x7b-instruct': { input: 0.0005, output: 0.0005 },
+  'openai/gpt-4o': { input: 0.0025, output: 0.01 },
+  'anthropic/claude-3.5-sonnet': { input: 0.003, output: 0.015 },
+  'google/gemini-pro-1.5': { input: 0.00125, output: 0.005 },
+  'meta-llama/llama-3.1-405b-instruct': { input: 0.0035, output: 0.0035 },
+  'mistral-large-latest': { input: 0.004, output: 0.012 },
+  'mistral-small-latest': { input: 0.001, output: 0.003 },
+  'open-mixtral-8x7b': { input: 0.0007, output: 0.0007 },
+  'command-r-plus': { input: 0.003, output: 0.015 },
+  'command-r': { input: 0.0005, output: 0.0015 },
+  'grok-beta': { input: 0.005, output: 0.015 },
+  'grok-2': { input: 0.005, output: 0.015 },
+  'Meta-Llama-3.1-405B-Instruct': { input: 0.005, output: 0.005 },
+  'Meta-Llama-3.3-70B-Instruct': { input: 0.0012, output: 0.0012 },
+};
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function getConfig(node: Parameters<NodeExecutorFn>[0], context: ExecutorContext): Record<string, any> {
@@ -62,6 +142,29 @@ function stringifyValue(value: any): string {
   } catch {
     return String(value);
   }
+}
+
+function normalizeOptionalString(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function toFiniteNumber(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return undefined;
+}
+
+function firstFiniteNumber(...values: unknown[]): number | undefined {
+  for (const value of values) {
+    const parsed = toFiniteNumber(value);
+    if (parsed !== undefined) return parsed;
+  }
+  return undefined;
 }
 
 function coerceArray(value: any): any[] {
@@ -113,9 +216,12 @@ function resolveApiKey(
   envKeys: string[],
   label: string
 ): string {
+  const configApiKey = normalizeOptionalString(config.apiKey);
   const apiKey =
-    envKeys.map((key) => context?.secrets?.[key] || context?.envVars?.[key] || process.env[key]).find(Boolean) ||
-    config.apiKey;
+    configApiKey ||
+    envKeys
+      .map((key) => normalizeOptionalString(context?.secrets?.[key]) || normalizeOptionalString(context?.envVars?.[key]) || normalizeOptionalString(process.env[key]))
+      .find(Boolean);
   if (!apiKey) {
     throw new Error(`${label} API key is required`);
   }
@@ -264,6 +370,14 @@ function createAiExecutor(
   };
 }
 
+function buildOpenAICompatibleUrl(baseUrl?: string): string {
+  const normalized = (baseUrl || 'https://api.openai.com').replace(/\/$/, '');
+  if (/\/chat\/completions(\?|$)/.test(normalized)) {
+    return normalized;
+  }
+  return normalized.endsWith('/v1') ? `${normalized}/chat/completions` : `${normalized}/v1/chat/completions`;
+}
+
 async function openAIChat(params: {
   apiKey: string;
   model?: string;
@@ -276,8 +390,9 @@ async function openAIChat(params: {
   label: string;
   baseUrl?: string;
   authHeaders?: Record<string, string>;
+  provider?: string;
 }): Promise<ProviderResult> {
-  const url = `${(params.baseUrl || 'https://api.openai.com').replace(/\/$/, '')}/v1/chat/completions`;
+  const url = buildOpenAICompatibleUrl(params.baseUrl);
   const messages = params.systemPrompt
     ? [{ role: 'system', content: params.systemPrompt } as ChatMessage, ...params.messages]
     : params.messages;
@@ -307,7 +422,7 @@ async function openAIChat(params: {
     usage: data.usage,
     finishReason: data.choices?.[0]?.finish_reason,
     model: data.model || params.model || DEFAULT_CHAT_MODEL,
-    provider: 'openai',
+    provider: params.provider || 'openai',
   };
 }
 
@@ -522,6 +637,167 @@ async function customChat(params: {
     baseUrl: params.baseUrl,
     authHeaders,
   });
+}
+
+function getProviderPricing(model: string): { input: number; output: number } | undefined {
+  if (PRICE_PER_1K_TOKENS[model]) return PRICE_PER_1K_TOKENS[model];
+
+  const normalized = model.toLowerCase();
+  const match = Object.entries(PRICE_PER_1K_TOKENS).find(([key]) => {
+    const lookup = key.toLowerCase();
+    return normalized === lookup || normalized.startsWith(`${lookup}-`) || normalized.endsWith(`/${lookup}`) || normalized.includes(lookup);
+  });
+
+  return match?.[1];
+}
+
+function extractUsageTotals(usage: any): { inputTokens: number; outputTokens: number } {
+  return {
+    inputTokens: Math.max(0, Math.round(firstFiniteNumber(
+      usage?.prompt_tokens,
+      usage?.input_tokens,
+      usage?.inputTokens,
+      usage?.promptTokenCount,
+      usage?.prompt_tokens_details?.cached_tokens,
+      usage?.inputTokenCount
+    ) ?? 0)),
+    outputTokens: Math.max(0, Math.round(firstFiniteNumber(
+      usage?.completion_tokens,
+      usage?.output_tokens,
+      usage?.outputTokens,
+      usage?.outputTokenCount,
+      usage?.candidatesTokenCount,
+      usage?.completionTokenCount
+    ) ?? 0)),
+  };
+}
+
+function estimateProviderCost(model: string, usage: any): number {
+  const pricing = getProviderPricing(model);
+  if (!pricing) return 0;
+
+  const { inputTokens, outputTokens } = extractUsageTotals(usage);
+  return Number((((inputTokens / 1000) * pricing.input) + ((outputTokens / 1000) * pricing.output)).toFixed(6));
+}
+
+function resolvePrismApiKey(config: Record<string, any>, context: ExecutorContext | undefined, provider: string): string {
+  const providerConfig = PRISM_PROVIDERS[provider as keyof typeof PRISM_PROVIDERS];
+  const envKeys = PRISM_PROVIDER_ENV_KEYS[provider] ?? (providerConfig ? [providerConfig.envKey] : []);
+
+  try {
+    return resolveApiKey(config, context, envKeys, `Prism ${providerConfig?.label || provider}`);
+  } catch {
+    const envKey = providerConfig?.envKey || envKeys[0] || 'API_KEY';
+    const providerLabel = providerConfig?.label || provider;
+    throw new Error(`Prism: API key required for ${providerLabel}. Set ${envKey} or provide it in node config.`);
+  }
+}
+
+export async function prismChat(
+  config: Record<string, any>,
+  messages: ChatMessage[],
+  context?: ExecutorContext
+): Promise<ProviderResult> {
+  const provider = String(config.provider || 'openai').toLowerCase() === 'gemini'
+    ? 'google'
+    : String(config.provider || 'openai').toLowerCase();
+  const model = normalizeOptionalString(config.model) || DEFAULT_CHAT_MODEL;
+  const timeout = getTimeout(config);
+
+  try {
+    let result: ProviderResult;
+
+    if (OPENAI_COMPATIBLE_PRISM_PROVIDERS.has(provider)) {
+      const apiKey = resolvePrismApiKey(config, context, provider);
+      const providerConfig = PRISM_PROVIDERS[provider as keyof typeof PRISM_PROVIDERS];
+      const baseUrl = normalizeOptionalString(config.baseUrl) || providerConfig?.baseUrl;
+      const authHeaders = provider === 'azure'
+        ? { 'api-key': apiKey }
+        : undefined;
+
+      if (provider === 'azure' && (!baseUrl || !/\/chat\/completions(\?|$)/.test(baseUrl))) {
+        throw new Error('Prism Azure requires a full chat completions endpoint in baseUrl.');
+      }
+
+      result = await openAIChat({
+        apiKey,
+        model,
+        messages,
+        systemPrompt: config.systemPrompt,
+        temperature: config.temperature,
+        maxTokens: config.maxTokens,
+        timeout,
+        outputFormat: config.outputFormat,
+        label: `Prism ${provider}`,
+        baseUrl,
+        authHeaders,
+        provider,
+      });
+    } else {
+      switch (provider) {
+        case 'anthropic':
+          result = await anthropicChat({
+            apiKey: resolvePrismApiKey(config, context, provider),
+            model,
+            messages,
+            systemPrompt: config.systemPrompt,
+            temperature: config.temperature,
+            maxTokens: config.maxTokens,
+            timeout,
+            label: 'Prism anthropic',
+          });
+          break;
+        case 'google':
+          result = await googleChat({
+            apiKey: resolvePrismApiKey(config, context, provider),
+            model,
+            messages,
+            systemPrompt: config.systemPrompt,
+            temperature: config.temperature,
+            maxTokens: config.maxTokens,
+            timeout,
+            label: 'Prism google',
+          });
+          break;
+        case 'mistral':
+          result = await mistralChat({
+            apiKey: resolvePrismApiKey(config, context, provider),
+            model,
+            messages,
+            systemPrompt: config.systemPrompt,
+            temperature: config.temperature,
+            maxTokens: config.maxTokens,
+            timeout,
+            label: 'Prism mistral',
+          });
+          break;
+        case 'cohere':
+          result = await cohereChat({
+            apiKey: resolvePrismApiKey(config, context, provider),
+            model,
+            messages,
+            systemPrompt: config.systemPrompt,
+            temperature: config.temperature,
+            maxTokens: config.maxTokens,
+            timeout,
+            label: 'Prism cohere',
+          });
+          break;
+        default:
+          throw new Error(`Prism: Unsupported provider ${provider}`);
+      }
+    }
+
+    return {
+      ...result,
+      provider,
+      model: result.model || model,
+      cost: estimateProviderCost(result.model || model, result.usage),
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Prism ${provider}/${model} failed: ${message}`);
+  }
 }
 
 export async function generateText(
@@ -950,6 +1226,26 @@ async function runVisionAnalysis(config: Record<string, any>, input: any, taskPr
 }
 
 export const aiExecutors: Partial<Record<NodeType, NodeExecutorFn>> = {
+  [NodeType.PRISM_LLM]: createAiExecutor('Prism LLM', async ({ config, input, context }) => {
+    const prompt = composePrompt(config.prompt ?? config.userPrompt, input, 'Input');
+    if (!prompt) throw new Error('Prism LLM requires a prompt input');
+
+    const result = await prismChat(config, [{ role: 'user', content: prompt }], context);
+
+    return {
+      output: result.text,
+      text: result.text,
+      response: result.text,
+      prompt,
+      usage: result.usage,
+      finishReason: result.finishReason,
+      provider: result.provider,
+      model: result.model,
+      cost: result.cost ?? 0,
+      raw: result.raw,
+    };
+  }),
+
   [NodeType.AI_LLM]: createAiExecutor('AI LLM', async ({ config, input, context, deps, nodeId, nodeName }) => {
     const prompt = composePrompt(config.prompt, input);
     if (!prompt) throw new Error('AI LLM requires a prompt or input');

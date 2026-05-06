@@ -21,6 +21,7 @@ const categoryLabels: Record<NodeCategory, string> = {
   [NodeCategory.AGENT]: 'Agents',
   [NodeCategory.MEMORY]: 'Memory',
   [NodeCategory.AI]: 'AI & ML',
+  [NodeCategory.PRISM]: 'Prism',
   [NodeCategory.TOOL]: 'Tools',
   [NodeCategory.ANALYTICS]: 'Analytics',
   [NodeCategory.RAG]: 'RAG',
@@ -33,6 +34,7 @@ const categoryLabels: Record<NodeCategory, string> = {
   [NodeCategory.OUTPUT]: 'Output',
   [NodeCategory.UTILITY]: 'Utilities',
   [NodeCategory.DATA]: 'Data',
+  [NodeCategory.VERDICT]: 'Verdict',
 };
 
 const categoryIcons: Record<NodeCategory, keyof typeof LucideIcons> = {
@@ -41,6 +43,7 @@ const categoryIcons: Record<NodeCategory, keyof typeof LucideIcons> = {
   [NodeCategory.AGENT]: 'Bot',
   [NodeCategory.MEMORY]: 'BrainCircuit',
   [NodeCategory.AI]: 'Brain',
+  [NodeCategory.PRISM]: 'Sparkles',
   [NodeCategory.TOOL]: 'Wrench',
   [NodeCategory.ANALYTICS]: 'Activity',
   [NodeCategory.RAG]: 'DatabaseZap',
@@ -53,6 +56,7 @@ const categoryIcons: Record<NodeCategory, keyof typeof LucideIcons> = {
   [NodeCategory.OUTPUT]: 'CheckCircle',
   [NodeCategory.UTILITY]: 'Wrench',
   [NodeCategory.DATA]: 'Database',
+  [NodeCategory.VERDICT]: 'Scale',
 };
 
 function loadPinnedNodes() {
