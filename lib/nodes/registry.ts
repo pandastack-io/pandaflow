@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { NodeType, NodeCategory, NodeRegistryEntry, PRISM_PROVIDER_KEYS } from '@/types/nodes';
+import { AGENT_NODE_TYPES, getSubNodeRoleForType, NodeType, NodeCategory, NodeRegistryEntry, type NodePortDefinition } from '@/types/nodes';
 
 const baseSchema = z.object({
   label: z.string().optional(),
@@ -637,6 +637,13 @@ const loaderSitemapSchema = baseSchema.extend({
   maxUrls: z.number().int().min(1).max(500).default(50),
   filter: z.string().optional(),
 });
+
+const agentDependencyInputs: NodePortDefinition[] = [
+  { name: 'input', type: 'any', required: false },
+  { name: 'model', type: 'model', required: true, label: 'Chat Model' },
+  { name: 'memory', type: 'memory', required: false, label: 'Memory' },
+  { name: 'tool', type: 'tool', required: false, label: 'Tools', multiple: true },
+];
 
 export const nodeRegistry: Record<string, NodeRegistryEntry> = {
   ['trigger.manual']: {
@@ -4008,6 +4015,24 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
   },
 
 };
+
+const agentNodeTypes = new Set<NodeType>(AGENT_NODE_TYPES as readonly NodeType[] as NodeType[]);
+
+Object.values(nodeRegistry).forEach((entry) => {
+  const subNodeRole = getSubNodeRoleForType(entry.type, entry.category);
+  if (subNodeRole) {
+    entry.isSubNode = true;
+    entry.subNodeRole = subNodeRole;
+  }
+
+  if (agentNodeTypes.has(entry.type)) {
+    const primaryInput = entry.inputs.find((input) => input.name === 'input') ?? { name: 'input', type: 'any', required: false };
+    entry.inputs = [
+      primaryInput,
+      ...agentDependencyInputs.filter((input) => input.name !== 'input').map((input) => ({ ...input })),
+    ];
+  }
+});
 
 export function getNodesByCategory(category: NodeCategory): NodeRegistryEntry[] {
   return Object.values(nodeRegistry).filter(node => node.category === category);

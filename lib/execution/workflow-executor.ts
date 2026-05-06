@@ -120,7 +120,7 @@ function buildNodeInputSnapshot(
   definition: { nodes: Node<WorkflowNodeData>[]; edges: Edge[] },
   context: ExecutionContext
 ) {
-  const incomingEdges = definition.edges.filter((edge) => edge.target === node.id);
+  const incomingEdges = definition.edges.filter((edge) => edge.target === node.id && !edge.data?.isDependency);
 
   if (incomingEdges.length === 0) {
     return Object.keys(context.variables).length > 0
@@ -385,7 +385,7 @@ export class WorkflowExecutor {
     context: ExecutionContext
   ): any[] {
     return definition.edges
-      .filter((edge) => edge.target === node.id)
+      .filter((edge) => edge.target === node.id && !edge.data?.isDependency)
       .map((edge) => context.nodeOutputs[edge.source])
       .filter((value) => value !== undefined);
   }
@@ -1202,7 +1202,14 @@ export class WorkflowExecutor {
 
     let result: any;
 
-    // ── Step 1: Execute THIS node's own logic only ───────────────────────────
+    if (node.data.subNodeRole) {
+      result = {
+        output: node.data.config,
+        config: node.data.config,
+        skipped: true,
+      };
+    } else {
+      // ── Step 1: Execute THIS node's own logic only ───────────────────────────
     // The try/catch below must NOT wrap downstream node calls so that a failure
     // in a child node does not get re-logged as a failure of the parent.
     try {
@@ -1464,6 +1471,7 @@ export class WorkflowExecutor {
 
       throw error;
     }
+  }
 
     // ── Step 2: Node succeeded — persist result and notify ───────────────────
     // Store output
@@ -1538,7 +1546,7 @@ export class WorkflowExecutor {
     // to this parent node.
 
       // Find and execute connected nodes — respect branch routing for condition/switch nodes
-      const outgoingEdges = definition.edges.filter((edge) => edge.source === node.id);
+      const outgoingEdges = definition.edges.filter((edge) => edge.source === node.id && !edge.data?.isDependency);
 
       // Determine active branch if this is a branching node
       const activeBranch: string | null = (() => {

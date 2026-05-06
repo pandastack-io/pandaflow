@@ -104,6 +104,36 @@ describe('Workflow Store', () => {
     });
   });
 
+  describe('agent sub-nodes', () => {
+    it('should create agent slot nodes as subNode components when a role is provided', () => {
+      const { addNode } = useWorkflowStore.getState();
+
+      const subNode = addNode(NodeType.AI_ANTHROPIC, { x: 220, y: 180 }, { subNodeRole: 'model' });
+
+      expect(subNode).toBeDefined();
+      expect(subNode?.type).toBe('subNode');
+      expect(subNode?.data.subNodeRole).toBe('model');
+      expect(subNode?.data.type).toBe(NodeType.AI_ANTHROPIC);
+    });
+
+    it('should mark agent slot connections as dependency edges', () => {
+      const { addNode, onConnect } = useWorkflowStore.getState();
+
+      const agentNode = addNode(NodeType.AGENT_REACT, { x: 200, y: 200 });
+      const modelNode = addNode(NodeType.AI_LLM, { x: 80, y: 360 }, { subNodeRole: 'model' });
+
+      onConnect({
+        source: modelNode!.id,
+        sourceHandle: 'output',
+        target: agentNode!.id,
+        targetHandle: 'model',
+      });
+
+      const [edge] = useWorkflowStore.getState().edges;
+      expect(edge.data?.isDependency).toBe(true);
+    });
+  });
+
   describe('duplicateNode', () => {
     it('should duplicate a node with an offset position', () => {
       const { addNode, duplicateNode } = useWorkflowStore.getState();

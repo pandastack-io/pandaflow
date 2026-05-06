@@ -1,5 +1,7 @@
 import { Node, Edge } from 'reactflow';
 
+export type SubNodeRole = 'model' | 'memory' | 'tool';
+
 // Base node configuration
 export interface BaseNodeConfig {
   label?: string;
@@ -972,6 +974,7 @@ export interface WorkflowNodeData {
   config: any;
   inputs?: Record<string, any>;
   outputs?: Record<string, any>;
+  subNodeRole?: SubNodeRole;
   status?: 'idle' | 'running' | 'completed' | 'error';
   executionStatus?: 'idle' | 'pending' | 'running' | 'completed' | 'failed';
   error?: string;
@@ -986,6 +989,55 @@ export interface NodeExecutionOutput {
 // Workflow node type (extends React Flow Node)
 export type WorkflowNode = Node<WorkflowNodeData>;
 
+export const SUB_NODE_TYPES = {
+  model: [NodeType.AGENT_LLM, NodeType.AI_LLM],
+  memory: [NodeType.MEMORY_BUFFER, NodeType.MEMORY_REDIS, NodeType.MEMORY_POSTGRES, NodeType.MEMORY_AGENT_READ, NodeType.MEMORY_AGENT_WRITE],
+  tool: [] as NodeType[],
+} as const;
+
+export const AGENT_NODE_TYPES = [
+  NodeType.AGENT_REACT,
+  NodeType.AGENT_LLM,
+  NodeType.AGENT_SUPERVISOR,
+  NodeType.AGENT_WORKER,
+  NodeType.AGENT_PLANNER,
+] as const;
+
+export const DEPENDENCY_HANDLE_IDS = ['model', 'memory', 'tool'] as const satisfies readonly SubNodeRole[];
+
+export function isDependencyHandleId(value?: string | null): value is SubNodeRole {
+  return Boolean(value && DEPENDENCY_HANDLE_IDS.includes(value as SubNodeRole));
+}
+
+export function getSubNodeRoleForType(type: NodeType, category?: NodeCategory): SubNodeRole | undefined {
+  if ((SUB_NODE_TYPES.model as readonly NodeType[]).includes(type)) {
+    return 'model';
+  }
+
+  if ((SUB_NODE_TYPES.memory as readonly NodeType[]).includes(type)) {
+    return 'memory';
+  }
+
+  if (type === NodeType.AGENT_TOOL || category === NodeCategory.INTEGRATION || category === NodeCategory.TOOL) {
+    return 'tool';
+  }
+
+  return undefined;
+}
+
+export interface NodePortDefinition {
+  name: string;
+  type: string;
+  required: boolean;
+  label?: string;
+  multiple?: boolean;
+}
+
+export interface NodeOutputDefinition {
+  name: string;
+  type: string;
+}
+
 // Node registry entry
 export interface NodeRegistryEntry {
   type: NodeType;
@@ -997,15 +1049,10 @@ export interface NodeRegistryEntry {
   color: string;
   configSchema: any; // Zod schema
   defaultConfig: any;
-  inputs: Array<{
-    name: string;
-    type: string;
-    required: boolean;
-  }>;
-  outputs: Array<{
-    name: string;
-    type: string;
-  }>;
+  isSubNode?: boolean;
+  subNodeRole?: SubNodeRole;
+  inputs: NodePortDefinition[];
+  outputs: NodeOutputDefinition[];
 }
 
 export interface WorkflowVariable {

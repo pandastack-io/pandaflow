@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Node, Edge } from 'reactflow';
-import { NodeType, WorkflowNodeData } from '@/types/nodes';
+import { NodeCategory, NodeType, WorkflowNodeData } from '@/types/nodes';
 import { SandboxManager } from '@/lib/sandflare/manager';
 import type { ExecutionOptions } from '@/lib/sandflare/types';
 import { NodeExecutorFn, ExecutorContext, ExecutorDeps } from './types';
@@ -149,18 +149,85 @@ function getConnectedNodes(node: WorkflowNode, definition: WorkflowDefinition, t
   return definition.nodes.filter((candidate) => connectedIds.has(candidate.id) && (!type || candidate.data.type === type));
 }
 
+function isDependencyEdge(edge: Edge, role?: 'model' | 'memory' | 'tool'): boolean {
+  if (!edge.data?.isDependency) {
+    return false;
+  }
+
+  return role ? edge.targetHandle === role : true;
+}
+
+function getDependencySourceNodes(node: WorkflowNode, definition: WorkflowDefinition, role: 'model' | 'memory' | 'tool'): WorkflowNode[] {
+  const sourceIds = definition.edges
+    .filter((edge) => edge.target === node.id && isDependencyEdge(edge, role))
+    .map((edge) => edge.source);
+
+  return definition.nodes.filter((candidate) => sourceIds.includes(candidate.id));
+}
+
+function isToolNode(node: WorkflowNode): boolean {
+  return node.data.type === NodeType.AGENT_TOOL || node.data.category === NodeCategory.TOOL || node.data.category === NodeCategory.INTEGRATION;
+}
+
+function resolveModelOverrides(modelNode: WorkflowNode, context: ExecutorContext): GenericConfig {
+  const modelConfig = getConfig(modelNode, context);
+  const providerOverrides: Partial<GenericConfig> = {};
+
+  if (!modelConfig.provider) {
+    if (modelNode.data.type === NodeType.AI_ANTHROPIC) {
+      providerOverrides.provider = 'anthropic';
+    } else if (modelNode.data.type === NodeType.AI_MISTRAL) {
+      providerOverrides.provider = 'mistral';
+    }
+  }
+
+  return {
+    ...providerOverrides,
+    ...modelConfig,
+  };
+}
+
+function resolveAgentConfig(node: WorkflowNode, definition: WorkflowDefinition, context: ExecutorContext): GenericConfig {
+  const config = getConfig(node, context);
+  const modelNode = getDependencySourceNodes(node, definition, 'model')[0];
+  if (modelNode) {
+    const modelConfig = resolveModelOverrides(modelNode, context);
+    for (const key of ['provider', 'model', 'systemPrompt', 'temperature', 'maxTokens', 'outputFormat', 'streaming', 'apiKey', 'baseUrl', 'auth', 'timeout']) {
+      if (modelConfig[key] !== undefined) {
+        config[key] = modelConfig[key];
+      }
+    }
+  }
+
+  const memoryNode = getDependencySourceNodes(node, definition, 'memory')[0];
+  if (memoryNode) {
+    const memoryConfig = getConfig(memoryNode, context);
+    config.memoryNodeId = memoryNode.id;
+    config.memoryType = memoryNode.data.type;
+    config.memoryConfig = memoryConfig;
+  }
+
+  const toolNodes = getDependencySourceNodes(node, definition, 'tool').filter(isToolNode);
+  if (toolNodes.length > 0) {
+    config.tools = toolNodes.map((toolNode) => toolNode.id);
+  }
+
+  return config;
+}
+
 function createToolDefinition(node: WorkflowNode, context: ExecutorContext): ToolDefinition {
   const config = getConfig(node, context);
+  const hasCode = typeof config.code === 'string' && config.code.trim().length > 0;
   const definition: ToolDefinition = {
-    name: String(config.name || node.data?.config?.name || `tool_${node.id}`).trim(),
-    description: String(config.description || 'Workflow tool').trim(),
+    name: String(config.name || config.label || node.data?.config?.name || getNodeName(node, `tool_${node.id}`)).trim(),
+    description: String(config.description || `${getNodeName(node, 'Workflow Tool')} workflow tool`).trim(),
     parameters:
       typeof config.parameters === 'string'
         ? safeJsonParse(config.parameters)
         : config.parameters || { type: 'object', properties: {}, additionalProperties: true },
     _nodeId: node.id,
-    code: String(config.code || ''),
-    language: String(config.language || 'nodejs').toLowerCase(),
+    code: hasCode ? String(config.code) : undefined,
+    language: hasCode ? String(config.language || 'nodejs').toLowerCase() : undefined,
     timeout: Number(config.timeout) || 30000,
   };
   return definition;
@@ -173,7 +240,7 @@ function registerToolDefinition(definition: ToolDefinition, context: ExecutorCon
 }
 
 function registerConnectedTools(node: WorkflowNode, definition: WorkflowDefinition, context: ExecutorContext): ToolDefinition[] {
-  const toolNodes = getConnectedNodes(node, definition, NodeType.AGENT_TOOL);
+  const toolNodes = getDependencySourceNodes(node, definition, 'tool').filter(isToolNode);
   const toolDefinitions = toolNodes.map((toolNode) => createToolDefinition(toolNode, context));
   toolDefinitions.forEach((toolDefinition) => registerToolDefinition(toolDefinition, context));
   return toolDefinitions;
@@ -291,11 +358,34 @@ function resolveMemoryAliases(memoryNodeId: string | undefined, definition: Work
   return Array.from(aliases);
 }
 
+function getMemoryMessageLimit(memoryNodeId: string | undefined, definition: WorkflowDefinition, context: ExecutorContext): number {
+  const memoryNode = getNodeById(definition, memoryNodeId);
+  if (!memoryNode) {
+    return 50;
+  }
+
+  const memoryConfig = getConfig(memoryNode, context);
+
+  switch (memoryNode.data.type) {
+    case NodeType.MEMORY_WINDOW:
+      return Math.max(1, Number(memoryConfig.windowSize) || 5);
+    case NodeType.MEMORY_SUMMARY:
+      return Math.max(1, Number(memoryConfig.keepRecentMessages) || 6);
+    case NodeType.MEMORY_BUFFER:
+    case NodeType.MEMORY_REDIS:
+    case NodeType.MEMORY_POSTGRES:
+      return Math.max(1, Number(memoryConfig.maxMessages) || 20);
+    default:
+      return 50;
+  }
+}
+
 function getMemoryMessages(memoryNodeId: string | undefined, definition: WorkflowDefinition, context: ExecutorContext): AgentMessage[] {
   const aliases = resolveMemoryAliases(memoryNodeId, definition, context);
+  const limit = getMemoryMessageLimit(memoryNodeId, definition, context);
   for (const alias of aliases) {
     const messages = normalizeMessages(context.variables[`memory_${alias}`]);
-    if (messages.length > 0) return messages;
+    if (messages.length > 0) return trimMessages(messages, limit);
   }
 
   const connectedMemoryNodes = definition.nodes.filter((candidate) => {
@@ -330,7 +420,7 @@ function storeMemoryConversation(
 ) {
   const aliases = resolveMemoryAliases(memoryNodeId, definition, context);
   if (aliases.length === 0) return;
-  const trimmed = trimMessages(messages, 50);
+  const trimmed = trimMessages(messages, getMemoryMessageLimit(memoryNodeId, definition, context));
   for (const alias of aliases) {
     context.variables[`memory_${alias}`] = trimmed;
   }
@@ -480,7 +570,7 @@ async function runWorkerAgent(
   deps: ExecutorDeps,
   inputOverride?: any
 ) {
-  const config = getConfig(node, context);
+  const config = resolveAgentConfig(node, definition, context);
   const input = inputOverride !== undefined ? inputOverride : getInput(config, context);
   const toolDefinitions = registerConnectedTools(node, definition, context);
   const history = getMemoryMessages(config.memoryNodeId, definition, context);
@@ -509,7 +599,7 @@ async function runWorkerAgent(
 }
 
 const agentLlmExecutor = createExecutor('Agent LLM', async (node, definition, context, deps) => {
-  const config = getConfig(node, context);
+  const config = resolveAgentConfig(node, definition, context);
   const input = getInput(config, context);
   const toolDefinitions = registerConnectedTools(node, definition, context);
   const history = getMemoryMessages(config.memoryNodeId, definition, context);
@@ -588,11 +678,11 @@ const agentLlmExecutor = createExecutor('Agent LLM', async (node, definition, co
 });
 
 const agentReactExecutor = createExecutor('Agent ReAct', async (node, definition, context) => {
-  const config = getConfig(node, context);
+  const config = resolveAgentConfig(node, definition, context);
   const input = getInput(config, context);
   const toolDefinitions = registerConnectedTools(node, definition, context);
   if (toolDefinitions.length === 0) {
-    throw new Error('Agent ReAct requires at least one connected Agent Tool node');
+    throw new Error('Agent ReAct requires at least one connected tool sub-node');
   }
   const maxIterations = Math.min(20, Math.max(1, Number(config.maxIterations) || 5));
   const systemPrompt = [
@@ -752,7 +842,7 @@ const agentLoopExecutor = createExecutor('Agent Loop', async (node, _definition,
 });
 
 const agentSupervisorExecutor = createExecutor('Agent Supervisor', async (node, definition, context, deps) => {
-  const config = getConfig(node, context);
+  const config = resolveAgentConfig(node, definition, context);
   const input = getInput(config, context);
   const workers = getConnectedNodes(node, definition, NodeType.AGENT_WORKER);
   if (workers.length === 0) {
@@ -805,7 +895,7 @@ const agentWorkerExecutor = createExecutor('Agent Worker', async (node, definiti
 });
 
 const agentPlannerExecutor = createExecutor('Agent Planner', async (node, _definition, context) => {
-  const config = getConfig(node, context);
+  const config = resolveAgentConfig(node, _definition, context);
   const input = getInput(config, context);
   const result = await generateText(
     {

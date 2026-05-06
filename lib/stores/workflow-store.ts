@@ -17,6 +17,9 @@ import {
   NodeType,
   NodeExecutionOutput,
   StickyNote,
+  getSubNodeRoleForType,
+  type SubNodeRole,
+  isDependencyHandleId,
 } from '@/types/nodes';
 import { getNodeByType } from '@/lib/nodes/registry';
 
@@ -68,6 +71,10 @@ const areHistoryEntriesEqual = (
   return JSON.stringify(left) === JSON.stringify(right);
 };
 
+interface AddNodeOptions {
+  subNodeRole?: SubNodeRole | null;
+}
+
 interface WorkflowStore {
   nodes: Node<WorkflowNodeData>[];
   edges: Edge[];
@@ -101,7 +108,7 @@ interface WorkflowStore {
   undo: () => void;
   redo: () => void;
 
-  addNode: (type: NodeType, position?: { x: number; y: number }) => void;
+  addNode: (type: NodeType, position?: { x: number; y: number }, options?: AddNodeOptions) => Node<WorkflowNodeData> | undefined;
   duplicateNode: (nodeId: string) => void;
   updateNodeData: (nodeId: string, data: Partial<WorkflowNodeData>) => void;
   deleteNode: (nodeId: string) => void;
@@ -253,8 +260,15 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
   onConnect: (connection) => {
     get().pushHistory();
 
+    const isDependency = isDependencyHandleId(connection.targetHandle);
+
     set({
-      edges: addEdge(connection, get().edges),
+      edges: addEdge({
+        ...connection,
+        data: {
+          isDependency,
+        },
+      }, get().edges),
     });
 
     get().pushHistory();
@@ -334,7 +348,7 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
     }));
   },
 
-  addNode: (type, position) => {
+  addNode: (type, position, options) => {
     const nodeInfo = getNodeByType(type);
     if (!nodeInfo) return;
 
@@ -380,14 +394,18 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
 
     get().pushHistory();
 
+    const derivedSubNodeRole = nodeInfo.isSubNode ? (nodeInfo.subNodeRole ?? getSubNodeRoleForType(type, nodeInfo.category)) : undefined;
+    const subNodeRole = options?.subNodeRole === null ? undefined : options?.subNodeRole ?? derivedSubNodeRole;
+
     const newNode: Node<WorkflowNodeData> = {
       id: crypto.randomUUID(),
-      type: 'custom',
+      type: subNodeRole ? 'subNode' : 'custom',
       position: finalPosition,
       data: {
         type,
         category: nodeInfo.category,
         config: nodeInfo.defaultConfig,
+        subNodeRole,
         status: 'idle',
       },
     };
@@ -400,6 +418,7 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
     });
 
     get().pushHistory();
+    return newNode;
   },
 
   duplicateNode: (nodeId) => {
