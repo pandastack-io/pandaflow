@@ -169,11 +169,29 @@ function isToolNode(node: WorkflowNode): boolean {
   return node.data.type === NodeType.AGENT_TOOL || node.data.category === NodeCategory.TOOL || node.data.category === NodeCategory.INTEGRATION;
 }
 
+function resolveModelOverrides(modelNode: WorkflowNode, context: ExecutorContext): GenericConfig {
+  const modelConfig = getConfig(modelNode, context);
+  const providerOverrides: Partial<GenericConfig> = {};
+
+  if (!modelConfig.provider) {
+    if (modelNode.data.type === NodeType.AI_ANTHROPIC) {
+      providerOverrides.provider = 'anthropic';
+    } else if (modelNode.data.type === NodeType.AI_MISTRAL) {
+      providerOverrides.provider = 'mistral';
+    }
+  }
+
+  return {
+    ...providerOverrides,
+    ...modelConfig,
+  };
+}
+
 function resolveAgentConfig(node: WorkflowNode, definition: WorkflowDefinition, context: ExecutorContext): GenericConfig {
   const config = getConfig(node, context);
   const modelNode = getDependencySourceNodes(node, definition, 'model')[0];
   if (modelNode) {
-    const modelConfig = getConfig(modelNode, context);
+    const modelConfig = resolveModelOverrides(modelNode, context);
     for (const key of ['provider', 'model', 'systemPrompt', 'temperature', 'maxTokens', 'outputFormat', 'streaming', 'apiKey', 'baseUrl', 'auth', 'timeout']) {
       if (modelConfig[key] !== undefined) {
         config[key] = modelConfig[key];
@@ -183,11 +201,13 @@ function resolveAgentConfig(node: WorkflowNode, definition: WorkflowDefinition, 
 
   const memoryNode = getDependencySourceNodes(node, definition, 'memory')[0];
   if (memoryNode) {
+    const memoryConfig = getConfig(memoryNode, context);
     config.memoryNodeId = memoryNode.id;
     config.memoryType = memoryNode.data.type;
+    config.memoryConfig = memoryConfig;
   }
 
-  const toolNodes = getDependencySourceNodes(node, definition, 'tool');
+  const toolNodes = getDependencySourceNodes(node, definition, 'tool').filter(isToolNode);
   if (toolNodes.length > 0) {
     config.tools = toolNodes.map((toolNode) => toolNode.id);
   }
@@ -220,9 +240,7 @@ function registerToolDefinition(definition: ToolDefinition, context: ExecutorCon
 }
 
 function registerConnectedTools(node: WorkflowNode, definition: WorkflowDefinition, context: ExecutorContext): ToolDefinition[] {
-  const dependencyToolNodes = getDependencySourceNodes(node, definition, 'tool').filter(isToolNode);
-  const fallbackToolNodes = getConnectedNodes(node, definition).filter(isToolNode);
-  const toolNodes = dependencyToolNodes.length > 0 ? dependencyToolNodes : fallbackToolNodes;
+  const toolNodes = getDependencySourceNodes(node, definition, 'tool').filter(isToolNode);
   const toolDefinitions = toolNodes.map((toolNode) => createToolDefinition(toolNode, context));
   toolDefinitions.forEach((toolDefinition) => registerToolDefinition(toolDefinition, context));
   return toolDefinitions;
@@ -340,11 +358,34 @@ function resolveMemoryAliases(memoryNodeId: string | undefined, definition: Work
   return Array.from(aliases);
 }
 
+function getMemoryMessageLimit(memoryNodeId: string | undefined, definition: WorkflowDefinition, context: ExecutorContext): number {
+  const memoryNode = getNodeById(definition, memoryNodeId);
+  if (!memoryNode) {
+    return 50;
+  }
+
+  const memoryConfig = getConfig(memoryNode, context);
+
+  switch (memoryNode.data.type) {
+    case NodeType.MEMORY_WINDOW:
+      return Math.max(1, Number(memoryConfig.windowSize) || 5);
+    case NodeType.MEMORY_SUMMARY:
+      return Math.max(1, Number(memoryConfig.keepRecentMessages) || 6);
+    case NodeType.MEMORY_BUFFER:
+    case NodeType.MEMORY_REDIS:
+    case NodeType.MEMORY_POSTGRES:
+      return Math.max(1, Number(memoryConfig.maxMessages) || 20);
+    default:
+      return 50;
+  }
+}
+
 function getMemoryMessages(memoryNodeId: string | undefined, definition: WorkflowDefinition, context: ExecutorContext): AgentMessage[] {
   const aliases = resolveMemoryAliases(memoryNodeId, definition, context);
+  const limit = getMemoryMessageLimit(memoryNodeId, definition, context);
   for (const alias of aliases) {
     const messages = normalizeMessages(context.variables[`memory_${alias}`]);
-    if (messages.length > 0) return messages;
+    if (messages.length > 0) return trimMessages(messages, limit);
   }
 
   const connectedMemoryNodes = definition.nodes.filter((candidate) => {
@@ -379,7 +420,7 @@ function storeMemoryConversation(
 ) {
   const aliases = resolveMemoryAliases(memoryNodeId, definition, context);
   if (aliases.length === 0) return;
-  const trimmed = trimMessages(messages, 50);
+  const trimmed = trimMessages(messages, getMemoryMessageLimit(memoryNodeId, definition, context));
   for (const alias of aliases) {
     context.variables[`memory_${alias}`] = trimmed;
   }

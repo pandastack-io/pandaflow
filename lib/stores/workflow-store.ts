@@ -19,6 +19,7 @@ import {
   StickyNote,
   getSubNodeRoleForType,
   type SubNodeRole,
+  isDependencyHandleId,
 } from '@/types/nodes';
 import { getNodeByType } from '@/lib/nodes/registry';
 
@@ -259,7 +260,7 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
   onConnect: (connection) => {
     get().pushHistory();
 
-    const isDependency = ['model', 'memory', 'tool'].includes(connection.targetHandle ?? '');
+    const isDependency = isDependencyHandleId(connection.targetHandle);
 
     set({
       edges: addEdge({

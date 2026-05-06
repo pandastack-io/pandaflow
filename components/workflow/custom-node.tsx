@@ -10,7 +10,7 @@ import { getNodeByType } from '@/lib/nodes/registry';
 import { validateNodeConfig } from '@/lib/nodes/validation';
 import { useWorkflowStore } from '@/lib/stores/workflow-store';
 import { cn } from '@/lib/utils';
-import { AGENT_NODE_TYPES, NodeType, type NodeExecutionOutput, type WorkflowNodeData } from '@/types/nodes';
+import { AGENT_SLOT_TYPES, NodeType, type NodeExecutionOutput, type WorkflowNodeData } from '@/types/nodes';
 
 const DEFAULT_ICON = 'Box';
 
@@ -41,6 +41,7 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
   const setOutputPanelNodeId = useWorkflowStore((state) => state.setOutputPanelNodeId);
   const debugPausedAtNode = useWorkflowStore((state) => state.debugPausedAtNode);
   const connectionPreview = useWorkflowStore((state) => state.connectionPreview);
+  const nodes = useWorkflowStore((state) => state.nodes);
   const edges = useWorkflowStore((state) => state.edges);
   const [isHovered, setIsHovered] = useState(false);
   const [showCompletedBadge, setShowCompletedBadge] = useState(false);
@@ -51,7 +52,7 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
   const status = executionState?.status || data.executionStatus || fallbackStatus;
   const durationLabel = formatDuration(executionState?.durationMs);
   const isDebugPaused = debugPausedAtNode === id;
-  const isAgentNode = (AGENT_NODE_TYPES as readonly NodeType[]).includes(data.type);
+  const isAgentNode = (AGENT_SLOT_TYPES as readonly NodeType[]).includes(data.type);
 
   useEffect(() => {
     if (status !== 'completed') {
@@ -121,7 +122,20 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
     status === 'completed' &&
     typeof executionOutput !== 'undefined' &&
     (typeof executionOutput.output !== 'undefined' || Boolean(executionOutput.error));
-  const connectedToolCount = edges.filter((edge) => edge.target === id && edge.targetHandle === 'tool' && edge.data?.isDependency).length;
+  const connectedDependencyNodes = {
+    model: edges
+      .filter((edge) => edge.target === id && edge.targetHandle === 'model' && edge.data?.isDependency)
+      .map((edge) => nodes.find((node) => node.id === edge.source))
+      .filter((node): node is typeof nodes[number] => Boolean(node)),
+    memory: edges
+      .filter((edge) => edge.target === id && edge.targetHandle === 'memory' && edge.data?.isDependency)
+      .map((edge) => nodes.find((node) => node.id === edge.source))
+      .filter((node): node is typeof nodes[number] => Boolean(node)),
+    tool: edges
+      .filter((edge) => edge.target === id && edge.targetHandle === 'tool' && edge.data?.isDependency)
+      .map((edge) => nodes.find((node) => node.id === edge.source))
+      .filter((node): node is typeof nodes[number] => Boolean(node)),
+  };
 
   const handleShowOutput = () => {
     selectNode(id);
@@ -140,8 +154,13 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
     window.dispatchEvent(new CustomEvent('run-single-node', { detail: { nodeId: id } }));
   };
 
-  const handleOpenToolPalette = () => {
-    window.dispatchEvent(new CustomEvent('open-sub-node-palette', { detail: { nodeId: id, role: 'tool' } }));
+  const handleOpenSubNodePalette = (role: 'model' | 'memory' | 'tool') => {
+    window.dispatchEvent(new CustomEvent('open-sub-node-palette', { detail: { nodeId: id, role } }));
+  };
+
+  const handleSelectDependencyNode = (nodeId: string) => {
+    selectNode(nodeId);
+    setOutputPanelNodeId(null);
   };
 
   return (
@@ -296,42 +315,93 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
 
       {isAgentNode && (
         <div className="mt-3 border-t border-dashed border-border/70 pt-3">
-          <div className="grid grid-cols-[repeat(3,minmax(0,1fr))_auto] items-start gap-2">
+          <div className="grid grid-cols-3 items-start gap-2">
             {[
-              { id: 'model', label: 'Chat Model*', color: 'text-violet-300', handle: '!bg-violet-500' },
-              { id: 'memory', label: 'Memory', color: 'text-emerald-300', handle: '!bg-emerald-500' },
-              { id: 'tool', label: connectedToolCount > 0 ? `Tool (${connectedToolCount})` : 'Tool', color: 'text-amber-300', handle: '!bg-amber-500' },
-            ].map((slot) => (
-              <div key={slot.id} className="relative flex flex-col items-center gap-3 text-center">
-                <Handle
-                  type="target"
-                  position={Position.Bottom}
-                  id={slot.id}
-                  className={cn(
-                    '!top-auto !h-3 !w-3 !border-2 !border-background !bg-transparent',
-                    slot.handle
-                  )}
-                  style={{
-                    left: '50%',
-                    bottom: -18,
-                    borderRadius: 2,
-                    transform: 'translateX(-50%) rotate(45deg)',
-                  }}
-                />
-                <div className={cn('text-[10px] font-semibold uppercase tracking-[0.14em]', slot.color)}>{slot.label}</div>
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                handleOpenToolPalette();
-              }}
-              className="nowheel nodrag nopan flex h-7 w-7 items-center justify-center self-center rounded-full border border-dashed border-amber-500/60 bg-amber-500/10 text-amber-300 transition hover:bg-amber-500/20"
-              title="Attach tool sub-node"
-            >
-              <LucideIcons.Plus className="h-3.5 w-3.5" />
-            </button>
+              { id: 'model' as const, label: 'Chat Model*', color: 'text-violet-300', handle: '!bg-violet-500', ring: 'border-violet-500/40 bg-violet-500/10 text-violet-100' },
+              { id: 'memory' as const, label: 'Memory', color: 'text-emerald-300', handle: '!bg-emerald-500', ring: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-100' },
+              { id: 'tool' as const, label: connectedDependencyNodes.tool.length > 0 ? `Tool (${connectedDependencyNodes.tool.length})` : 'Tool', color: 'text-amber-300', handle: '!bg-amber-500', ring: 'border-amber-500/40 bg-amber-500/10 text-amber-100' },
+            ].map((slot) => {
+              const slotNodes = connectedDependencyNodes[slot.id];
+              const hasConnections = slotNodes.length > 0;
+
+              return (
+                <div key={slot.id} className="relative flex flex-col items-center gap-2 text-center">
+                  <div className={cn('text-[10px] font-semibold uppercase tracking-[0.14em]', slot.color)}>{slot.label}</div>
+                  <div className="flex min-h-12 w-full flex-col items-center gap-1">
+                    {hasConnections ? (
+                      <>
+                        {slotNodes.slice(0, slot.id === 'tool' ? 2 : 1).map((slotNode) => (
+                          <button
+                            key={slotNode.id}
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleSelectDependencyNode(slotNode.id);
+                            }}
+                            className={cn(
+                              'nowheel nodrag nopan w-full truncate rounded-md border px-2 py-1 text-[11px] font-medium transition hover:brightness-110',
+                              slot.ring
+                            )}
+                            title={String(slotNode.data.config?.label || getNodeByType(slotNode.data.type)?.name || slotNode.data.type)}
+                          >
+                            {slotNode.data.config?.label || getNodeByType(slotNode.data.type)?.name || slotNode.data.type}
+                          </button>
+                        ))}
+                        {slot.id === 'tool' && slotNodes.length > 2 && (
+                          <div className="text-[10px] text-muted-foreground">+{slotNodes.length - 2} more</div>
+                        )}
+                        {slot.id === 'tool' && (
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleOpenSubNodePalette(slot.id);
+                            }}
+                            className={cn(
+                              'nowheel nodrag nopan flex h-7 w-7 items-center justify-center rounded-full border border-dashed bg-background/70 transition hover:bg-background',
+                              slot.ring
+                            )}
+                            title="Attach another tool sub-node"
+                          >
+                            <LucideIcons.Plus className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleOpenSubNodePalette(slot.id);
+                        }}
+                        className={cn(
+                          'nowheel nodrag nopan flex h-8 w-8 items-center justify-center rounded-full border border-dashed bg-background/70 transition hover:bg-background',
+                          slot.ring
+                        )}
+                        title={`Attach ${slot.label.toLowerCase()} sub-node`}
+                      >
+                        <LucideIcons.Plus className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                  <Handle
+                    type="target"
+                    position={Position.Bottom}
+                    id={slot.id}
+                    className={cn(
+                      '!top-auto !h-3 !w-3 !border-2 !border-background !bg-transparent',
+                      slot.handle
+                    )}
+                    style={{
+                      left: '50%',
+                      bottom: -18,
+                      borderRadius: 2,
+                      transform: 'translateX(-50%) rotate(45deg)',
+                    }}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

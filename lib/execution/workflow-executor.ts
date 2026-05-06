@@ -1202,7 +1202,14 @@ export class WorkflowExecutor {
 
     let result: any;
 
-    // ── Step 1: Execute THIS node's own logic only ───────────────────────────
+    if (node.data.subNodeRole) {
+      result = {
+        output: node.data.config,
+        config: node.data.config,
+        skipped: true,
+      };
+    } else {
+      // ── Step 1: Execute THIS node's own logic only ───────────────────────────
     // The try/catch below must NOT wrap downstream node calls so that a failure
     // in a child node does not get re-logged as a failure of the parent.
     try {
@@ -1460,6 +1467,7 @@ export class WorkflowExecutor {
 
       throw error;
     }
+  }
 
     // ── Step 2: Node succeeded — persist result and notify ───────────────────
     // Store output

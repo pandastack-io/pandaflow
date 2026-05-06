@@ -27,7 +27,7 @@ import { StickyNoteNode, type StickyNoteNodeData } from './sticky-note-node';
 import { NodePalette } from './node-palette';
 import { NodeConfigPanel } from './node-config-panel';
 import {
-  AGENT_NODE_TYPES,
+  AGENT_SLOT_TYPES,
   WorkflowNodeData,
   type NodeExecutionOutput,
   NodeType,
@@ -671,7 +671,7 @@ function WorkflowCanvasInner({
 
     if (isDependencyHandleId(connection.targetHandle)) {
       const sourceRole = sourceNode.data.subNodeRole ?? getSubNodeRoleForType(sourceNode.data.type, sourceNode.data.category);
-      return sourceRole === connection.targetHandle && (AGENT_NODE_TYPES as readonly NodeType[]).includes(targetNode.data.type);
+      return sourceRole === connection.targetHandle && (AGENT_SLOT_TYPES as readonly NodeType[]).includes(targetNode.data.type);
     }
 
     const targetInfo = getNodeByType(targetNode.data.type);
@@ -692,7 +692,7 @@ function WorkflowCanvasInner({
       .filter((node) => !stickyNoteIds.has(node.id))
       .filter((node) => {
         if (sourceRole) {
-          return (AGENT_NODE_TYPES as readonly NodeType[]).includes(node.data.type);
+          return (AGENT_SLOT_TYPES as readonly NodeType[]).includes(node.data.type);
         }
         const nodeInfo = getNodeByType(node.data.type);
         return Boolean(nodeInfo && nodeInfo.inputs.length > 0);
