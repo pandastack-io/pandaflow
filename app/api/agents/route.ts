@@ -4,8 +4,8 @@ import { z } from 'zod';
 import { generateAgentToken, generateMemoryNamespace } from '@/lib/agents/identity';
 import { db } from '@/lib/db';
 import { agentEvents, agents, workflows } from '@/lib/db/schema';
+import { requireOrgId } from '@/lib/auth/get-org-id';
 
-const ORGANIZATION_ID = '00000000-0000-0000-0000-000000000000';
 
 const createAgentSchema = z.object({
   workflowId: z.string().min(1, 'Workflow ID is required'),
@@ -15,6 +15,7 @@ const createAgentSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
+  const orgId = await requireOrgId();
   try {
     const workflowId = request.nextUrl.searchParams.get('workflowId');
 
@@ -27,8 +28,8 @@ export async function GET(request: NextRequest) {
       .leftJoin(workflows, eq(agents.workflowId, workflows.id))
       .where(
         workflowId
-          ? and(eq(agents.organizationId, ORGANIZATION_ID), eq(agents.workflowId, workflowId))
-          : eq(agents.organizationId, ORGANIZATION_ID)
+          ? and(eq(agents.organizationId, orgId), eq(agents.workflowId, workflowId))
+          : eq(agents.organizationId, orgId)
       )
       .orderBy(desc(agents.updatedAt), desc(agents.createdAt));
 
@@ -46,6 +47,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const orgId = await requireOrgId();
   try {
     const body = await request.json();
     const parsed = createAgentSchema.safeParse(body);
@@ -65,7 +67,7 @@ export async function POST(request: NextRequest) {
         name: workflows.name,
       })
       .from(workflows)
-      .where(and(eq(workflows.id, workflowId), eq(workflows.organizationId, ORGANIZATION_ID)))
+      .where(and(eq(workflows.id, workflowId), eq(workflows.organizationId, orgId)))
       .limit(1);
 
     if (!workflow) {
@@ -76,7 +78,7 @@ export async function POST(request: NextRequest) {
       const [createdAgent] = await tx
         .insert(agents)
         .values({
-          organizationId: ORGANIZATION_ID,
+          organizationId: orgId,
           workflowId,
           name,
           description: description?.trim() || null,

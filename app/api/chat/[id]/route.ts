@@ -5,7 +5,6 @@ import { auth } from '@/lib/auth/config';
 import { db } from '@/lib/db';
 import { chatSessions, workflows } from '@/lib/db/schema';
 import {
-  buildMockChatResponse,
   generateSessionTitle,
   isUuid,
   resolveChatSettings,
@@ -229,14 +228,7 @@ export async function POST(
           } else if (process.env.OPENAI_API_KEY) {
             await streamOpenAIResponse(modelMessages, settings, pushToken);
           } else {
-            const mockResponse = buildMockChatResponse(message, settings);
-            for (const token of mockResponse.split(/(\s+)/)) {
-              if (!token) {
-                continue;
-              }
-              pushToken(token);
-              await new Promise((resolve) => setTimeout(resolve, token.trim() ? 24 : 12));
-            }
+            pushToken('⚠️ No AI provider API key configured. Set OPENAI_API_KEY or ANTHROPIC_API_KEY in your environment to enable chat responses.');
           }
 
           const assistantMessage: ChatMessage = {

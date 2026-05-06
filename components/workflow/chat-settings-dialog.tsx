@@ -110,8 +110,8 @@ function ChatSettingsDialogContent({
   };
 
   return (
-    <DialogContent className="max-w-3xl border-border/60 bg-card/95 shadow-2xl backdrop-blur">
-      <DialogHeader>
+    <DialogContent className="flex max-h-[90vh] max-w-3xl flex-col border-border/60 bg-card/95 shadow-2xl backdrop-blur">
+      <DialogHeader className="shrink-0">
         <DialogTitle className="flex items-center gap-2 text-xl">
           <MessageSquareText className="h-5 w-5 text-primary" />
           Chat Settings
@@ -121,7 +121,7 @@ function ChatSettingsDialogContent({
         </DialogDescription>
       </DialogHeader>
 
-      <div className="space-y-6">
+      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto pr-1">
         <div className="space-y-3">
           <div>
             <Label className="text-sm font-medium text-foreground">Workflow Type</Label>

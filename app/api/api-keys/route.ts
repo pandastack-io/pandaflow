@@ -3,8 +3,8 @@ import { db } from '@/lib/db';
 import { apiKeys } from '@/lib/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { createHash, randomBytes } from 'crypto';
+import { requireOrgId } from '@/lib/auth/get-org-id';
 
-const ORG_ID = '00000000-0000-0000-0000-000000000000';
 
 function generateApiKey(): { fullKey: string; prefix: string; hash: string } {
   const secret = randomBytes(32).toString('hex');
@@ -15,6 +15,7 @@ function generateApiKey(): { fullKey: string; prefix: string; hash: string } {
 }
 
 export async function GET() {
+  const orgId = await requireOrgId();
   try {
     const keys = await db
       .select({
@@ -28,7 +29,7 @@ export async function GET() {
         createdAt: apiKeys.createdAt,
       })
       .from(apiKeys)
-      .where(and(eq(apiKeys.organizationId, ORG_ID), eq(apiKeys.isActive, true)))
+      .where(and(eq(apiKeys.organizationId, orgId), eq(apiKeys.isActive, true)))
       .orderBy(desc(apiKeys.createdAt));
 
     return NextResponse.json({ success: true, data: keys });
@@ -39,6 +40,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const orgId = await requireOrgId();
   try {
     const body = await request.json();
     const { name, scopes = [], expiresAt } = body;
@@ -50,7 +52,7 @@ export async function POST(request: NextRequest) {
     const { fullKey, prefix, hash } = generateApiKey();
 
     const [newKey] = await db.insert(apiKeys).values({
-      organizationId: ORG_ID,
+      organizationId: orgId,
       name: name.trim(),
       keyPrefix: prefix,
       keyHash: hash,
@@ -76,6 +78,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const orgId = await requireOrgId();
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
@@ -87,7 +90,7 @@ export async function DELETE(request: NextRequest) {
     await db
       .update(apiKeys)
       .set({ isActive: false })
-      .where(and(eq(apiKeys.id, id), eq(apiKeys.organizationId, ORG_ID)));
+      .where(and(eq(apiKeys.id, id), eq(apiKeys.organizationId, orgId)));
 
     return NextResponse.json({ success: true });
   } catch (error) {

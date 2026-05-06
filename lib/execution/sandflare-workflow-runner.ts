@@ -7,7 +7,7 @@ import { credentials, executionLogs } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { decrypt } from '@/lib/secrets/crypto';
 
-const ORG_ID = '00000000-0000-0000-0000-000000000000';
+const ORG_ID = '00000000-0000-0000-0000-000000000000'; // seed org — only used in dev (SKIP_AUTH=true)
 
 /** Node types that require the browser-agent template (has Playwright). */
 const BROWSER_NODE_TYPES = new Set<string>([

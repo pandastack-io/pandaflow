@@ -3,19 +3,20 @@ import { and, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { credentials } from '@/lib/db/schema';
 import { decrypt, encrypt } from '@/lib/secrets/crypto';
+import { requireOrgId } from '@/lib/auth/get-org-id';
 
-const ORG_ID = '00000000-0000-0000-0000-000000000000';
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const orgId = await requireOrgId();
   try {
     const { id } = await params;
     const [secret] = await db
       .select()
       .from(credentials)
-      .where(and(eq(credentials.id, id), eq(credentials.organizationId, ORG_ID)));
+      .where(and(eq(credentials.id, id), eq(credentials.organizationId, orgId)));
 
     if (!secret) {
       return NextResponse.json({ success: false, error: 'Secret not found' }, { status: 404 });
@@ -43,13 +44,14 @@ async function updateSecret(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const orgId = await requireOrgId();
   try {
     const { id } = await params;
     const body = await request.json();
     const [existingSecret] = await db
       .select()
       .from(credentials)
-      .where(and(eq(credentials.id, id), eq(credentials.organizationId, ORG_ID)));
+      .where(and(eq(credentials.id, id), eq(credentials.organizationId, orgId)));
 
     if (!existingSecret) {
       return NextResponse.json({ success: false, error: 'Secret not found' }, { status: 404 });
@@ -63,7 +65,7 @@ async function updateSecret(
     const existingSecrets = await db
       .select({ id: credentials.id, name: credentials.name })
       .from(credentials)
-      .where(eq(credentials.organizationId, ORG_ID));
+      .where(eq(credentials.organizationId, orgId));
 
     if (
       existingSecrets.some(
@@ -91,7 +93,7 @@ async function updateSecret(
     const [updatedSecret] = await db
       .update(credentials)
       .set(updateData)
-      .where(and(eq(credentials.id, id), eq(credentials.organizationId, ORG_ID)))
+      .where(and(eq(credentials.id, id), eq(credentials.organizationId, orgId)))
       .returning();
 
     return NextResponse.json({
@@ -130,11 +132,12 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const orgId = await requireOrgId();
   try {
     const { id } = await params;
     const [deletedSecret] = await db
       .delete(credentials)
-      .where(and(eq(credentials.id, id), eq(credentials.organizationId, ORG_ID)))
+      .where(and(eq(credentials.id, id), eq(credentials.organizationId, orgId)))
       .returning({ id: credentials.id });
 
     if (!deletedSecret) {

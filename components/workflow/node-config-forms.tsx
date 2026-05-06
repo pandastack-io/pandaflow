@@ -610,7 +610,7 @@ function HeadersEditor({
       ))}
       <button
         type="button"
-        onClick={() => onChange([...rows, { id: `header-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, key: '', value: '' }])}
+        onClick={() => onChange([...rows, { id: `header-${crypto.randomUUID()}`, key: '', value: '' }])}
         className="inline-flex items-center gap-1 rounded-md border border-dashed border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-indigo-500 hover:text-foreground"
       >
         <Plus className="h-3.5 w-3.5" />

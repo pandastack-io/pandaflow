@@ -4,8 +4,10 @@ import { db } from '@/lib/db';
 import { workflowSchedules, workflows } from '@/lib/db/schema';
 import { getNextRunFromCron } from '@/lib/scheduling/cron';
 import { DEFAULT_ORGANIZATION_ID } from '@/lib/workflows/constants';
+import { requireOrgId } from '@/lib/auth/get-org-id';
 
 export async function GET(request: NextRequest) {
+  const orgId = await requireOrgId();
   try {
     const workflowId = request.nextUrl.searchParams.get('workflowId');
     const conditions = [eq(workflowSchedules.organizationId, DEFAULT_ORGANIZATION_ID)];
@@ -40,6 +42,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const orgId = await requireOrgId();
   try {
     const body = await request.json();
     const workflowId = typeof body.workflowId === 'string' ? body.workflowId : '';

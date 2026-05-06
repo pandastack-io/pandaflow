@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRecentMessages } from '@/lib/agents/message-bus';
 import { DEFAULT_ORGANIZATION_ID } from '@/lib/workflows/constants';
+import { requireOrgId } from '@/lib/auth/get-org-id';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ topic: string }> }) {
   try {

@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { webhookLogs, webhooks, workflows } from '@/lib/db/schema';
 import { DEFAULT_ORGANIZATION_ID } from '@/lib/workflows/constants';
+import { requireOrgId } from '@/lib/auth/get-org-id';
 
 async function withRecentLogs(items: Array<typeof webhooks.$inferSelect & { workflowName: string | null }>) {
   if (items.length === 0) {
@@ -23,6 +24,7 @@ async function withRecentLogs(items: Array<typeof webhooks.$inferSelect & { work
 }
 
 export async function GET(request: NextRequest) {
+  const orgId = await requireOrgId();
   try {
     const workflowId = request.nextUrl.searchParams.get('workflowId');
     const conditions = [eq(webhooks.organizationId, DEFAULT_ORGANIZATION_ID)];
@@ -63,6 +65,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const orgId = await requireOrgId();
   try {
     const body = await request.json();
     const workflowId = typeof body.workflowId === 'string' ? body.workflowId : '';

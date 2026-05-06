@@ -3,10 +3,11 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { credentials } from '@/lib/db/schema';
 import { encrypt } from '@/lib/secrets/crypto';
+import { requireOrgId } from '@/lib/auth/get-org-id';
 
-const ORG_ID = '00000000-0000-0000-0000-000000000000';
 
 export async function GET() {
+  const orgId = await requireOrgId();
   try {
     const secretList = await db
       .select({
@@ -17,7 +18,7 @@ export async function GET() {
         createdAt: credentials.createdAt,
       })
       .from(credentials)
-      .where(eq(credentials.organizationId, ORG_ID));
+      .where(eq(credentials.organizationId, orgId));
 
     return NextResponse.json({ success: true, data: secretList });
   } catch (error) {
@@ -27,6 +28,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const orgId = await requireOrgId();
   try {
     const body = await request.json();
     const name = String(body.name ?? '').trim();
@@ -41,7 +43,7 @@ export async function POST(request: NextRequest) {
     const existingSecrets = await db
       .select({ name: credentials.name })
       .from(credentials)
-      .where(eq(credentials.organizationId, ORG_ID));
+      .where(eq(credentials.organizationId, orgId));
 
     if (existingSecrets.some((secret) => secret.name.toLowerCase() === name.toLowerCase())) {
       return NextResponse.json({ success: false, error: 'A secret with this name already exists' }, { status: 409 });
@@ -52,7 +54,7 @@ export async function POST(request: NextRequest) {
     const [secret] = await db
       .insert(credentials)
       .values({
-        organizationId: ORG_ID,
+        organizationId: orgId,
         name,
         type,
         encryptedData: ciphertext,

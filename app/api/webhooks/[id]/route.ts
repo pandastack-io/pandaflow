@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { webhookLogs, webhooks, workflows } from '@/lib/db/schema';
 import { DEFAULT_ORGANIZATION_ID } from '@/lib/workflows/constants';
+import { requireOrgId } from '@/lib/auth/get-org-id';
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {

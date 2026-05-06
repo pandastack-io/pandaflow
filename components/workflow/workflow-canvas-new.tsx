@@ -351,7 +351,7 @@ function WorkflowCanvasInner({
   }, [deleteNode, fitView, redo, selectedNode, undo]);
 
   const createStickyNoteAt = useCallback((flowX: number, flowY: number, panTo = false) => {
-    const noteId = `sticky-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    const noteId = `sticky-${crypto.randomUUID()}`;
     const note: StickyNote = {
       id: noteId,
       x: flowX - STICKY_NOTE_WIDTH / 2,

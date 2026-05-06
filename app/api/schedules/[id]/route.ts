@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { workflowSchedules } from '@/lib/db/schema';
 import { getNextRunFromCron } from '@/lib/scheduling/cron';
 import { DEFAULT_ORGANIZATION_ID } from '@/lib/workflows/constants';
+import { requireOrgId } from '@/lib/auth/get-org-id';
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {

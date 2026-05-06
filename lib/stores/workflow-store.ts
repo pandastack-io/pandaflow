@@ -381,7 +381,7 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
     get().pushHistory();
 
     const newNode: Node<WorkflowNodeData> = {
-      id: `node-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+      id: crypto.randomUUID(),
       type: 'custom',
       position: finalPosition,
       data: {
@@ -413,7 +413,7 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
 
     const duplicatedNode: Node<WorkflowNodeData> = {
       ...structuredClone(sourceNode),
-      id: `node-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+      id: crypto.randomUUID(),
       position: {
         x: sourceNode.position.x + 40,
         y: sourceNode.position.y + 40,
