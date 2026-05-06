@@ -313,7 +313,6 @@ export enum NodeType {
 
   // Prism - Universal LLM Gateway
   PRISM_LLM = 'prism.llm',
-
   // Data Sources (5 types)
   DATA_CSV_READ = 'data.csv_read',
   DATA_JSON_READ = 'data.json_read',

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AGENT_NODE_TYPES, getSubNodeRoleForType, NodeType, NodeCategory, NodeRegistryEntry, type NodePortDefinition } from '@/types/nodes';
+import { AGENT_NODE_TYPES, getSubNodeRoleForType, NodeType, NodeCategory, NodeRegistryEntry, PRISM_PROVIDER_KEYS, type NodePortDefinition } from '@/types/nodes';
 
 const baseSchema = z.object({
   label: z.string().optional(),
@@ -391,7 +391,6 @@ const prismNodeSchema = baseSchema.extend({
   prompt: z.string().optional(),
   inputVariable: z.string().optional(),
 });
-
 const verdictNodeSchema = baseSchema.extend({
   judgeProvider: z.enum(['openai', 'anthropic', 'google', 'custom']).optional(),
   judgeModel: z.string().min(1).optional(),

@@ -244,7 +244,6 @@ const PRISM_PROVIDER_ACCENTS: Record<string, string> = {
 };
 
 const PRISM_BASE_URL_PROVIDERS = new Set(['ollama', 'lmstudio', 'azure', 'openrouter']);
-
 const VERDICT_NODE_TYPES: NodeType[] = [
   NodeType.VERDICT_FAITHFULNESS,
   NodeType.VERDICT_CORRECTNESS,
