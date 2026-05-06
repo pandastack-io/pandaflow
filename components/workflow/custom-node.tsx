@@ -10,7 +10,7 @@ import { getNodeByType } from '@/lib/nodes/registry';
 import { validateNodeConfig } from '@/lib/nodes/validation';
 import { useWorkflowStore } from '@/lib/stores/workflow-store';
 import { cn } from '@/lib/utils';
-import { AGENT_SLOT_TYPES, NodeType, type NodeExecutionOutput, type WorkflowNodeData } from '@/types/nodes';
+import { AGENT_NODE_TYPES, NodeType, type NodeExecutionOutput, type WorkflowNodeData } from '@/types/nodes';
 
 const DEFAULT_ICON = 'Box';
 
@@ -52,7 +52,7 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
   const status = executionState?.status || data.executionStatus || fallbackStatus;
   const durationLabel = formatDuration(executionState?.durationMs);
   const isDebugPaused = debugPausedAtNode === id;
-  const isAgentNode = (AGENT_SLOT_TYPES as readonly NodeType[]).includes(data.type);
+  const isAgentNode = (AGENT_NODE_TYPES as readonly NodeType[]).includes(data.type);
 
   useEffect(() => {
     if (status !== 'completed') {
