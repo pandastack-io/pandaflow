@@ -351,13 +351,13 @@ export const PRISM_PROVIDERS = {
   },
   anthropic: {
     label: 'Anthropic',
-    baseUrl: 'https://api.anthropic.com',
+    baseUrl: null,
     envKey: 'ANTHROPIC_API_KEY',
     models: ['claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022', 'claude-3-opus-20240229'],
   },
   google: {
     label: 'Google Gemini',
-    baseUrl: 'https://generativelanguage.googleapis.com',
+    baseUrl: null,
     envKey: 'GEMINI_API_KEY',
     models: ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'],
   },
@@ -417,13 +417,13 @@ export const PRISM_PROVIDERS = {
   },
   mistral: {
     label: 'Mistral',
-    baseUrl: 'https://api.mistral.ai',
+    baseUrl: null,
     envKey: 'MISTRAL_API_KEY',
     models: ['mistral-large-latest', 'mistral-small-latest', 'open-mixtral-8x7b'],
   },
   cohere: {
     label: 'Cohere',
-    baseUrl: 'https://api.cohere.com',
+    baseUrl: null,
     envKey: 'COHERE_API_KEY',
     models: ['command-r-plus', 'command-r'],
   },

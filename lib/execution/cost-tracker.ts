@@ -15,6 +15,9 @@ const MODEL_COSTS: Record<string, { input: number; output: number }> = {
   'claude-3-5-haiku': { input: 0.0000008, output: 0.000004 },
   'claude-3-haiku': { input: 0.00000025, output: 0.00000125 },
   'claude-3-opus': { input: 0.000015, output: 0.000075 },
+  'claude-3-5-sonnet-20241022': { input: 0.000003, output: 0.000015 },
+  'claude-3-5-haiku-20241022': { input: 0.0000008, output: 0.000004 },
+  'claude-3-opus-20240229': { input: 0.000015, output: 0.000075 },
   'gemini-2.5-pro': { input: 0.0000035, output: 0.0000105 },
   'gemini-2.5-flash': { input: 0.00000035, output: 0.00000105 },
   'gemini-1.5-pro': { input: 0.00000125, output: 0.000005 },
@@ -47,7 +50,7 @@ const MODEL_COSTS: Record<string, { input: number; output: number }> = {
   'grok-2': { input: 0.000005, output: 0.000015 },
   'Meta-Llama-3.1-405B-Instruct': { input: 0.000005, output: 0.000005 },
   'Meta-Llama-3.3-70B-Instruct': { input: 0.0000012, output: 0.0000012 },
-  default: { input: 0.000002, output: 0.000006 },
+  default: { input: 0, output: 0 },
 };
 
 const SANDFLARE_COST_PER_MS = 0.000000008;

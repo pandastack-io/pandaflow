@@ -710,7 +710,10 @@ export async function prismChat(
     if (OPENAI_COMPATIBLE_PRISM_PROVIDERS.has(provider)) {
       const apiKey = resolvePrismApiKey(config, context, provider);
       const providerConfig = PRISM_PROVIDERS[provider as keyof typeof PRISM_PROVIDERS];
-      const baseUrl = normalizeOptionalString(config.baseUrl) || providerConfig?.baseUrl;
+      const allowsBaseUrlOverride = new Set(['ollama', 'lmstudio', 'azure', 'openrouter']);
+      const baseUrl = allowsBaseUrlOverride.has(provider)
+        ? (normalizeOptionalString(config.baseUrl) || providerConfig?.baseUrl || undefined)
+        : providerConfig?.baseUrl || undefined;
       const authHeaders = provider === 'azure'
         ? { 'api-key': apiKey }
         : undefined;
@@ -784,7 +787,7 @@ export async function prismChat(
           });
           break;
         default:
-          throw new Error(`Prism: Unsupported provider ${provider}`);
+          throw new Error(`Unsupported Prism provider: ${provider}`);
       }
     }
 
@@ -796,6 +799,9 @@ export async function prismChat(
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    if (message.startsWith('Unsupported Prism provider:')) {
+      throw error instanceof Error ? error : new Error(message);
+    }
     throw new Error(`Prism ${provider}/${model} failed: ${message}`);
   }
 }

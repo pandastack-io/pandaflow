@@ -499,8 +499,8 @@ function PrismLLMConfigForm({
                 provider: nextProvider,
                 model: ([...nextProviderConfig.models] as string[]).includes(currentModel) ? currentModel : nextProviderConfig.models[0] ?? '',
                 baseUrl: PRISM_BASE_URL_PROVIDERS.has(nextProvider)
-                  ? (currentBaseUrl || nextProviderConfig.baseUrl)
-                  : currentBaseUrl,
+                  ? (currentBaseUrl || nextProviderConfig.baseUrl || '')
+                  : '',
               });
             }}
           >
@@ -625,9 +625,9 @@ function PrismLLMConfigForm({
         <Section title="Endpoint" description="Override the base URL for compatible gateways, local runtimes, or Azure deployments.">
           <Field label="Base URL" hint={providerKey === 'azure' ? 'Use the full Azure chat completions endpoint including api-version.' : undefined}>
             <Input
-              value={config.baseUrl || providerConfig.baseUrl}
+              value={config.baseUrl || providerConfig.baseUrl || ''}
               onChange={(event) => updateConfig(config, onChange, 'baseUrl', event.target.value)}
-              placeholder={providerConfig.baseUrl}
+              placeholder={providerConfig.baseUrl || ''}
               className="h-9 text-sm"
             />
           </Field>
