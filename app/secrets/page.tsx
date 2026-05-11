@@ -33,7 +33,7 @@ import {
   type CredentialField,
   type CredentialProvider,
 } from '@/lib/credentials/providers';
-import { getProviderIcon } from '@/lib/credentials/brand-icons';
+import { getProviderIcon, getProviderHex } from '@/lib/credentials/brand-icons';
 import { cn } from '@/lib/utils';
 
 type SecretSummary = {
@@ -417,6 +417,7 @@ export default function SecretsPage() {
     const configuredCount = getConfiguredCount(provider);
     const hasStoredSecrets = providerSecrets.length > 0;
     const brandIcon = getProviderIcon(provider.simpleIconId ?? provider.id);
+    const brandHex = getProviderHex(provider.simpleIconId ?? provider.id);
 
     return (
       <Card
@@ -435,7 +436,7 @@ export default function SecretsPage() {
             <div>
               <div className="flex h-6 items-center text-foreground">
                 {brandIcon ? (
-                  <BrandIcon icon={brandIcon} size={24} branded={true} className="opacity-90" />
+                  <BrandIcon icon={brandIcon} hex={brandHex} size={24} branded={true} className="opacity-90" />
                 ) : provider.id === 'sandflare' ? (
                   <Zap className="h-6 w-6 text-amber-400" />
                 ) : (

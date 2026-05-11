@@ -1,40 +1,57 @@
 import {
-  siAirtable,
-  siAnthropic,
-  siBrave,
-  siDiscord,
-  siGithub,
-  siGitlab,
-  siGooglecloud,
-  siGooglegemini,
-  siGooglesheets,
-  siHuggingface,
-  siJira,
-  siLinear,
-  siMistralai,
-  siMongodb,
-  siMysql,
-  siNotion,
-  siPerplexity,
-  siPostgresql,
-  siRedis,
-  siStripe,
-  siSupabase,
-} from 'simple-icons';
+  SiAirtable,
+  SiAnthropic,
+  SiApachecassandra,
+  SiBitbucket,
+  SiBrave,
+  SiCloudflare,
+  SiDiscord,
+  SiElasticsearch,
+  SiFirebase,
+  SiGithub,
+  SiGitlab,
+  SiGoogleanalytics,
+  SiGooglecloud,
+  SiGooglegemini,
+  SiGoogledrive,
+  SiGooglesheets,
+  SiHuggingface,
+  SiJira,
+  SiLinear,
+  SiMailgun,
+  SiMeta,
+  SiMistralai,
+  SiMixpanel,
+  SiMongodb,
+  SiMysql,
+  SiNetlify,
+  SiNotion,
+  SiOllama,
+  SiOpenai,
+  SiPaypal,
+  SiPerplexity,
+  SiPostgresql,
+  SiPosthog,
+  SiRailway,
+  SiRedis,
+  SiResend,
+  SiSendgrid,
+  SiShopify,
+  SiSlack,
+  SiStripe,
+  SiSupabase,
+  SiTelegram,
+  SiTwilio,
+  SiVercel,
+  SiWhatsapp,
+  SiZapier,
+} from 'react-icons/si';
+import { FaAws, FaMicrosoft, FaPaypal } from 'react-icons/fa6';
+import type { IconType } from 'react-icons';
 import type { SimpleIcon } from 'simple-icons';
 import type { ExtendedSimpleIcon } from '@/components/ui/brand-icon';
 
-// OpenAI is not in simple-icons; use the official logo path from simpleicons.org
-const siOpenai: SimpleIcon = {
-  title: 'OpenAI',
-  slug: 'openai',
-  hex: '412991',
-  source: 'https://openai.com',
-  svg: '<svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.032.067L9.644 19.9a4.496 4.496 0 0 1-6.043-1.596zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.677l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.872zm16.597 3.855l-5.843-3.371L15.115 7.2a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.404-.667zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .026-.06l4.816-2.818a4.49 4.49 0 0 1 6.678 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.496 4.496 0 0 1 7.375-3.453l-.142.08L8.704 5.46a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z"/></svg>',
-  path: 'M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.032.067L9.644 19.9a4.496 4.496 0 0 1-6.043-1.596zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.677l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.872zm16.597 3.855l-5.843-3.371L15.115 7.2a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.404-.667zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .026-.06l4.816-2.818a4.49 4.49 0 0 1 6.678 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.496 4.496 0 0 1 7.375-3.453l-.142.08L8.704 5.46a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z',
-};
-
-// PandaStack logo — SVG path extracted from deploy-button.svg (viewBox 0 0 48 46, brand color #863bff)
+// PandaStack/PandaFlow logo — SVG path extracted from deploy-button.svg
 const siPandaStack: ExtendedSimpleIcon = {
   title: 'PandaStack',
   slug: 'pandastack',
@@ -45,38 +62,134 @@ const siPandaStack: ExtendedSimpleIcon = {
   viewBox: '0 0 48 46',
 };
 
-export const providerIcons: Record<string, SimpleIcon | ExtendedSimpleIcon | null> = {
-  openai: siOpenai,
-  anthropic: siAnthropic,
-  google_ai: siGooglegemini,
-  groq: null,
-  mistral: siMistralai,
+/** Brand hex colors for react-icons (no # prefix) */
+export const providerHex: Record<string, string> = {
+  openai: '412991',
+  anthropic: 'D4A27F',
+  google_ai: '4285F4',
+  mistral: 'FF7000',
+  huggingface: 'FFD21E',
+  perplexity: '1FB8CD',
+  ollama: '000000',
+  meta: '0467DF',
+  postgres: '4169E1',
+  mysql: '4479A1',
+  mongodb: '47A248',
+  redis: 'DC382D',
+  elasticsearch: '005571',
+  cassandra: '1287B1',
+  firebase: 'DD2C00',
+  supabase: '3ECF8E',
+  aws: 'FF9900',
+  gcp: '4285F4',
+  azure: '0078D4',
+  cloudflare: 'F38020',
+  vercel: '000000',
+  netlify: '00C7B7',
+  railway: '0B0D0E',
+  slack: '4A154B',
+  discord: '5865F2',
+  telegram: '26A5E4',
+  whatsapp: '25D366',
+  twilio: 'F22F46',
+  sendgrid: '1A82E2',
+  mailgun: 'F06B66',
+  resend: '000000',
+  github: '181717',
+  gitlab: 'FC6D26',
+  bitbucket: '0052CC',
+  jira: '0052CC',
+  linear: '5E6AD2',
+  notion: '000000',
+  airtable: '18BFFF',
+  google_sheets: '34A853',
+  stripe: '635BFF',
+  paypal: '00457C',
+  google_analytics: 'E37400',
+  mixpanel: '7856FF',
+  posthog: '000000',
+  shopify: '7AB55C',
+  zapier: 'FF4F00',
+  brave_search: 'FB542B',
+  pandastack: '863bff',
+};
+
+/** Map of provider key → react-icons component OR ExtendedSimpleIcon (for custom SVG paths) */
+export const providerIcons: Record<string, IconType | ExtendedSimpleIcon | null> = {
+  // AI providers
+  openai: SiOpenai,
+  anthropic: SiAnthropic,
+  google_ai: SiGooglegemini,
+  mistral: SiMistralai,
+  huggingface: SiHuggingface,
+  perplexity: SiPerplexity,
+  ollama: SiOllama,
+  meta: SiMeta,
+  groq: null,       // not yet in any icon library
   cohere: null,
-  huggingface: siHuggingface,
-  perplexity: siPerplexity,
   pinecone: null,
-  weaviate: null,
-  supabase: siSupabase,
-  redis: siRedis,
-  postgres: siPostgresql,
-  mysql: siMysql,
-  mongodb: siMongodb,
-  slack: null,
-  discord: siDiscord,
-  sendgrid: null,
-  twilio: null,
-  aws: null,
-  gcp: siGooglecloud,
-  azure: null,
-  github: siGithub,
-  gitlab: siGitlab,
-  jira: siJira,
-  notion: siNotion,
-  linear: siLinear,
-  stripe: siStripe,
-  airtable: siAirtable,
-  brave_search: siBrave,
-  google_sheets: siGooglesheets,
+  xai: null,
+  openrouter: null,
+
+  // Databases / storage
+  postgres: SiPostgresql,
+  mysql: SiMysql,
+  mongodb: SiMongodb,
+  redis: SiRedis,
+  elasticsearch: SiElasticsearch,
+  cassandra: SiApachecassandra,
+  firebase: SiFirebase,
+  supabase: SiSupabase,
+  dynamodb: FaAws,
+  firestore: SiFirebase,
+
+  // Cloud providers
+  aws: FaAws,
+  gcp: SiGooglecloud,
+  azure: FaMicrosoft,
+  cloudflare: SiCloudflare,
+  vercel: SiVercel,
+  netlify: SiNetlify,
+  railway: SiRailway,
+
+  // Communication
+  slack: SiSlack,
+  discord: SiDiscord,
+  telegram: SiTelegram,
+  whatsapp: SiWhatsapp,
+  twilio: SiTwilio,
+  sendgrid: SiSendgrid,
+  mailgun: SiMailgun,
+  resend: SiResend,
+
+  // Dev / SCM
+  github: SiGithub,
+  gitlab: SiGitlab,
+  bitbucket: SiBitbucket,
+
+  // Project management
+  jira: SiJira,
+  linear: SiLinear,
+  notion: SiNotion,
+  airtable: SiAirtable,
+  google_sheets: SiGooglesheets,
+  google_drive: SiGoogledrive,
+
+  // Payment
+  stripe: SiStripe,
+  paypal: SiPaypal,
+
+  // Analytics
+  google_analytics: SiGoogleanalytics,
+  mixpanel: SiMixpanel,
+  posthog: SiPosthog,
+
+  // Other integrations
+  shopify: SiShopify,
+  zapier: SiZapier,
+  brave_search: SiBrave,
+
+  // PandaStack
   pandastack: siPandaStack,
 };
 
@@ -86,14 +199,26 @@ const providerAliases: Record<string, string> = {
   googlegemini: 'google_ai',
   mistralai: 'mistral',
   postgresql: 'postgres',
+  pg: 'postgres',
   aws_s3: 'aws',
   aws_lambda: 'aws',
   aws_sqs: 'aws',
   aws_sns: 'aws',
+  aws_dynamodb: 'dynamodb',
   gcp_storage: 'gcp',
   gcp_pubsub: 'gcp',
   azure_blob: 'azure',
   azure_queue: 'azure',
+  cloudflare_kv: 'cloudflare',
+  cloudflare_r2: 'cloudflare',
+  cloudflare_d1: 'cloudflare',
+  vercel_kv: 'vercel',
+  vercel_blob: 'vercel',
+  google_sheets: 'google_sheets',
+  pandastack_project: 'pandastack',
+  pandastack_cronjob: 'pandastack',
+  pandastack_database: 'pandastack',
+  pandastack_managed_app: 'pandastack',
 };
 
 export function resolveBrandIconKey(...candidates: Array<string | null | undefined>): string | null {
@@ -104,11 +229,19 @@ export function resolveBrandIconKey(...candidates: Array<string | null | undefin
       return normalized;
     }
   }
-
   return null;
 }
 
-export function getProviderIcon(...candidates: Array<string | null | undefined>): SimpleIcon | null {
+export function getProviderIcon(
+  ...candidates: Array<string | null | undefined>
+): IconType | ExtendedSimpleIcon | SimpleIcon | null {
   const key = resolveBrandIconKey(...candidates);
-  return key ? providerIcons[key] ?? null : null;
+  return key ? (providerIcons[key] ?? null) : null;
 }
+
+export function getProviderHex(...candidates: Array<string | null | undefined>): string | undefined {
+  const key = resolveBrandIconKey(...candidates);
+  return key ? providerHex[key] : undefined;
+}
+
+
