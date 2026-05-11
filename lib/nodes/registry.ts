@@ -3136,7 +3136,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'GitBranch',
     color: '#f59e0b',
     configSchema: controlConditionSchema,
-    defaultConfig: { condition: 'Boolean(input)', expression: '', evaluationType: 'expression' },
+    defaultConfig: { condition: 'Boolean(input)', evaluationType: 'expression' },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [
       { name: 'true', type: 'any' },

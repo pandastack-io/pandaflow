@@ -398,7 +398,7 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
           <div className="flex h-5 w-5 cursor-help items-center justify-center rounded-full bg-amber-500 text-white shadow-sm">
             <LucideIcons.AlertTriangle className="h-3 w-3" />
           </div>
-          <div className="absolute right-0 top-6 z-50 hidden w-48 rounded-lg border border-border bg-popover p-2 text-xs shadow-xl group-hover:block">
+          <div className="pointer-events-none absolute bottom-6 right-0 z-50 hidden w-48 rounded-lg border border-border bg-popover p-2 text-xs shadow-xl group-hover:block">
             <p className="mb-1 font-semibold text-foreground">Configuration needed:</p>
             {validation.missingFields.map((field) => (
               <div key={field} className="flex items-center gap-1 text-muted-foreground">
