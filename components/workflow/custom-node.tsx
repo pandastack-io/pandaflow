@@ -164,6 +164,12 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
     setOutputPanelNodeId(null);
   };
 
+  // Use the node's category color as a visible border unless a status color is active
+  const useNodeCategoryColor =
+    !['running', 'pending', 'failed'].includes(status) &&
+    !(status === 'completed' && showCompletedBadge) &&
+    !(status === 'idle' && hasIssues);
+
   return (
     <div
       onMouseEnter={() => setIsHovered(true)}
@@ -175,7 +181,6 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
         status === 'running' && 'border-blue-500/60 ring-2 ring-blue-500 ring-offset-2 ring-offset-zinc-900',
         status === 'completed' && showCompletedBadge && 'border-green-500/50',
         status === 'failed' && 'border-red-500/50 bg-red-500/5',
-        !hasIssues && status === 'idle' && 'border-border',
         selected && 'outline outline-2 outline-offset-2',
         isDebugPaused && 'animate-pulse ring-2 ring-blue-500 ring-offset-2 ring-offset-zinc-900',
         isCompatibleTarget && 'ring-2 ring-emerald-500/60 ring-offset-2 ring-offset-zinc-900',
@@ -183,6 +188,7 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
       )}
       style={{
         outlineColor: selected ? nodeInfo.color : undefined,
+        borderColor: useNodeCategoryColor ? nodeInfo.color + (selected ? 'cc' : '70') : undefined,
         minHeight: minimumHeight,
       }}
     >

@@ -49,13 +49,14 @@ function createNode(
   } as WorkflowNode;
 }
 
-function createEdge(id: string, source: string, target: string) {
+function createEdge(id: string, source: string, target: string, sourceHandle?: string) {
   return {
     id,
     source,
     target,
     animated: true,
     style: defaultEdgeStyle,
+    ...(sourceHandle ? { sourceHandle } : {}),
   };
 }
 
@@ -741,6 +742,119 @@ const richWorkflowTemplates: WorkflowTemplate[] = [
         createEdge('e-trigger-agent', 'node-trigger', 'node-agent'),
         createEdge('e-agent-python', 'node-agent', 'node-python'),
         createEdge('e-python-response', 'node-python', 'node-response'),
+      ],
+      [createEnvVar('OPENAI_API_KEY')]
+    ),
+    requirements: ['OpenAI API key'],
+  },
+  {
+    id: 'team-of-agents',
+    name: 'Team of Agents',
+    description: 'Enterprise-grade multi-agent team with built-in LLM-as-judge feedback loops: Planner drafts a solution, Challenger evaluates it, Coder implements it, and Tester validates the result — each with automatic revision cycles.',
+    category: 'Agents',
+    tags: ['multi-agent', 'evaluator', 'team', 'feedback-loop', 'llm-as-judge', 'planning', 'coding'],
+    difficulty: 'advanced',
+    estimatedTime: '20 min setup',
+    icon: 'Users',
+    color: '#8b5cf6',
+    featured: true,
+    definition: createDefinition(
+      'Team of Agents',
+      'Planner → Challenger → Coder → Tester with automatic revision loops.',
+      [
+        createNode('node-trigger', NodeType.TRIGGER_MANUAL, 80, 300, {
+          label: 'Define Task',
+          description: 'Provide the task for the agent team to solve.',
+          inputSchema: {
+            task: 'string',
+            context: 'string',
+          },
+        }),
+
+        // ── Planning phase ───────────────────────────────────────────────────
+        createNode('node-planner', NodeType.AGENT_LLM, 380, 300, {
+          label: 'Planner',
+          provider: 'openai',
+          model: 'gpt-4o',
+          temperature: 0.3,
+          systemPrompt: [
+            'You are a senior software architect and planner.',
+            'Your job is to produce a clear, structured, step-by-step plan to solve the given task.',
+            'Include: approach rationale, key steps, edge cases to handle, and success criteria.',
+            'Be specific and actionable. Output a well-structured plan in markdown.',
+          ].join('\n'),
+        }),
+
+        createNode('node-challenger', NodeType.AGENT_EVALUATOR, 680, 300, {
+          label: 'Challenger',
+          provider: 'openai',
+          model: 'gpt-4o',
+          rubric: 'Is the plan complete, feasible, specific enough to implement, and does it handle the key edge cases? Does it clearly define success criteria?',
+          strictness: 7,
+          maxRevisions: 3,
+          outputFormat: 'detailed',
+        }),
+
+        createNode('node-plan-gate', NodeType.CONTROL_CONDITION, 980, 300, {
+          label: 'Plan Approved?',
+          condition: 'input.verdict === "pass"',
+          expression: 'input.verdict === "pass"',
+          evaluationType: 'expression',
+        }),
+
+        // ── Coding phase ─────────────────────────────────────────────────────
+        createNode('node-coder', NodeType.AGENT_LLM, 1280, 300, {
+          label: 'Coder',
+          provider: 'openai',
+          model: 'gpt-4o',
+          temperature: 0.1,
+          systemPrompt: [
+            'You are a senior software engineer.',
+            'You will receive a plan. Implement it fully — write clean, working code with comments.',
+            'Follow the plan exactly. Handle all edge cases mentioned. Include error handling.',
+            'Output only the implementation with brief inline documentation.',
+          ].join('\n'),
+        }),
+
+        createNode('node-tester', NodeType.AGENT_EVALUATOR, 1580, 300, {
+          label: 'Tester',
+          provider: 'openai',
+          model: 'gpt-4o',
+          rubric: 'Is the implementation correct, complete, well-structured, and does it fully satisfy the plan? Are edge cases handled? Is error handling present?',
+          strictness: 8,
+          maxRevisions: 3,
+          outputFormat: 'detailed',
+        }),
+
+        createNode('node-test-gate', NodeType.CONTROL_CONDITION, 1880, 300, {
+          label: 'Tests Pass?',
+          condition: 'input.verdict === "pass"',
+          expression: 'input.verdict === "pass"',
+          evaluationType: 'expression',
+        }),
+
+        // ── Output ───────────────────────────────────────────────────────────
+        createNode('node-output', NodeType.OUTPUT_RESPONSE, 2180, 300, {
+          label: 'Final Result',
+        }),
+      ],
+      [
+        // Main flow
+        createEdge('e-trigger-planner', 'node-trigger', 'node-planner'),
+        createEdge('e-planner-challenger', 'node-planner', 'node-challenger'),
+        createEdge('e-challenger-plan-gate', 'node-challenger', 'node-plan-gate'),
+
+        // Plan gate: pass → coder, fail → planner (revision loop)
+        createEdge('e-plan-gate-coder', 'node-plan-gate', 'node-coder', 'true'),
+        createEdge('e-plan-gate-revise', 'node-plan-gate', 'node-planner', 'false'),
+
+        // Code phase
+        createEdge('e-coder-tester', 'node-coder', 'node-tester'),
+        createEdge('e-tester-test-gate', 'node-tester', 'node-test-gate'),
+
+        // Test gate: pass → output, fail → coder (revision loop)
+        createEdge('e-test-gate-output', 'node-test-gate', 'node-output', 'true'),
+        createEdge('e-test-gate-revise', 'node-test-gate', 'node-coder', 'false'),
       ],
       [createEnvVar('OPENAI_API_KEY')]
     ),

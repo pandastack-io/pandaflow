@@ -487,12 +487,82 @@ const busWaitExecutor: NodeExecutorFn = async (node, _definition, context, deps)
   });
 };
 
+// ─── agent.evaluator (LLM-as-judge) ──────────────────────────────────────────
+
+const agentEvaluatorExecutor: NodeExecutorFn = async (node, _definition, context, deps) => {
+  const config = getConfig(node, context);
+
+  const rubric = String(config.rubric || 'Is the output correct, complete, and high quality?');
+  const strictness = Math.min(10, Math.max(0, Number(config.strictness ?? 7)));
+  const outputFormat = String(config.outputFormat || 'detailed');
+  const threshold = (strictness / 10).toFixed(1);
+
+  const input = resolveNodeInput(context, config.inputVariable) ?? context.variables.input;
+  const inputStr = typeof input === 'string' ? input : JSON.stringify(input, null, 2);
+
+  const strictnessLabel = strictness >= 8 ? 'very strict' : strictness >= 5 ? 'moderate' : 'lenient';
+
+  const detailedSchema = `{ "verdict": "pass"|"fail", "score": <0.0-1.0>, "feedback": "<specific feedback with improvement suggestions if fail>", "strengths": ["<what worked well>"], "weaknesses": ["<what needs improvement>"] }`;
+  const simpleSchema = `{ "verdict": "pass"|"fail", "score": <0.0-1.0>, "feedback": "<brief feedback>" }`;
+
+  const systemPrompt = [
+    `You are an expert evaluator (LLM-as-judge). Evaluate the given output against the rubric and return a structured verdict.`,
+    ``,
+    `Rubric: ${rubric}`,
+    `Strictness: ${strictness}/10 (${strictnessLabel}) — verdict is "pass" if score >= ${threshold}, otherwise "fail".`,
+    ``,
+    `Scoring guide:`,
+    `  1.0 — Fully satisfies the rubric with no material issues`,
+    `  0.7 — Meets most criteria, minor gaps only`,
+    `  0.5 — Mixed quality, some merit but important gaps or errors`,
+    `  0.3 — Clear failure, major issues or mostly off-target`,
+    `  0.0 — Completely fails the rubric`,
+    ``,
+    `Respond ONLY with valid JSON matching exactly:`,
+    outputFormat === 'detailed' ? detailedSchema : simpleSchema,
+  ].join('\n');
+
+  await safeLog(deps, node, 'info', `Evaluating output (strictness=${strictness}/10, threshold=${threshold})`, context, { rubric, strictness });
+
+  const result = await generateText(
+    {
+      systemPrompt,
+      model: String(config.model || 'gpt-4o'),
+      provider: String(config.provider || 'openai'),
+      outputFormat: 'json',
+    },
+    [{ role: 'user', content: `Evaluate this output:\n\n${inputStr}` }],
+    'agent-evaluator',
+    context
+  );
+
+  let parsed: { verdict: string; score: number; feedback: string; strengths?: string[]; weaknesses?: string[] };
+  try {
+    parsed = JSON.parse(result.text.trim());
+  } catch {
+    throw new Error(`agent.evaluator: LLM returned invalid JSON: ${result.text}`);
+  }
+
+  const verdict = parsed.verdict === 'pass' ? 'pass' : 'fail';
+  await safeLog(deps, node, 'info', `Evaluation complete: ${verdict} (score=${parsed.score})`, context, { verdict, score: parsed.score });
+
+  return {
+    verdict,
+    score: parsed.score ?? 0,
+    feedback: parsed.feedback ?? '',
+    strengths: parsed.strengths ?? [],
+    weaknesses: parsed.weaknesses ?? [],
+    output: { verdict, score: parsed.score ?? 0, feedback: parsed.feedback ?? '' },
+  };
+};
+
 // ─── Export ───────────────────────────────────────────────────────────────────
 
 export const multiAgentExecutors: Partial<Record<NodeType, NodeExecutorFn>> = {
   [NodeType.CONTROL_SUB_WORKFLOW]: subWorkflowExecutor,
   [NodeType.AGENT_INVOKE]: agentInvokeExecutor,
   [NodeType.AGENT_SUPERVISOR]: agentSupervisorExecutor,
+  [NodeType.AGENT_EVALUATOR]: agentEvaluatorExecutor,
   [NodeType.AGENT_PUBLISH]: busBroadcastExecutor,   // replaces the old stub publish
   [NodeType.AGENT_SUBSCRIBE]: busWaitExecutor,       // replaces the old pass-through subscribe
 };

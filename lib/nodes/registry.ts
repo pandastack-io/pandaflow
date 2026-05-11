@@ -98,6 +98,16 @@ const agentCallSchema = baseSchema.extend({
   args: z.record(z.string(), z.any()).optional(),
 });
 
+const agentEvaluatorSchema = baseSchema.extend({
+  rubric: z.string().min(1),
+  provider: agentProviderSchema,
+  model: z.string().optional(),
+  strictness: z.number().min(0).max(10).optional(),
+  maxRevisions: z.number().int().min(1).max(10).optional(),
+  outputFormat: z.enum(['simple', 'detailed']).optional(),
+  inputVariable: z.string().optional(),
+});
+
 const memoryBufferSchema = baseSchema.extend({
   sessionKey: memorySessionSchema,
   maxMessages: z.number().int().min(1).max(500).optional(),
@@ -1312,6 +1322,31 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     outputs: [
       { name: 'output', type: 'any' },
       { name: 'error', type: 'string' },
+    ],
+  },
+
+  [NodeType.AGENT_EVALUATOR]: {
+    type: NodeType.AGENT_EVALUATOR,
+    category: NodeCategory.AGENT,
+    name: 'Agent Evaluator',
+    description: 'LLM-as-judge — evaluates agent output against a rubric and returns a structured pass/fail verdict with score and actionable feedback',
+    icon: 'ClipboardCheck',
+    color: '#8b5cf6',
+    configSchema: agentEvaluatorSchema,
+    defaultConfig: {
+      provider: 'openai',
+      model: 'gpt-4o',
+      rubric: 'Is the output correct, complete, and high quality?',
+      strictness: 7,
+      maxRevisions: 3,
+      outputFormat: 'detailed',
+    },
+    inputs: [{ name: 'input', type: 'any', required: true }],
+    outputs: [
+      { name: 'output', type: 'object' },   // full { verdict, score, feedback, strengths, weaknesses }
+      { name: 'verdict', type: 'string' },   // 'pass' | 'fail'
+      { name: 'feedback', type: 'string' },
+      { name: 'score', type: 'number' },
     ],
   },
 

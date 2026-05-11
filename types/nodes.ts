@@ -84,6 +84,7 @@ export enum NodeType {
   AGENT_SUBSCRIBE = 'agent.subscribe',
   AGENT_CALL = 'agent.call',
   AGENT_INVOKE = 'agent.invoke',      // invoke another agent's full workflow (durable, traced)
+  AGENT_EVALUATOR = 'agent.evaluator', // LLM-as-judge: evaluates output against a rubric → {verdict, score, feedback}
 
   // Memory
   MEMORY_BUFFER = 'memory.buffer',
@@ -1007,6 +1008,7 @@ export const AGENT_NODE_TYPES = [
   NodeType.AGENT_SUPERVISOR,
   NodeType.AGENT_WORKER,
   NodeType.AGENT_PLANNER,
+  NodeType.AGENT_EVALUATOR,
 ] as const;
 export const DEPENDENCY_HANDLE_IDS = ['model', 'memory', 'tool'] as const satisfies readonly SubNodeRole[];
 
