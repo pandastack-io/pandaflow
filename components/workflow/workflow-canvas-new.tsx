@@ -17,11 +17,13 @@ import ReactFlow, {
   useReactFlow,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Braces, Check, Maximize2, NotebookPen, Plus, RotateCcw, RotateCw, StickyNote as StickyNoteIcon, Workflow, X } from 'lucide-react';
+import { Braces, Check, LayoutTemplate, Maximize2, NotebookPen, Plus, RotateCcw, RotateCw, StickyNote as StickyNoteIcon, Workflow, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useWorkflowStore } from '@/lib/stores/workflow-store';
 import { getNodeByType } from '@/lib/nodes/registry';
 import { CustomNode } from './custom-node';
+import CustomEdge from './custom-edge';
+import { NodeSearch } from './node-search';
 import { SubNode } from './sub-node';
 import { StickyNoteNode, type StickyNoteNodeData } from './sticky-note-node';
 import { NodePalette } from './node-palette';
@@ -39,6 +41,8 @@ import {
 } from '@/types/nodes';
 import type { NodeExecutionState as StreamNodeExecutionState } from '@/hooks/use-execution-stream';
 import { cn } from '@/lib/utils';
+import { applyDagreLayout } from '@/lib/workflow-layout';
+import { useKeyboardShortcuts } from './use-keyboard-shortcuts';
 
 const STICKY_NOTE_WIDTH = 260;
 const STICKY_NOTE_HEIGHT = 200;
@@ -53,6 +57,11 @@ const nodeTypes: NodeTypes = {
   custom: CustomNode,
   subNode: SubNode,
   stickyNote: StickyNoteNode,
+};
+
+const edgeTypes = {
+  default: CustomEdge,
+  smoothstep: CustomEdge,
 };
 
 const dependencyEdgeStyle = {
@@ -186,6 +195,7 @@ function WorkflowCanvasInner({
   const [variablesOpen, setVariablesOpen] = useState(false);
   const [copiedVariable, setCopiedVariable] = useState<string | null>(null);
   const [quickAddSource, setQuickAddSource] = useState<{ nodeId: string; handleId: string; x: number; y: number } | null>(null);
+  const [nodeSearchOpen, setNodeSearchOpen] = useState(false);
 
   const stickyNoteIds = useMemo(() => new Set(stickyNotes.map((note) => note.id)), [stickyNotes]);
 
@@ -407,10 +417,23 @@ function WorkflowCanvasInner({
     return [...workflowNodes, ...noteNodes];
   }, [executionOutputs, nodeExecutionMap, nodes, selectedStickyNoteId, stickyNotes]);
 
-  const animatedEdges = useMemo<Edge[]>(() => edges.map((edge) => {
+  const displayEdges = useMemo<Edge[]>(() => edges.map((edge) => {
+    const sourceState = nodeExecutionMap[edge.source]?.status;
+    const targetState = nodeExecutionMap[edge.target]?.status;
+    const durationMs = nodeExecutionMap[edge.source]?.durationMs;
+    const isExecutionComplete = !isRunning && Boolean(executionId) && Object.keys(nodeExecutionMap).length > 0;
+    const label = edge.data?.label ?? (edge.sourceHandle === 'true' || edge.sourceHandle === 'false' ? edge.sourceHandle : undefined);
+    const edgeData = {
+      ...edge.data,
+      label,
+      durationMs,
+      heatmapActive: isExecutionComplete && typeof durationMs === 'number',
+    };
+
     if (edge.data?.isDependency) {
       return {
         ...edge,
+        data: edgeData,
         animated: false,
         style: {
           ...edge.style,
@@ -422,19 +445,19 @@ function WorkflowCanvasInner({
     if (!executionId) {
       return {
         ...edge,
+        data: edgeData,
         animated: false,
         style: edge.style ? { ...edge.style } : undefined,
       };
     }
 
-    const sourceState = nodeExecutionMap[edge.source]?.status;
-    const targetState = nodeExecutionMap[edge.target]?.status;
     const isFlowing = isRunning && sourceState === 'completed' && targetState === 'running';
     const isFailedPath = sourceState === 'failed' || targetState === 'failed';
 
     if (isFlowing) {
       return {
         ...edge,
+        data: edgeData,
         animated: true,
         style: {
           ...edge.style,
@@ -449,6 +472,7 @@ function WorkflowCanvasInner({
     if (isFailedPath) {
       return {
         ...edge,
+        data: edgeData,
         animated: false,
         style: {
           ...edge.style,
@@ -461,10 +485,43 @@ function WorkflowCanvasInner({
 
     return {
       ...edge,
+      data: edgeData,
       animated: false,
       style: edge.style ? { ...edge.style } : undefined,
     };
   }), [edges, executionId, isRunning, nodeExecutionMap]);
+
+  const handleAutoLayout = useCallback(() => {
+    if (nodes.length === 0) {
+      return;
+    }
+
+    const layoutedNodes = applyDagreLayout(nodes, edges) as Node<WorkflowNodeData>[];
+    pushHistory();
+    useWorkflowStore.setState((state) => ({
+      nodes: layoutedNodes,
+      selectedNode: state.selectedNode ? layoutedNodes.find((node) => node.id === state.selectedNode?.id) ?? null : null,
+    }));
+    pushHistory();
+    window.requestAnimationFrame(() => {
+      fitView({ padding: 0.2, duration: 400 });
+    });
+  }, [edges, fitView, nodes, pushHistory]);
+
+  const handleNodeSearchSelect = useCallback((nodeId: string) => {
+    const node = nodes.find((entry) => entry.id === nodeId);
+    if (!node) {
+      return;
+    }
+
+    setSelectedStickyNoteId(null);
+    selectNode(nodeId);
+    setCenter(node.position.x, node.position.y, { zoom: 1.2, duration: 400 });
+  }, [nodes, selectNode, setCenter]);
+
+  useKeyboardShortcuts({
+    onSearch: () => setNodeSearchOpen(true),
+  });
 
   useEffect(() => {
     onFitViewReady?.(() => fitView({ padding: 0.2, duration: 400 }));
@@ -838,6 +895,7 @@ function WorkflowCanvasInner({
     <div className="relative flex h-full min-h-0">
       <div className="relative min-h-0 flex-1" ref={reactFlowWrapper}>
         {paletteOpen && <div className="absolute inset-0 z-[25] bg-background/40 backdrop-blur-[1px]" onClick={closePalette} />}
+        <NodeSearch open={nodeSearchOpen} nodes={nodes} onClose={() => setNodeSearchOpen(false)} onSelect={handleNodeSearchSelect} />
 
         <button
           type="button"
@@ -960,6 +1018,14 @@ function WorkflowCanvasInner({
           </button>
           <button
             type="button"
+            onClick={handleAutoLayout}
+            className="rounded-lg border border-border bg-card p-2 shadow-md transition-colors hover:bg-accent"
+            title="Auto layout"
+          >
+            <LayoutTemplate className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
             onClick={() => fitView({ padding: 0.2, duration: 400 })}
             className="rounded-lg border border-border bg-card p-2 shadow-md transition-colors hover:bg-accent"
             title="Fit to screen (Ctrl+Shift+F)"
@@ -970,7 +1036,7 @@ function WorkflowCanvasInner({
 
         <ReactFlow
           nodes={displayNodes}
-          edges={animatedEdges}
+          edges={displayEdges}
           onNodesChange={handleNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
@@ -983,6 +1049,7 @@ function WorkflowCanvasInner({
           onDrop={onDrop}
           onDragOver={onDragOver}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           fitView
           snapToGrid
           snapGrid={[16, 16]}

@@ -8,6 +8,7 @@ interface UseKeyboardShortcutsOptions {
   onUndo?: () => void;
   onRedo?: () => void;
   onToggleHelp?: () => void;
+  onSearch?: () => void;
   disabled?: boolean;
 }
 
@@ -23,6 +24,7 @@ export function useKeyboardShortcuts({
   onUndo,
   onRedo,
   onToggleHelp,
+  onSearch,
   disabled = false,
 }: UseKeyboardShortcutsOptions) {
   useEffect(() => {
@@ -46,6 +48,12 @@ export function useKeyboardShortcuts({
       }
 
       if (isTyping) {
+        return;
+      }
+
+      if (hasModifier && key === 'f' && onSearch) {
+        event.preventDefault();
+        onSearch();
         return;
       }
 
@@ -93,5 +101,5 @@ export function useKeyboardShortcuts({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [disabled, onDelete, onEscape, onRedo, onRun, onSave, onToggleHelp, onUndo]);
+  }, [disabled, onDelete, onEscape, onRedo, onRun, onSave, onSearch, onToggleHelp, onUndo]);
 }
