@@ -98,6 +98,15 @@ const agentCallSchema = baseSchema.extend({
   args: z.record(z.string(), z.any()).optional(),
 });
 
+
+const agentInvokeSchema = baseSchema.extend({
+  agentId: z.string().optional(),
+  agentName: z.string().optional(),
+  mode: z.enum(['sync', 'async']).optional(),
+  timeoutMs: z.number().int().min(1000).max(600000).optional(),
+  inputVariable: z.string().optional(),
+});
+
 const agentEvaluatorSchema = baseSchema.extend({
   rubric: z.string().min(1),
   provider: agentProviderSchema,
@@ -156,6 +165,7 @@ const memoryEpisodicGetSchema = baseSchema.extend({
 const ragPdfLoaderSchema = baseSchema.extend({
   source: z.enum(['url', 'variable']).optional(),
   url: z.string().optional(),
+  path: z.string().optional(),
   variableName: z.string().optional(),
   inputVariable: z.string().optional(),
   splitPages: z.boolean().optional(),
@@ -258,6 +268,7 @@ const ragRetrieverSchema = baseSchema.extend({
   provider: z.enum(['openai', 'cohere']).optional(),
   model: z.string().optional(),
   apiKey: z.string().optional(),
+  query: z.string().optional(),
   topK: z.number().int().min(1).max(20).optional(),
   fetchK: z.number().int().min(1).max(50).optional(),
   scoreThreshold: z.number().min(0).max(1).optional(),
@@ -271,6 +282,7 @@ const ragQaChainSchema = baseSchema.extend({
   apiKey: z.string().optional(),
   systemPrompt: z.string().optional(),
   contextTemplate: z.string().optional(),
+  question: z.string().optional(),
   returnSources: z.boolean().optional(),
   maxContextTokens: z.number().int().min(256).max(32000).optional(),
   timeout: z.number().int().positive().optional(),
@@ -291,6 +303,7 @@ const triggerBaseSchema = baseSchema.extend({
 
 const manualTriggerSchema = triggerBaseSchema.extend({
   inputSchema: z.record(z.string(), z.any()).optional(),
+  sampleInput: z.any().optional(),
 });
 
 const scheduleTriggerSchema = triggerBaseSchema.extend({
@@ -302,6 +315,7 @@ const scheduleTriggerSchema = triggerBaseSchema.extend({
 const webhookTriggerSchema = triggerBaseSchema.extend({
   method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']).optional(),
   authType: z.enum(['none', 'bearer', 'api_key', 'hmac']).optional(),
+  path: z.string().optional(),
 });
 
 const eventTriggerSchema = triggerBaseSchema.extend({
@@ -349,7 +363,10 @@ const sandflareRuntimeSchema = baseSchema.extend({
   apiKey: z.string().optional(),
   inputVariable: z.string().optional(),
   code: z.string().optional(),
+  script: z.string().optional(),
   command: z.string().optional(),
+  entrypoint: z.string().optional(),
+  runtime: z.string().optional(),
   stdin: z.string().optional(),
   packages: z.union([z.string(), z.array(z.string())]).optional(),
   environment: z.any().optional(),
@@ -371,6 +388,9 @@ const sandflareScrapeSchema = baseSchema.extend({
   url: z.string().optional(),
   javascript: z.boolean().optional(),
   waitFor: z.string().optional(),
+  selectors: z.any().optional(),
+  extractionRules: z.any().optional(),
+  pagination: z.any().optional(),
   timeout: z.number().int().positive().optional(),
   fallbackToMock: z.boolean().optional(),
 });
@@ -385,7 +405,31 @@ const aiNodeSchema = baseSchema.extend({
   temperature: z.number().min(0).max(2).optional(),
   maxTokens: z.number().int().positive().optional(),
   timeout: z.number().int().positive().optional(),
-  outputFormat: z.enum(['text', 'json']).optional(),
+  outputFormat: z.enum(['text', 'json', 'markdown', 'detailed']).optional(),
+  text: z.string().optional(),
+  query: z.string().optional(),
+  topK: z.number().int().positive().optional(),
+  threshold: z.number().optional(),
+  targetLanguage: z.string().optional(),
+  sourceLanguage: z.string().optional(),
+  style: z.string().optional(),
+  format: z.string().optional(),
+  maxLength: z.number().int().positive().optional(),
+  preserveFormatting: z.boolean().optional(),
+  glossary: z.any().optional(),
+  includeScore: z.boolean().optional(),
+  categories: z.any().optional(),
+  mode: z.string().optional(),
+  imageUrl: z.string().optional(),
+  tasks: z.any().optional(),
+  languageHints: z.any().optional(),
+  audioUrl: z.string().optional(),
+  speakerDiarization: z.boolean().optional(),
+  voice: z.string().optional(),
+  inputField: z.string().optional(),
+  size: z.string().optional(),
+  quality: z.string().optional(),
+  extractFields: z.any().optional(),
 });
 
 const prismNodeSchema = baseSchema.extend({
@@ -550,7 +594,8 @@ const switchCaseSchema = z.object({
 const controlSwitchSchema = baseSchema.extend({
   inputVariable: z.string().optional(),
   expression: z.string().optional(),
-  cases: z.array(switchCaseSchema).optional(),
+  field: z.string().optional(),
+  cases: z.union([z.array(switchCaseSchema), z.array(z.string())]).optional(),
 });
 
 const controlSubWorkflowSchema = baseSchema.extend({
@@ -580,9 +625,15 @@ const utilityGetVariableSchema = baseSchema.extend({
 const dataReadSchema = baseSchema.extend({
   inputVariable: z.string().optional(),
   url: z.string().optional(),
+  path: z.string().optional(),
   content: z.any().optional(),
   headers: z.any().optional(),
   sourceType: z.string().optional(),
+  mode: z.string().optional(),
+  hasHeaders: z.boolean().optional(),
+  preserveNamespaces: z.boolean().optional(),
+  sheetName: z.string().optional(),
+  headerRow: z.number().int().positive().optional(),
   timeout: z.number().int().positive().optional(),
   retries: z.number().int().min(1).optional(),
   limit: z.number().int().positive().optional(),
@@ -654,6 +705,855 @@ const agentDependencyInputs: NodePortDefinition[] = [
   { name: 'memory', type: 'memory', required: false, label: 'Memory' },
   { name: 'tool', type: 'tool', required: false, label: 'Tools', multiple: true },
 ];
+
+
+// ==== AGENT SCHEMA FIXES ====
+const agentReactSchemaFixed = agentReactSchema.extend({
+  temperature: z.number().min(0).max(2).optional(),
+  memoryNodeId: z.string().optional(),
+});
+
+const agentConditionSchemaFixed = agentConditionSchema.extend({
+  memoryNodeId: z.string().optional(),
+  systemPrompt: z.string().optional(),
+  temperature: z.number().min(0).max(2).optional(),
+});
+
+const agentSupervisorSchemaFixed = agentSupervisorSchema.extend({
+  inputVariable: z.string().optional(),
+  task: z.string().optional(),
+  workerTimeoutMs: z.number().int().positive().optional(),
+  temperature: z.number().min(0).max(2).optional(),
+});
+
+const agentPlannerSchemaFixed = agentPlannerSchema.extend({
+  temperature: z.number().min(0).max(2).optional(),
+});
+
+const agentPublishSchemaFixed = agentPublishSchema.extend({
+  inputVariable: z.string().optional(),
+});
+
+const agentSubscribeSchemaFixed = agentSubscribeSchema.extend({
+  timeoutMs: z.number().int().positive().optional(),
+});
+
+// ==== CONTROL SUB WORKFLOW FIX ====
+const controlSubWorkflowSchemaFixed = controlSubWorkflowSchema.extend({
+  async: z.boolean().optional(),
+  input: z.any().optional(),
+  inputVariable: z.string().optional(),
+  timeoutMs: z.number().int().positive().optional(),
+});
+
+// ==== DATA READ SCHEMA FIX ====
+const dataReadSchemaFixed = dataReadSchema.extend({
+  delimiter: z.string().optional(),
+  jsonPath: z.string().optional(),
+});
+
+// ==== MEMORY SUMMARY FIX ====
+const memorySummarySchemaFixed = memorySummarySchema.extend({
+  messages: z.any().optional(),
+  systemPrompt: z.string().optional(),
+  temperature: z.number().min(0).max(2).optional(),
+});
+
+// ==== MEMORY WINDOW FIX ====
+const memoryWindowSchemaFixed = memoryWindowSchema.extend({
+  messages: z.any().optional(),
+});
+
+// ==== RAG WEB LOADER FIX ====
+const ragWebLoaderSchemaFixed = ragWebLoaderSchema.extend({
+  maxPages: z.number().int().positive().optional(),
+});
+
+// ==== RAG RERANKER FIX ====
+const ragRerankerSchemaFixed = ragRerankerSchema.extend({
+  topK: z.number().int().min(1).max(50).optional(),
+});
+
+// ==== PRISM LLM FIX (userPrompt field) ====
+const prismNodeSchemaFixed = prismNodeSchema.extend({
+  userPrompt: z.string().optional(),
+});
+
+// ==== AI NODE COMPREHENSIVE SCHEMA ====
+const aiNodeSchemaComprehensive = aiNodeSchema.extend({
+  // General
+  apiKey: z.string().optional(),
+  baseUrl: z.string().optional(),
+  // Images
+  imageUrl: z.string().optional(),
+  imageBase64: z.string().optional(),
+  imageDetail: z.enum(['low', 'high', 'auto']).optional(),
+  aspectRatio: z.string().optional(),
+  quality: z.string().optional(),
+  size: z.string().optional(),
+  style: z.string().optional(),
+  negativePrompt: z.string().optional(),
+  // Audio
+  audioUrl: z.string().optional(),
+  audioBase64: z.string().optional(),
+  voice: z.string().optional(),
+  voiceId: z.string().optional(),
+  speed: z.number().optional(),
+  language: z.string().optional(),
+  stability: z.number().optional(),
+  similarityBoost: z.number().optional(),
+  useSpeakerBoost: z.boolean().optional(),
+  // Translation
+  sourceLanguage: z.string().optional(),
+  targetLanguage: z.string().optional(),
+  // General AI params
+  text: z.string().optional(),
+  history: z.any().optional(),
+  messages: z.any().optional(),
+  query: z.string().optional(),
+  threshold: z.number().optional(),
+  options: z.any().optional(),
+  responseFormat: z.string().optional(),
+  maxWords: z.number().int().positive().optional(),
+  length: z.enum(['short', 'medium', 'long']).optional(),
+  format: z.string().optional(),
+  encodingFormat: z.string().optional(),
+  retryPolicy: z.any().optional(),
+  labels: z.any().optional(),
+  endpoint: z.string().optional(),
+  auth: z.any().optional(),
+  // Vector/embedding
+  queryVector: z.any().optional(),
+  topK: z.number().int().positive().optional(),
+  namespace: z.string().optional(),
+  includeMetadata: z.boolean().optional(),
+  includeValues: z.boolean().optional(),
+  embeddingModel: z.string().optional(),
+  embeddingApiKey: z.string().optional(),
+  collection: z.string().optional(),
+  className: z.string().optional(),
+  userPrompt: z.string().optional(),
+});
+
+// ==== TRIGGER SCHEMA FIXES ====
+const databaseTriggerSchemaFixed = databaseTriggerSchema.extend({
+  connectionId: z.string().optional(),
+  operations: z.any().optional(),
+});
+
+const mqttTriggerSchemaFixed = mqttTriggerSchema.extend({
+  broker: z.string().optional(),
+});
+
+const websocketTriggerSchemaFixed = websocketTriggerSchema.extend({
+  url: z.string().optional(),
+  protocols: z.any().optional(),
+});
+
+const kafkaTriggerSchemaFixed = kafkaTriggerSchema.extend({
+  groupId: z.string().optional(),
+});
+
+// ==== TRANSFORM SCHEMAS ====
+const transformFilterSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  expression: z.string().optional(),
+  logic: z.enum(['AND', 'OR']).optional(),
+  conditions: z.any().optional(),
+});
+
+const transformMapSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  expression: z.string().optional(),
+  transformation: z.string().optional(),
+  mapping: z.any().optional(),
+  mappings: z.any().optional(),
+});
+
+const transformReduceSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  expression: z.string().optional(),
+  reducer: z.string().optional(),
+  initialValue: z.any().optional(),
+});
+
+const transformAggregateSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  aggregations: z.any().optional(),
+  aggregation: z.any().optional(),
+  metrics: z.any().optional(),
+  groupBy: z.any().optional(),
+  groupByFields: z.any().optional(),
+});
+
+const transformSortSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  sortBy: z.any().optional(),
+  fields: z.any().optional(),
+  direction: z.enum(['asc', 'desc']).optional(),
+});
+
+const transformSplitSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  delimiter: z.string().optional(),
+  chunkSize: z.number().int().positive().optional(),
+  pattern: z.string().optional(),
+  size: z.number().int().positive().optional(),
+});
+
+const transformMergeSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  sources: z.any().optional(),
+  mode: z.string().optional(),
+  strategy: z.string().optional(),
+  keyField: z.string().optional(),
+  conflictResolution: z.string().optional(),
+});
+
+const transformJsonSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  operation: z.enum(['parse', 'stringify', 'format', 'flatten', 'normalize', 'map']).optional(),
+  spacing: z.number().int().min(0).optional(),
+  path: z.string().optional(),
+  mapping: z.any().optional(),
+  schemaHint: z.any().optional(),
+  pretty: z.boolean().optional(),
+  sortKeys: z.boolean().optional(),
+  separator: z.string().optional(),
+  maxDepth: z.number().int().positive().optional(),
+});
+
+const transformXmlSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  operation: z.enum(['parse', 'stringify', 'format', 'xml-to-json', 'json-to-xml']).optional(),
+  rootName: z.string().optional(),
+  preserveRoot: z.boolean().optional(),
+  attribute: z.string().optional(),
+  preserveAttributes: z.boolean().optional(),
+  attributePrefix: z.string().optional(),
+});
+
+const transformCsvSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  operation: z.enum(['parse', 'stringify']).optional(),
+  delimiter: z.string().optional(),
+  headers: z.any().optional(),
+});
+
+const transformYamlSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  operation: z.enum(['parse', 'stringify']).optional(),
+});
+
+const transformHtmlSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  operation: z.enum(['parse', 'stringify']).optional(),
+  selector: z.string().optional(),
+});
+
+const transformRegexSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  pattern: z.string().optional(),
+  replacement: z.string().optional(),
+  flags: z.string().optional(),
+  global: z.boolean().optional(),
+  namedGroups: z.boolean().optional(),
+});
+
+const transformDedupeSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  field: z.string().optional(),
+  keep: z.enum(['first', 'last']).optional(),
+  keyField: z.string().optional(),
+  keys: z.any().optional(),
+  keyFields: z.any().optional(),
+});
+
+// ==== CONTROL SCHEMAS ====
+const controlLoopSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  input: z.any().optional(),
+  loopType: z.enum(['forEach', 'while', 'for']).optional(),
+  itemVariable: z.string().optional(),
+  iterations: z.number().int().positive().optional(),
+  count: z.number().int().positive().optional(),
+  maxIterations: z.number().int().positive().optional(),
+  condition: z.string().optional(),
+  stepExpression: z.string().optional(),
+  parallel: z.boolean().optional(),
+  batchSize: z.number().int().positive().optional(),
+});
+
+const controlForeachSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  input: z.any().optional(),
+  items: z.any().optional(),
+  itemsPath: z.string().optional(),
+  iterateOver: z.string().optional(),
+  itemVariable: z.string().optional(),
+  expression: z.string().optional(),
+  parallel: z.boolean().optional(),
+  concurrency: z.number().int().positive().optional(),
+  batchSize: z.number().int().positive().optional(),
+});
+
+const controlWhileSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  input: z.any().optional(),
+  condition: z.string().optional(),
+  stepExpression: z.string().optional(),
+  itemVariable: z.string().optional(),
+  maxIterations: z.number().int().positive().optional(),
+});
+
+const controlParallelSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  input: z.any().optional(),
+});
+
+const controlSequenceSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  input: z.any().optional(),
+});
+
+const controlErrorSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  input: z.any().optional(),
+  tryExpression: z.string().optional(),
+  expression: z.string().optional(),
+  errorVariable: z.string().optional(),
+  rethrow: z.boolean().optional(),
+  fallback: z.any().optional(),
+});
+
+const controlRetrySchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  input: z.any().optional(),
+  expression: z.string().optional(),
+  maxAttempts: z.number().int().min(1).optional(),
+  attempts: z.number().int().min(1).optional(),
+  initialDelayMs: z.number().int().positive().optional(),
+  delayMs: z.number().int().positive().optional(),
+  maxDelayMs: z.number().int().positive().optional(),
+  maxBackoffMs: z.number().int().positive().optional(),
+  backoff: z.string().optional(),
+  retryOnMessage: z.string().optional(),
+});
+
+const controlTimeoutSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  input: z.any().optional(),
+  expression: z.string().optional(),
+  timeoutMs: z.number().int().positive().optional(),
+  duration: z.number().int().positive().optional(),
+  throwOnTimeout: z.boolean().optional(),
+  fallback: z.any().optional(),
+});
+
+// ==== OUTPUT SCHEMAS ====
+const outputResponseSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  statusCode: z.number().int().min(100).max(599).optional(),
+  headers: z.any().optional(),
+  body: z.any().optional(),
+  data: z.any().optional(),
+  content: z.any().optional(),
+  format: z.string().optional(),
+});
+
+const outputJsonSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  indent: z.number().int().min(0).optional(),
+  pretty: z.boolean().optional(),
+  data: z.any().optional(),
+  format: z.string().optional(),
+  includeHeaders: z.boolean().optional(),
+  includeValidationSummary: z.boolean().optional(),
+});
+
+const outputFileSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  filename: z.string().optional(),
+  filePattern: z.string().optional(),
+  path: z.string().optional(),
+  content: z.any().optional(),
+  contentType: z.string().optional(),
+  format: z.string().optional(),
+  encoding: z.string().optional(),
+});
+
+const outputNotificationSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  title: z.string().optional(),
+  message: z.string().optional(),
+  severity: z.enum(['info', 'warn', 'warning', 'error', 'success', 'high', 'medium', 'low']).optional(),
+  channel: z.string().optional(),
+  channels: z.any().optional(),
+});
+
+const outputLogSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  level: z.enum(['info', 'warn', 'error', 'debug']).optional(),
+  message: z.string().optional(),
+});
+
+const outputWebhookSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  url: z.string().optional(),
+  webhookUrl: z.string().optional(),
+  method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']).optional(),
+  headers: z.any().optional(),
+  body: z.any().optional(),
+  data: z.any().optional(),
+  retries: z.number().int().min(0).optional(),
+  retry: z.number().int().min(0).optional(),
+  timeout: z.number().int().positive().optional(),
+});
+
+const outputEmailSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  to: z.any().optional(),
+  from: z.string().optional(),
+  subject: z.string().optional(),
+  body: z.string().optional(),
+  textBody: z.string().optional(),
+  htmlBody: z.string().optional(),
+  cc: z.any().optional(),
+  bcc: z.any().optional(),
+  replyTo: z.string().optional(),
+});
+
+const outputStorageSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  bucket: z.string().optional(),
+  key: z.string().optional(),
+  path: z.string().optional(),
+  content: z.any().optional(),
+  contentType: z.string().optional(),
+  region: z.string().optional(),
+  acl: z.string().optional(),
+  endpoint: z.string().optional(),
+  baseDownloadUrl: z.string().optional(),
+});
+
+const outputStreamSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  event: z.string().optional(),
+  data: z.any().optional(),
+  id: z.string().optional(),
+});
+
+const outputExportSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  format: z.enum(['json', 'csv', 'xml', 'yaml']).optional(),
+  schema: z.any().optional(),
+  fields: z.any().optional(),
+  rootName: z.string().optional(),
+});
+
+// ==== UTILITY SCHEMAS ====
+const utilityDelaySchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  delay: z.number().int().positive().optional(),
+  duration: z.number().int().positive().optional(),
+});
+
+const utilityLogSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  level: z.enum(['info', 'warn', 'error', 'debug']).optional(),
+  message: z.string().optional(),
+});
+
+const utilityCacheSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  key: z.string().optional(),
+  action: z.enum(['get', 'set', 'delete']).optional(),
+  value: z.any().optional(),
+  ttl: z.number().int().positive().optional(),
+  ttlSeconds: z.number().int().positive().optional(),
+});
+
+const utilityQueueSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  queue: z.string().optional(),
+  action: z.enum(['push', 'pop', 'peek', 'size']).optional(),
+  data: z.any().optional(),
+});
+
+const utilityCryptoSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  operation: z.enum(['encrypt', 'decrypt', 'sign', 'verify']).optional(),
+  algorithm: z.string().optional(),
+  key: z.string().optional(),
+  secret: z.string().optional(),
+  publicKey: z.string().optional(),
+  privateKey: z.string().optional(),
+  data: z.any().optional(),
+  signature: z.string().optional(),
+});
+
+const utilityHashSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  algorithm: z.enum(['md5', 'sha1', 'sha256', 'sha512']).optional(),
+  encoding: z.string().optional(),
+  salt: z.string().optional(),
+  data: z.any().optional(),
+});
+
+const utilityUuidSchema = baseSchema.extend({
+  version: z.number().int().min(1).max(5).optional(),
+});
+
+const utilityDateSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  operation: z.enum(['now', 'format', 'add', 'subtract', 'diff']).optional(),
+  format: z.string().optional(),
+  inputFormat: z.string().optional(),
+  compareFormat: z.string().optional(),
+  unit: z.enum(['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds']).optional(),
+  amount: z.number().optional(),
+  compareTo: z.string().optional(),
+});
+
+const utilityMathSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  operation: z.enum(['add', 'subtract', 'multiply', 'divide', 'pow', 'sqrt', 'round', 'floor', 'ceil']).optional(),
+  values: z.any().optional(),
+  exponent: z.number().optional(),
+});
+
+const utilityStringSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  operation: z.enum(['uppercase', 'lowercase', 'trim', 'replace', 'split', 'concat', 'substring', 'length']).optional(),
+  pattern: z.string().optional(),
+  replacement: z.string().optional(),
+  delimiter: z.string().optional(),
+  fill: z.string().optional(),
+  length: z.number().int().optional(),
+  suffix: z.string().optional(),
+});
+
+const utilityValidatorSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  schema: z.any().optional(),
+  type: z.string().optional(),
+  schemaType: z.string().optional(),
+  validator: z.string().optional(),
+  stopOnError: z.boolean().optional(),
+  requiredFields: z.any().optional(),
+  validationMode: z.string().optional(),
+  requireFencedCode: z.boolean().optional(),
+});
+
+const utilityParserSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  type: z.enum(['json', 'xml', 'yaml', 'csv']).optional(),
+  parser: z.string().optional(),
+  selector: z.string().optional(),
+  headerRow: z.number().int().positive().optional(),
+  format: z.string().optional(),
+  field: z.string().optional(),
+  fields: z.any().optional(),
+  mode: z.string().optional(),
+  data: z.any().optional(),
+});
+
+const utilityTemplateSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  template: z.string().optional(),
+  data: z.any().optional(),
+});
+
+const utilityRandomSchema = baseSchema.extend({
+  type: z.enum(['number', 'string', 'boolean', 'uuid']).optional(),
+  min: z.number().optional(),
+  max: z.number().optional(),
+  length: z.number().int().positive().optional(),
+  alphabet: z.string().optional(),
+});
+
+// ==== INTEGRATION SCHEMAS ====
+const integrationHttpSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  url: z.string().optional(),
+  method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']).optional(),
+  headers: z.any().optional(),
+  body: z.any().optional(),
+  auth: z.any().optional(),
+  timeout: z.number().int().positive().optional(),
+  retries: z.number().int().min(0).optional(),
+  query: z.any().optional(),
+  responseMapping: z.any().optional(),
+  pagination: z.any().optional(),
+});
+
+const integrationGraphqlSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  endpoint: z.string().optional(),
+  endpointUrl: z.string().optional(),
+  query: z.string().optional(),
+  variables: z.any().optional(),
+  operationName: z.string().optional(),
+  headers: z.any().optional(),
+  auth: z.any().optional(),
+});
+
+const integrationRestSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  baseUrl: z.string().optional(),
+  endpoint: z.string().optional(),
+  method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']).optional(),
+  headers: z.any().optional(),
+  body: z.any().optional(),
+  auth: z.any().optional(),
+  timeout: z.number().int().positive().optional(),
+  retries: z.number().int().min(0).optional(),
+});
+
+const integrationSoapSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  wsdlUrl: z.string().optional(),
+  operation: z.string().optional(),
+  message: z.any().optional(),
+  headers: z.any().optional(),
+});
+
+const integrationWebhookSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  url: z.string().optional(),
+  method: z.string().optional(),
+  headers: z.any().optional(),
+  body: z.any().optional(),
+  retries: z.number().int().min(0).optional(),
+});
+
+const integrationWebsocketSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  url: z.string().optional(),
+  message: z.any().optional(),
+  operation: z.enum(['connect', 'send', 'receive', 'close']).optional(),
+});
+
+const integrationSseSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  url: z.string().optional(),
+  maxEvents: z.number().int().positive().optional(),
+});
+
+const integrationOauthSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  flow: z.enum(['authorization_code', 'client_credentials', 'password']).optional(),
+  clientId: z.string().optional(),
+  clientSecret: z.string().optional(),
+  tokenUrl: z.string().optional(),
+  redirectUri: z.string().optional(),
+  scope: z.string().optional(),
+  code: z.string().optional(),
+  refreshToken: z.string().optional(),
+  useBasicAuth: z.boolean().optional(),
+});
+
+const integrationApiKeySchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  keyName: z.string().optional(),
+  apiKey: z.string().optional(),
+  placement: z.enum(['header', 'query']).optional(),
+});
+
+const integrationDatabaseSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  connectionString: z.string().optional(),
+  operation: z.enum(['query', 'insert', 'update', 'delete']).optional(),
+  query: z.string().optional(),
+  data: z.any().optional(),
+  table: z.string().optional(),
+  where: z.any().optional(),
+  parameters: z.any().optional(),
+});
+
+// ==== SPECIFIC INTEGRATION SCHEMAS ====
+const integrationEmailSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  to: z.any().optional(),
+  from: z.string().optional(),
+  fromEmail: z.string().optional(),
+  subject: z.string().optional(),
+  body: z.string().optional(),
+  textBody: z.string().optional(),
+  htmlBody: z.string().optional(),
+  cc: z.any().optional(),
+  bcc: z.any().optional(),
+  replyTo: z.string().optional(),
+  timeout: z.number().int().positive().optional(),
+  retries: z.number().int().min(0).optional(),
+});
+
+const integrationSlackSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  channel: z.string().optional(),
+  message: z.string().optional(),
+  text: z.string().optional(),
+  blocks: z.any().optional(),
+  threadTs: z.string().optional(),
+  username: z.string().optional(),
+  iconEmoji: z.string().optional(),
+  timeout: z.number().int().positive().optional(),
+  retries: z.number().int().min(0).optional(),
+});
+
+const integrationDiscordSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  channel: z.string().optional(),
+  channelId: z.string().optional(),
+  message: z.string().optional(),
+  content: z.string().optional(),
+  embeds: z.any().optional(),
+  username: z.string().optional(),
+  avatarUrl: z.string().optional(),
+  timeout: z.number().int().positive().optional(),
+  retries: z.number().int().min(0).optional(),
+});
+
+const integrationGithubSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  operation: z.string().optional(),
+  owner: z.string().optional(),
+  repo: z.string().optional(),
+  pullNumber: z.number().int().optional(),
+  issueNumber: z.number().int().optional(),
+  ref: z.string().optional(),
+  path: z.string().optional(),
+  branch: z.string().optional(),
+  title: z.string().optional(),
+  body: z.string().optional(),
+  includeFiles: z.boolean().optional(),
+  includeDiff: z.boolean().optional(),
+  timeout: z.number().int().positive().optional(),
+  retries: z.number().int().min(0).optional(),
+});
+
+const integrationPostgresSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  connectionId: z.string().optional(),
+  connectionString: z.string().optional(),
+  queryType: z.enum(['select', 'insert', 'update', 'delete', 'query', 'upsert', 'bulk_insert', 'execute']).optional(),
+  query: z.string().optional(),
+  data: z.any().optional(),
+  parameters: z.any().optional(),
+  table: z.string().optional(),
+  where: z.any().optional(),
+  conflictTarget: z.string().optional(),
+  timeout: z.number().int().positive().optional(),
+  retries: z.number().int().min(0).optional(),
+});
+
+const integrationMysqlSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  connectionId: z.string().optional(),
+  connectionString: z.string().optional(),
+  queryType: z.enum(['select', 'insert', 'update', 'delete', 'query', 'upsert', 'bulk_insert', 'execute']).optional(),
+  query: z.string().optional(),
+  data: z.any().optional(),
+  parameters: z.any().optional(),
+  table: z.string().optional(),
+  where: z.any().optional(),
+  conflictTarget: z.string().optional(),
+  timeout: z.number().int().positive().optional(),
+  retries: z.number().int().min(0).optional(),
+});
+
+const integrationMongodbSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  connectionId: z.string().optional(),
+  connectionString: z.string().optional(),
+  operation: z.enum(['find', 'findOne', 'insertOne', 'insertMany', 'updateOne', 'updateMany', 'deleteOne', 'deleteMany']).optional(),
+  collection: z.string().optional(),
+  query: z.any().optional(),
+  data: z.any().optional(),
+  filter: z.any().optional(),
+  update: z.any().optional(),
+  options: z.any().optional(),
+  timeout: z.number().int().positive().optional(),
+  retries: z.number().int().min(0).optional(),
+});
+
+const integrationRedisSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  connectionId: z.string().optional(),
+  connectionString: z.string().optional(),
+  operation: z.enum(['get', 'set', 'del', 'exists', 'keys', 'expire', 'ttl', 'incr', 'decr']).optional(),
+  key: z.string().optional(),
+  value: z.any().optional(),
+  ttl: z.number().int().positive().optional(),
+  pattern: z.string().optional(),
+  timeout: z.number().int().positive().optional(),
+  retries: z.number().int().min(0).optional(),
+});
+
+// ==== SANDFLARE FILE SCHEMAS ====
+const sandflareFileWriteSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  path: z.string().optional(),
+  content: z.any().optional(),
+  encoding: z.string().optional(),
+  append: z.boolean().optional(),
+});
+
+const sandflareFileReadSchema = baseSchema.extend({
+  inputVariable: z.string().optional(),
+  path: z.string().optional(),
+  encoding: z.string().optional(),
+});
+
+const sandflareFileListSchema = baseSchema.extend({
+  path: z.string().optional(),
+});
+
+const sandflareInstallSchema = baseSchema.extend({
+  packages: z.union([z.string(), z.array(z.string())]).optional(),
+  runtime: z.enum(['pip', 'npm', 'apt']).optional(),
+});
+
+const sandflareSnapshotSchema = baseSchema.extend({
+  name: z.string().optional(),
+  description: z.string().optional(),
+  tags: z.any().optional(),
+});
+
+const sandflareForkSchema = baseSchema.extend({
+  count: z.number().int().min(1).max(10).optional(),
+});
+
+const sandflareGitCloneSchema = baseSchema.extend({
+  repoUrl: z.string().optional(),
+  branch: z.string().optional(),
+  path: z.string().optional(),
+  depth: z.number().int().positive().optional(),
+  token: z.string().optional(),
+});
+
+const sandflarePlaywrightSchema = baseSchema.extend({
+  script: z.string().optional(),
+  url: z.string().optional(),
+  action: z.enum(['screenshot', 'scrape', 'click', 'fill']).optional(),
+  actions: z.any().optional(),
+  extractionRules: z.any().optional(),
+  waitUntil: z.string().optional(),
+  recordNetwork: z.boolean().optional(),
+  screenshot: z.boolean().optional(),
+  viewport: z.any().optional(),
+});
+
+const sandflareMemoryAddSchema = baseSchema.extend({
+  content: z.any().optional(),
+  category: z.string().optional(),
+});
+
+const sandflareMemorySearchSchema = baseSchema.extend({
+  query: z.string().optional(),
+  limit: z.number().int().positive().optional(),
+});
+
 
 export const nodeRegistry: Record<string, NodeRegistryEntry> = {
   ['trigger.manual']: {
@@ -949,7 +1849,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Write a file into the shared sandbox filesystem',
     icon: 'FileOutput',
     color: '#0ea5e9',
-    configSchema: baseSchema,
+    configSchema: sandflareFileWriteSchema,
     defaultConfig: { path: '/home/user/file.txt', content: '' },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -962,7 +1862,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Read a file from the shared sandbox filesystem',
     icon: 'FileInput',
     color: '#0ea5e9',
-    configSchema: baseSchema,
+    configSchema: sandflareFileReadSchema,
     defaultConfig: { path: '/home/user/file.txt', encoding: 'utf8' },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -975,7 +1875,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'List directory contents inside the sandbox',
     icon: 'FolderOpen',
     color: '#0ea5e9',
-    configSchema: baseSchema,
+    configSchema: sandflareFileListSchema,
     defaultConfig: { path: '/home/user' },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -988,7 +1888,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Install packages (pip/npm/apt) into the shared sandbox',
     icon: 'Package',
     color: '#0ea5e9',
-    configSchema: baseSchema,
+    configSchema: sandflareInstallSchema,
     defaultConfig: { packages: '', runtime: 'pip' },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -1001,7 +1901,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Save the current sandbox state as a reusable snapshot',
     icon: 'Camera',
     color: '#0ea5e9',
-    configSchema: baseSchema,
+    configSchema: sandflareSnapshotSchema,
     defaultConfig: { name: '', description: '' },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -1014,7 +1914,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Fork the sandbox into N parallel copies for parallel exploration',
     icon: 'GitFork',
     color: '#0ea5e9',
-    configSchema: baseSchema,
+    configSchema: sandflareForkSchema,
     defaultConfig: { count: 2 },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -1027,7 +1927,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Clone a git repository into the shared sandbox',
     icon: 'GitBranch',
     color: '#0ea5e9',
-    configSchema: baseSchema,
+    configSchema: sandflareGitCloneSchema,
     defaultConfig: { repoUrl: '', branch: 'main', path: '/repo', depth: 1 },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -1040,7 +1940,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Headless browser automation — screenshots, scraping, form filling',
     icon: 'MonitorPlay',
     color: '#0ea5e9',
-    configSchema: baseSchema,
+    configSchema: sandflarePlaywrightSchema,
     defaultConfig: { script: '', url: '', action: 'screenshot' },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -1053,7 +1953,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Store a memory that persists across workflow runs',
     icon: 'Brain',
     color: '#0ea5e9',
-    configSchema: baseSchema,
+    configSchema: sandflareMemoryAddSchema,
     defaultConfig: { content: '', category: 'general' },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -1066,7 +1966,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Search persisted memories by semantic query',
     icon: 'Search',
     color: '#0ea5e9',
-    configSchema: baseSchema,
+    configSchema: sandflareMemorySearchSchema,
     defaultConfig: { query: '', limit: 10 },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -1119,7 +2019,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Reason-and-act agent loop with tool execution',
     icon: 'BrainCircuit',
     color: '#8b5cf6',
-    configSchema: agentReactSchema,
+    configSchema: agentReactSchemaFixed,
     defaultConfig: {
       provider: 'openai',
       model: 'gpt-4o',
@@ -1160,7 +2060,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'LLM or expression-based agent routing',
     icon: 'GitBranchPlus',
     color: '#8b5cf6',
-    configSchema: agentConditionSchema,
+    configSchema: agentConditionSchemaFixed,
     defaultConfig: {
       conditionType: 'expression',
       expression: 'Boolean(input)',
@@ -1202,7 +2102,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Routes tasks to worker agents and combines results',
     icon: 'ShieldCheck',
     color: '#8b5cf6',
-    configSchema: agentSupervisorSchema,
+    configSchema: agentSupervisorSchemaFixed,
     defaultConfig: {
       provider: 'openai',
       model: 'gpt-4o',
@@ -1246,7 +2146,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Breaks goals into structured executable plans',
     icon: 'ClipboardList',
     color: '#8b5cf6',
-    configSchema: agentPlannerSchema,
+    configSchema: agentPlannerSchemaFixed,
     defaultConfig: {
       provider: 'openai',
       model: 'gpt-4o',
@@ -1268,7 +2168,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Publish a message to a topic on the agent message bus. Other agents subscribed to this topic will receive it.',
     icon: 'Send',
     color: '#8b5cf6',
-    configSchema: agentPublishSchema,
+    configSchema: agentPublishSchemaFixed,
     defaultConfig: {
       topic: '',
       payload: {},
@@ -1288,7 +2188,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Trigger this workflow when a message is published to a topic.',
     icon: 'Inbox',
     color: '#8b5cf6',
-    configSchema: agentSubscribeSchema,
+    configSchema: agentSubscribeSchemaFixed,
     defaultConfig: {
       topic: '',
       filter: '',
@@ -1325,7 +2225,31 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     ],
   },
 
-  [NodeType.AGENT_EVALUATOR]: {
+  
+  [NodeType.AGENT_INVOKE]: {
+    type: NodeType.AGENT_INVOKE,
+    category: NodeCategory.AGENT,
+    name: 'Invoke Agent',
+    description: 'Invoke another agent by name or ID. Uses circuit breaker to prevent cascading failures.',
+    icon: 'Bot',
+    color: '#8b5cf6',
+    configSchema: agentInvokeSchema,
+    defaultConfig: {
+      agentId: '',
+      agentName: '',
+      mode: 'sync',
+      timeoutMs: 120000,
+    },
+    inputs: [
+      { name: 'input', type: 'any', required: false },
+    ],
+    outputs: [
+      { name: 'output', type: 'any' },
+      { name: 'executionId', type: 'string' },
+    ],
+  },
+
+[NodeType.AGENT_EVALUATOR]: {
     type: NodeType.AGENT_EVALUATOR,
     category: NodeCategory.AGENT,
     name: 'Agent Evaluator',
@@ -1396,7 +2320,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Compresses long conversations into a durable summary',
     icon: 'ScrollText',
     color: '#14b8a6',
-    configSchema: memorySummarySchema,
+    configSchema: memorySummarySchemaFixed,
     defaultConfig: {
       provider: 'openai',
       model: 'gpt-4o',
@@ -1414,7 +2338,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Sliding conversational window keeping the latest turns',
     icon: 'PanelsTopLeft',
     color: '#14b8a6',
-    configSchema: memoryWindowSchema,
+    configSchema: memoryWindowSchemaFixed,
     defaultConfig: { windowSize: 5, sessionKey: '' },
     inputs: [{ name: 'input', type: 'messages', required: false }],
     outputs: [{ name: 'output', type: 'messages' }],
@@ -1479,7 +2403,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Fetch and clean website content for retrieval',
     icon: 'Globe',
     color: '#f59e0b',
-    configSchema: ragWebLoaderSchema,
+    configSchema: ragWebLoaderSchemaFixed,
     defaultConfig: { recursive: false, maxDepth: 0, timeout: 30000 },
     inputs: [{ name: 'input', type: 'string', required: false }],
     outputs: [{ name: 'documents', type: 'array' }],
@@ -1563,7 +2487,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Reorder retrieved documents with cross-encoder style scoring',
     icon: 'ArrowUpDown',
     color: '#f59e0b',
-    configSchema: ragRerankerSchema,
+    configSchema: ragRerankerSchemaFixed,
     defaultConfig: { provider: 'cohere', model: 'rerank-english-v3.0', topN: 5, timeout: 30000 },
     inputs: [{ name: 'documents', type: 'array', required: true }],
     outputs: [{ name: 'documents', type: 'array' }],
@@ -2011,7 +2935,12 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Transform data',
     icon: 'Repeat',
     color: '#6366f1',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({
+      inputVariable: z.string().optional(),
+      transformation: z.string().optional(),
+      transformType: z.string().optional(),
+      operation: z.string().optional(),
+    }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2024,7 +2953,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Filter data',
     icon: 'Filter',
     color: '#6366f1',
-    configSchema: baseSchema,
+    configSchema: transformFilterSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2037,7 +2966,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Map array items',
     icon: 'List',
     color: '#6366f1',
-    configSchema: baseSchema,
+    configSchema: transformMapSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2050,7 +2979,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Reduce array',
     icon: 'Minimize2',
     color: '#6366f1',
-    configSchema: baseSchema,
+    configSchema: transformReduceSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2063,7 +2992,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Aggregate data',
     icon: 'BarChart',
     color: '#6366f1',
-    configSchema: baseSchema,
+    configSchema: transformAggregateSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2076,7 +3005,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Split data',
     icon: 'Split',
     color: '#6366f1',
-    configSchema: baseSchema,
+    configSchema: transformSplitSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2089,7 +3018,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Merge data',
     icon: 'Merge',
     color: '#6366f1',
-    configSchema: baseSchema,
+    configSchema: transformMergeSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2102,7 +3031,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Sort data',
     icon: 'ArrowUpDown',
     color: '#6366f1',
-    configSchema: baseSchema,
+    configSchema: transformSortSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2115,7 +3044,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Remove duplicates',
     icon: 'Copy',
     color: '#6366f1',
-    configSchema: baseSchema,
+    configSchema: transformDedupeSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2128,7 +3057,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Parse/stringify JSON',
     icon: 'Braces',
     color: '#6366f1',
-    configSchema: baseSchema,
+    configSchema: transformJsonSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2141,7 +3070,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Parse/generate XML',
     icon: 'Code',
     color: '#6366f1',
-    configSchema: baseSchema,
+    configSchema: transformXmlSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2154,7 +3083,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Parse/generate CSV',
     icon: 'Table',
     color: '#6366f1',
-    configSchema: baseSchema,
+    configSchema: transformCsvSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2167,7 +3096,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Parse/generate YAML',
     icon: 'FileCode',
     color: '#6366f1',
-    configSchema: baseSchema,
+    configSchema: transformYamlSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2180,7 +3109,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Parse/generate HTML',
     icon: 'FileText',
     color: '#6366f1',
-    configSchema: baseSchema,
+    configSchema: transformHtmlSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2193,7 +3122,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Pattern matching',
     icon: 'SearchCode',
     color: '#6366f1',
-    configSchema: baseSchema,
+    configSchema: transformRegexSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2247,7 +3176,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Loop iteration',
     icon: 'RotateCw',
     color: '#f59e0b',
-    configSchema: baseSchema,
+    configSchema: controlLoopSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2260,7 +3189,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Iterate array',
     icon: 'List',
     color: '#f59e0b',
-    configSchema: baseSchema,
+    configSchema: controlForeachSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2273,7 +3202,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'While loop',
     icon: 'RefreshCw',
     color: '#f59e0b',
-    configSchema: baseSchema,
+    configSchema: controlWhileSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2286,7 +3215,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Parallel execution',
     icon: 'Layers',
     color: '#f59e0b',
-    configSchema: baseSchema,
+    configSchema: controlParallelSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2299,7 +3228,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Sequential execution',
     icon: 'ArrowRight',
     color: '#f59e0b',
-    configSchema: baseSchema,
+    configSchema: controlSequenceSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2312,7 +3241,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Error handling',
     icon: 'AlertTriangle',
     color: '#f59e0b',
-    configSchema: baseSchema,
+    configSchema: controlErrorSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2325,7 +3254,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Retry on failure',
     icon: 'RotateCcw',
     color: '#f59e0b',
-    configSchema: baseSchema,
+    configSchema: controlRetrySchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2338,7 +3267,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Execution timeout',
     icon: 'Timer',
     color: '#f59e0b',
-    configSchema: baseSchema,
+    configSchema: controlTimeoutSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2385,7 +3314,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Make HTTP calls',
     icon: 'Network',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationHttpSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2398,7 +3327,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'GraphQL queries',
     icon: 'Hexagon',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationGraphqlSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2411,7 +3340,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'RESTful API calls',
     icon: 'Network',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationRestSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2424,7 +3353,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'SOAP web services',
     icon: 'Box',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationSoapSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2437,7 +3366,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Send webhooks',
     icon: 'Send',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationWebhookSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2450,7 +3379,12 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'gRPC calls',
     icon: 'Zap',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({
+      inputVariable: z.string().optional(),
+      service: z.string().optional(),
+      method: z.string().optional(),
+      baseUrl: z.string().optional(),
+    }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2463,7 +3397,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'WebSocket client',
     icon: 'Radio',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationWebsocketSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2476,7 +3410,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'SSE stream',
     icon: 'Activity',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationSseSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2489,7 +3423,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'OAuth authentication',
     icon: 'Key',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationOauthSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2502,7 +3436,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'API key authentication',
     icon: 'KeyRound',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationApiKeySchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2515,7 +3449,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Generic database',
     icon: 'Database',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationDatabaseSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2529,7 +3463,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Database',
     brandIcon: 'postgres',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationPostgresSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2543,7 +3477,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Database',
     brandIcon: 'mysql',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationMysqlSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2557,7 +3491,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Database',
     brandIcon: 'mongodb',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationMongodbSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2571,7 +3505,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Zap',
     brandIcon: 'redis',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationRedisSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2585,7 +3519,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Search',
     brandIcon: 'elasticsearch',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2599,7 +3533,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Database',
     brandIcon: 'dynamodb',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2613,7 +3547,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Database',
     brandIcon: 'cassandra',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2627,7 +3561,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Database',
     brandIcon: 'firebase',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2641,7 +3575,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Database',
     brandIcon: 'supabase',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2655,7 +3589,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Cloud',
     brandIcon: 'aws',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2669,7 +3603,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Zap',
     brandIcon: 'aws',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2683,7 +3617,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'MessageSquare',
     brandIcon: 'aws',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2697,7 +3631,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Bell',
     brandIcon: 'aws',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2711,7 +3645,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Cloud',
     brandIcon: 'gcp',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2725,7 +3659,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'MessageSquare',
     brandIcon: 'gcp',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2739,7 +3673,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Cloud',
     brandIcon: 'azure',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2753,7 +3687,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'MessageSquare',
     brandIcon: 'azure',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2767,7 +3701,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Cloud',
     brandIcon: 'cloudflare',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2781,7 +3715,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Cloud',
     brandIcon: 'cloudflare',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2795,7 +3729,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Database',
     brandIcon: 'cloudflare',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2809,7 +3743,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Cloud',
     brandIcon: 'vercel',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2823,7 +3757,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Cloud',
     brandIcon: 'vercel',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2837,7 +3771,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Cloud',
     brandIcon: 'netlify',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2851,7 +3785,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Train',
     brandIcon: 'railway',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2865,7 +3799,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Rocket',
     brandIcon: 'pandastack',
     color: '#863bff',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2879,7 +3813,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Clock',
     brandIcon: 'pandastack',
     color: '#863bff',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2893,7 +3827,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Database',
     brandIcon: 'pandastack',
     color: '#863bff',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2907,7 +3841,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'AppWindow',
     brandIcon: 'pandastack',
     color: '#863bff',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2920,7 +3854,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Send email',
     icon: 'Mail',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationEmailSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2933,7 +3867,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'SMTP email',
     icon: 'Mail',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationEmailSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2947,7 +3881,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Mail',
     brandIcon: 'sendgrid',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationEmailSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2961,7 +3895,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Mail',
     brandIcon: 'mailgun',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationEmailSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2975,7 +3909,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'MessageSquare',
     brandIcon: 'slack',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationSlackSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -2989,7 +3923,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'MessageCircle',
     brandIcon: 'discord',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationDiscordSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3003,7 +3937,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Send',
     brandIcon: 'telegram',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationSlackSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3017,7 +3951,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'MessageSquare',
     brandIcon: 'whatsapp',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationSlackSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3031,7 +3965,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Phone',
     brandIcon: 'twilio',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationSlackSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3044,7 +3978,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Send SMS',
     icon: 'Smartphone',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationSlackSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3058,7 +3992,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Github',
     brandIcon: 'github',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationGithubSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3072,7 +4006,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'GitBranch',
     brandIcon: 'gitlab',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: integrationGithubSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3086,7 +4020,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'GitBranch',
     brandIcon: 'bitbucket',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3100,7 +4034,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Bug',
     brandIcon: 'jira',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3114,7 +4048,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'ListTodo',
     brandIcon: 'linear',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3127,7 +4061,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Asana tasks',
     icon: 'CheckSquare',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3141,7 +4075,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'BookOpen',
     brandIcon: 'notion',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3155,7 +4089,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Table',
     brandIcon: 'airtable',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3169,7 +4103,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'Sheet',
     brandIcon: 'google_sheets',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3182,7 +4116,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Microsoft Excel',
     icon: 'FileSpreadsheet',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3196,7 +4130,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'CreditCard',
     brandIcon: 'stripe',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3210,7 +4144,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'CreditCard',
     brandIcon: 'paypal',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3223,7 +4157,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Square payments',
     icon: 'CreditCard',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3236,7 +4170,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Plaid banking',
     icon: 'Building',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3249,7 +4183,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'QuickBooks accounting',
     icon: 'Calculator',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3263,7 +4197,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'BarChart',
     brandIcon: 'google_analytics',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3277,7 +4211,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'TrendingUp',
     brandIcon: 'mixpanel',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3290,7 +4224,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Segment CDP',
     icon: 'Activity',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3303,7 +4237,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Amplitude analytics',
     icon: 'BarChart2',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3317,7 +4251,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     icon: 'LineChart',
     brandIcon: 'posthog',
     color: '#ec4899',
-    configSchema: baseSchema,
+    configSchema: baseSchema.extend({ inputVariable: z.string().optional(), operation: z.string().optional(), timeout: z.number().int().positive().optional(), retries: z.number().int().min(0).optional() }),
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3460,7 +4394,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Return response',
     icon: 'CheckCircle',
     color: '#84cc16',
-    configSchema: baseSchema,
+    configSchema: outputResponseSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3473,7 +4407,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Output JSON',
     icon: 'Braces',
     color: '#84cc16',
-    configSchema: baseSchema,
+    configSchema: outputJsonSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3486,7 +4420,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Save to file',
     icon: 'FileOutput',
     color: '#84cc16',
-    configSchema: baseSchema,
+    configSchema: outputFileSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3499,7 +4433,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Send notification',
     icon: 'Bell',
     color: '#84cc16',
-    configSchema: baseSchema,
+    configSchema: outputNotificationSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3512,7 +4446,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Export data',
     icon: 'Download',
     color: '#84cc16',
-    configSchema: baseSchema,
+    configSchema: outputExportSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3525,7 +4459,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Log output',
     icon: 'FileText',
     color: '#84cc16',
-    configSchema: baseSchema,
+    configSchema: outputLogSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3538,7 +4472,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Send to webhook',
     icon: 'Send',
     color: '#84cc16',
-    configSchema: baseSchema,
+    configSchema: outputWebhookSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3551,7 +4485,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Email results',
     icon: 'Mail',
     color: '#84cc16',
-    configSchema: baseSchema,
+    configSchema: outputEmailSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3564,7 +4498,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Store data',
     icon: 'HardDrive',
     color: '#84cc16',
-    configSchema: baseSchema,
+    configSchema: outputStorageSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3577,7 +4511,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Stream output',
     icon: 'Radio',
     color: '#84cc16',
-    configSchema: baseSchema,
+    configSchema: outputStreamSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3590,7 +4524,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Add delay',
     icon: 'Timer',
     color: '#94a3b8',
-    configSchema: baseSchema,
+    configSchema: utilityDelaySchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3603,7 +4537,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Log message',
     icon: 'FileText',
     color: '#94a3b8',
-    configSchema: baseSchema,
+    configSchema: utilityLogSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3642,7 +4576,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Cache data',
     icon: 'Archive',
     color: '#94a3b8',
-    configSchema: baseSchema,
+    configSchema: utilityCacheSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3655,7 +4589,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Queue operations',
     icon: 'List',
     color: '#94a3b8',
-    configSchema: baseSchema,
+    configSchema: utilityQueueSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3668,7 +4602,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Cryptography',
     icon: 'Lock',
     color: '#94a3b8',
-    configSchema: baseSchema,
+    configSchema: utilityCryptoSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3681,7 +4615,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Hash data',
     icon: 'Hash',
     color: '#94a3b8',
-    configSchema: baseSchema,
+    configSchema: utilityHashSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3694,7 +4628,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Generate UUID',
     icon: 'Fingerprint',
     color: '#94a3b8',
-    configSchema: baseSchema,
+    configSchema: utilityUuidSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3707,7 +4641,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Date operations',
     icon: 'Calendar',
     color: '#94a3b8',
-    configSchema: baseSchema,
+    configSchema: utilityDateSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3720,7 +4654,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Math operations',
     icon: 'Calculator',
     color: '#94a3b8',
-    configSchema: baseSchema,
+    configSchema: utilityMathSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3811,7 +4745,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'String operations',
     icon: 'Type',
     color: '#94a3b8',
-    configSchema: baseSchema,
+    configSchema: utilityStringSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3824,7 +4758,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Data validation',
     icon: 'CheckCircle',
     color: '#94a3b8',
-    configSchema: baseSchema,
+    configSchema: utilityValidatorSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3837,7 +4771,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Parse data',
     icon: 'FileCode',
     color: '#94a3b8',
-    configSchema: baseSchema,
+    configSchema: utilityParserSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3850,7 +4784,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Template engine',
     icon: 'FileText',
     color: '#94a3b8',
-    configSchema: baseSchema,
+    configSchema: utilityTemplateSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
@@ -3863,7 +4797,7 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: 'Random data',
     icon: 'Shuffle',
     color: '#94a3b8',
-    configSchema: baseSchema,
+    configSchema: utilityRandomSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],

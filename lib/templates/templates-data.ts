@@ -112,16 +112,10 @@ const richWorkflowTemplates: WorkflowTemplate[] = [
           url: '{{input.url}}',
           javascript: true,
           waitFor: 'networkidle',
-          extractionRules: {
-            title: 'h1',
-            price: '.price, [data-price]',
-            body: 'article, main',
-          },
         }),
         createNode('node-json', NodeType.TRANSFORM_JSON, 640, 220, {
           label: 'Normalize JSON',
           operation: 'stringify',
-          schemaHint: 'Flatten page metadata, extracted fields, and scrape timestamp.',
         }),
         createNode('node-webhook', NodeType.OUTPUT_WEBHOOK, 920, 220, {
           label: 'Send to Webhook',
@@ -213,8 +207,6 @@ const richWorkflowTemplates: WorkflowTemplate[] = [
         createNode('node-github', NodeType.INTEGRATION_GITHUB, 360, 220, {
           label: 'Fetch PR Context',
           operation: 'get_pull_request',
-          includeFiles: true,
-          includeDiff: true,
         }),
         createNode('node-llm', NodeType.AI_LLM, 640, 220, {
           label: 'Create Review Summary',
