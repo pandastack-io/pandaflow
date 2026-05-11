@@ -148,7 +148,7 @@ function LoopForm({ config, onChange }: NodeFormProps) {
   return (
     <div className="space-y-4">
       <SelectField label="Loop Type" value={loopType} onChange={(value) => updateConfig(config, onChange, 'loopType', value)} options={[{ value: 'forEach', label: 'For Each' }, { value: 'while', label: 'While' }]} />
-      <TextField label="Input Variable" value={config.inputVariable ?? config.arrayVariable ?? ''} onChange={(value) => updateConfig(config, onChange, 'inputVariable', value)} placeholder="items" />
+      <TextField label="Input Variable" value={config.inputVariable ?? ''} onChange={(value) => updateConfig(config, onChange, 'inputVariable', value)} placeholder="items" />
       <TextField label="Item Variable Name" value={config.itemVariable ?? 'item'} onChange={(value) => updateConfig(config, onChange, 'itemVariable', value)} placeholder="item" />
       {loopType === 'while' ? (
         <AreaField label="Condition Expression" value={config.condition ?? ''} onChange={(value) => updateConfig(config, onChange, 'condition', value)} placeholder="current && current.hasMore === true" />

@@ -1,4 +1,6 @@
 import { redis, publisher, subscriber } from '@/lib/redis';
+import { db } from '@/lib/db';
+import { agentMessages } from '@/lib/db/schema';
 import { DEFAULT_ORGANIZATION_ID } from '@/lib/workflows/constants';
 
 const TOPIC_PREFIX = 'agent:bus:';
@@ -95,7 +97,21 @@ export async function publishToTopic(
   const serialized = JSON.stringify(message);
   await publisher.publish(`${TOPIC_PREFIX}${topic}`, serialized);
   await redis.lpush(MESSAGE_LOG_KEY(organizationId, topic), serialized);
-  await redis.ltrim(MESSAGE_LOG_KEY(organizationId, topic), 0, 99);
+  await redis.ltrim(MESSAGE_LOG_KEY(organizationId, topic), 0, 999);
+
+  // Persist to DB for durability (survives Redis restarts)
+  try {
+    await db.insert(agentMessages).values({
+      organizationId,
+      fromAgentId: fromAgentId ?? null,
+      topic,
+      payload: payload as Record<string, unknown>,
+      status: 'delivered',
+      deliveredAt: new Date(),
+    });
+  } catch {
+    // Non-fatal — Redis delivery already succeeded
+  }
 
   return messageId;
 }

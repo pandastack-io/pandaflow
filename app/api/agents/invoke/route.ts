@@ -6,6 +6,7 @@
  *
  * Authorization: Bearer <identity_token>
  * Body: { input?: unknown, variables?: Record<string, unknown> }
+ * Query: ?stream=true  — stream SSE execution events instead of returning immediately
  *
  * Returns: { executionId, agentId, status }
  */
@@ -15,6 +16,9 @@ import { z } from 'zod';
 import { db } from '@/lib/db';
 import { agentEvents, agents } from '@/lib/db/schema';
 import { startWorkflowExecution } from '@/lib/execution/start-workflow-execution';
+import { executionEmitter } from '@/lib/execution/execution-emitter';
+
+export const runtime = 'nodejs';
 
 const invokeSchema = z.object({
   input: z.unknown().optional(),
@@ -77,6 +81,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { input, variables, envVars } = parsed.data;
+    const stream = request.nextUrl.searchParams.get('stream') === 'true';
 
     // Trigger the workflow execution
     const execution = await startWorkflowExecution({
@@ -105,9 +110,51 @@ export async function POST(request: NextRequest) {
       await tx.insert(agentEvents).values({
         agentId: agent.id,
         type: 'invoked',
-        data: { executionId: execution.id, source: 'api', triggerType: 'event' },
+        data: { executionId: execution.id, source: 'api', triggerType: 'event', stream },
       });
     });
+
+    // SSE streaming mode — pipe execution events back to caller
+    if (stream) {
+      const encoder = new TextEncoder();
+      const readableStream = new ReadableStream({
+        start(controller) {
+          const send = (event: unknown) => {
+            try {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+            } catch {
+              // Client disconnected
+            }
+          };
+
+          // Send initial connected event with execution info
+          send({ type: 'connected', executionId: execution.id, agentId: agent.id, agentName: agent.name });
+
+          const unsubscribe = executionEmitter.subscribe(execution.id, (event) => {
+            send(event);
+            // Close stream when execution finishes
+            if (event.type === 'execution:complete' || event.type === 'execution:error') {
+              unsubscribe();
+              try { controller.close(); } catch { /* ignore */ }
+            }
+          });
+
+          request.signal.addEventListener('abort', () => {
+            unsubscribe();
+            try { controller.close(); } catch { /* ignore */ }
+          }, { once: true });
+        },
+      });
+
+      return new Response(readableStream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+          'X-Accel-Buffering': 'no',
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,

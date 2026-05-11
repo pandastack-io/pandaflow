@@ -41,7 +41,6 @@ export async function GET(
         name: agents.name,
         description: agents.description,
         status: agents.status,
-        identityToken: agents.identityToken,
         memoryNamespace: agents.memoryNamespace,
         config: agents.config,
         lastRunAt: agents.lastRunAt,
@@ -90,7 +89,6 @@ export async function GET(
         name: agent.name,
         description: agent.description,
         status: agent.status,
-        identityToken: agent.identityToken,
         memoryNamespace: agent.memoryNamespace,
         config: agent.config,
         lastRunAt: agent.lastRunAt,
@@ -204,6 +202,27 @@ export async function PATCH(
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to update agent';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+
+    const [agent] = await db.select({ id: agents.id }).from(agents).where(eq(agents.id, id)).limit(1);
+    if (!agent) {
+      return NextResponse.json({ success: false, error: 'Agent not found' }, { status: 404 });
+    }
+
+    await db.delete(agents).where(eq(agents.id, id));
+
+    return NextResponse.json({ success: true, data: { id } });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to delete agent';
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

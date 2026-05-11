@@ -337,8 +337,8 @@ const richWorkflowTemplates: WorkflowTemplate[] = [
         createEdge('e-trigger-foreach', 'node-trigger', 'node-foreach'),
         createEdge('e-foreach-http', 'node-foreach', 'node-http'),
         createEdge('e-http-condition', 'node-http', 'node-condition'),
-        createEdge('e-condition-notify', 'node-condition', 'node-notify'),
-        createEdge('e-condition-log', 'node-condition', 'node-log'),
+        createEdge('e-condition-notify', 'node-condition', 'node-notify', 'true'),
+        createEdge('e-condition-log', 'node-condition', 'node-log', 'false'),
       ]
     ),
     requirements: ['Notification channel credentials if using PagerDuty, Slack, or email'],
@@ -1013,8 +1013,8 @@ const richWorkflowTemplates: WorkflowTemplate[] = [
       [
         createEdge('e-trigger-agent', 'node-trigger', 'node-agent'),
         createEdge('e-agent-condition', 'node-agent', 'node-condition'),
-        createEdge('e-condition-slack', 'node-condition', 'node-slack'),
-        createEdge('e-condition-email', 'node-condition', 'node-email'),
+        createEdge('e-condition-slack', 'node-condition', 'node-slack', 'true'),
+        createEdge('e-condition-email', 'node-condition', 'node-email', 'false'),
       ],
       [createEnvVar('OPENAI_API_KEY'), createEnvVar('SLACK_BOT_TOKEN'), createEnvVar('SLACK_LEADS_CHANNEL'), createEnvVar('EMAIL_API_KEY')]
     ),
@@ -2035,7 +2035,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
         createEdge('e-playwright-filter', 'node-playwright', 'node-filter'),
         createEdge('e-filter-condition', 'node-filter', 'node-condition'),
         createEdge('e-filter-postgres', 'node-filter', 'node-postgres'),
-        createEdge('e-condition-notification', 'node-condition', 'node-notification'),
+        createEdge('e-condition-notification', 'node-condition', 'node-notification', 'true'),
       ],
       [createEnvVar('ECOMMERCE_LOGIN_EMAIL'), createEnvVar('ECOMMERCE_LOGIN_PASSWORD'), createEnvVar('SCRAPER_DB_CONNECTION')]
     ),
@@ -2174,7 +2174,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
         createEdge('e-playwright-sentiment', 'node-playwright', 'node-sentiment'),
         createEdge('e-sentiment-condition', 'node-sentiment', 'node-condition'),
         createEdge('e-sentiment-log', 'node-sentiment', 'node-log'),
-        createEdge('e-condition-notification', 'node-condition', 'node-notification'),
+        createEdge('e-condition-notification', 'node-condition', 'node-notification', 'true'),
       ],
       [createEnvVar('OPENAI_API_KEY')]
     ),
@@ -2318,7 +2318,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
         createEdge('e-retry-scrape', 'node-retry', 'node-scrape'),
         createEdge('e-scrape-aggregate', 'node-scrape', 'node-aggregate'),
         createEdge('e-aggregate-condition', 'node-aggregate', 'node-condition'),
-        createEdge('e-condition-notification', 'node-condition', 'node-notification'),
+        createEdge('e-condition-notification', 'node-condition', 'node-notification', 'true'),
       ]
     ),
   },
@@ -2516,7 +2516,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
         createEdge('e-http-transform', 'node-http', 'node-transform'),
         createEdge('e-transform-postgres', 'node-transform', 'node-postgres'),
         createEdge('e-postgres-condition', 'node-postgres', 'node-condition'),
-        createEdge('e-condition-notification', 'node-condition', 'node-notification'),
+        createEdge('e-condition-notification', 'node-condition', 'node-notification', 'true'),
       ],
       [createEnvVar('STOCK_API_KEY'), createEnvVar('MARKET_DB_CONNECTION')]
     ),
@@ -5602,7 +5602,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
         createEdge('e-http-aggregate', 'node-http', 'node-aggregate'),
         createEdge('e-python-aggregate', 'node-python', 'node-aggregate'),
         createEdge('e-aggregate-condition', 'node-aggregate', 'node-condition'),
-        createEdge('e-condition-notification', 'node-condition', 'node-notification'),
+        createEdge('e-condition-notification', 'node-condition', 'node-notification', 'true'),
         createEdge('e-condition-log', 'node-condition', 'node-log'),
       ],
       [createEnvVar('PERFORMANCE_API_URL')]

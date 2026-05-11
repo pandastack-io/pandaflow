@@ -36,7 +36,20 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: rows.map((row) => ({
-        ...row.agent,
+        id: row.agent.id,
+        workflowId: row.agent.workflowId,
+        organizationId: row.agent.organizationId,
+        name: row.agent.name,
+        description: row.agent.description,
+        status: row.agent.status,
+        memoryNamespace: row.agent.memoryNamespace,
+        config: row.agent.config,
+        lastRunAt: row.agent.lastRunAt,
+        lastHeartbeatAt: row.agent.lastHeartbeatAt,
+        totalExecutions: row.agent.totalExecutions,
+        totalCostUsd: row.agent.totalCostUsd,
+        createdAt: row.agent.createdAt,
+        updatedAt: row.agent.updatedAt,
         workflowName: row.workflowName,
       })),
     });

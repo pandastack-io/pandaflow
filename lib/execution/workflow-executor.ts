@@ -2097,7 +2097,7 @@ export class WorkflowExecutor {
   ): Promise<any> {
     const config = node.data.config;
 
-    const items = context.variables[config.arrayVariable];
+    const items = context.variables[config.inputVariable ?? config.arrayVariable];
     const results = [];
 
     if (Array.isArray(items)) {
