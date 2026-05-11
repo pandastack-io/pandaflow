@@ -3,10 +3,12 @@ import { db } from '@/lib/db';
 import { workflows } from '@/lib/db/schema';
 import { createWorkflowRecord } from '@/lib/workflows/create-workflow';
 import { workflowCreateSchema } from '@/lib/workflow-utils';
+import { requireOrgId } from '@/lib/auth/get-org-id';
 
 // GET /api/workflows - List all workflows
 export async function GET() {
   try {
+    const orgId = await requireOrgId();
     const allWorkflows = await db.select().from(workflows);
 
     return NextResponse.json({
@@ -14,6 +16,7 @@ export async function GET() {
       data: allWorkflows,
     });
   } catch (error) {
+    if (error instanceof Response) return error;
     console.error('Error fetching workflows:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch workflows' },
@@ -25,6 +28,7 @@ export async function GET() {
 // POST /api/workflows - Create new workflow
 export async function POST(request: NextRequest) {
   try {
+    const orgId = await requireOrgId();
     const body = await request.json();
     const parsed = workflowCreateSchema.safeParse(body);
 
@@ -35,13 +39,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const newWorkflow = await createWorkflowRecord(parsed.data);
+    const newWorkflow = await createWorkflowRecord({ organizationId: orgId, ...parsed.data });
 
     return NextResponse.json({
       success: true,
       data: newWorkflow,
     });
   } catch (error) {
+    if (error instanceof Response) return error;
     console.error('Error creating workflow:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create workflow' },

@@ -213,6 +213,12 @@ export enum NodeType {
   INTEGRATION_NETLIFY = 'integration.netlify',
   INTEGRATION_RAILWAY = 'integration.railway',
 
+  // Integration - PandaStack (4 types)
+  INTEGRATION_PANDASTACK_PROJECT = 'integration.pandastack_project',
+  INTEGRATION_PANDASTACK_CRONJOB = 'integration.pandastack_cronjob',
+  INTEGRATION_PANDASTACK_DATABASE = 'integration.pandastack_database',
+  INTEGRATION_PANDASTACK_MANAGED_APP = 'integration.pandastack_managed_app',
+
   // Integration - Communication (10 types)
   INTEGRATION_EMAIL = 'integration.email',
   INTEGRATION_SMTP = 'integration.smtp',

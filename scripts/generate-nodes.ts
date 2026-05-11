@@ -235,6 +235,7 @@ function generateRegistry() {
     [NodeCategory.UTILITY]: '#94a3b8',
     [NodeCategory.DATA]: '#f97316',
     [NodeCategory.VERDICT]: '#10b981',
+    [NodeCategory.PRISM]: '#8b5cf6',
   };
 
   let code = `import { z } from 'zod';

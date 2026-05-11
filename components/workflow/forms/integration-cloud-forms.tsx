@@ -696,6 +696,161 @@ const VercelBlobForm = createServiceForm(vercelBlobDefinition);
 const NetlifyForm = createServiceForm(netlifyDefinition);
 const RailwayForm = createServiceForm(railwayDefinition);
 
+// ── PandaStack ────────────────────────────────────────────────────────────────
+
+const pandaStackCredentialFields: FieldDefinition[] = [
+  {
+    key: 'apiToken',
+    section: 'Credentials',
+    label: 'API token',
+    type: 'password',
+    placeholder: '{{secrets.PANDASTACK_API_TOKEN}}',
+    hint: 'psk_... token from your PandaStack dashboard Settings → API Tokens.',
+  },
+  {
+    key: 'baseUrl',
+    section: 'Credentials',
+    label: 'API base URL',
+    placeholder: '{{secrets.PANDASTACK_API_URL}}',
+    hint: 'Your PandaStack backend base URL — no trailing slash.',
+  },
+];
+
+const pandaStackProjectDefinition: ServiceDefinition = {
+  title: 'PandaStack · Project',
+  credentialProviderId: 'pandastack',
+  description: 'Manage PandaStack projects: list, get details, trigger a deployment, or delete.',
+  operationOptions: [
+    { value: 'listProjects', label: 'List all projects' },
+    { value: 'getProject', label: 'Get project' },
+    { value: 'deployProject', label: 'Deploy project' },
+    { value: 'deleteProject', label: 'Delete project' },
+  ],
+  fields: [
+    ...pandaStackCredentialFields,
+    {
+      key: 'projectId',
+      section: 'Target',
+      label: 'Project ID',
+      placeholder: '42',
+      hint: 'Required for Get, Deploy, and Delete operations.',
+      when: (config) => ['getProject', 'deployProject', 'deleteProject'].includes(config.operation),
+    },
+    {
+      key: 'body',
+      section: 'Request',
+      label: 'Request body JSON',
+      type: 'json',
+      placeholder: '{\n  "branch": "main"\n}',
+      hint: 'Optional body for the Deploy operation. Leave blank to use upstream input.',
+      when: (config) => config.operation === 'deployProject',
+    },
+    ...commonNetworkFields,
+  ],
+};
+
+const pandaStackCronjobDefinition: ServiceDefinition = {
+  title: 'PandaStack · Cronjob',
+  credentialProviderId: 'pandastack',
+  description: 'Manage PandaStack cronjobs: list, get details, create, trigger a run, or delete.',
+  operationOptions: [
+    { value: 'listCronjobs', label: 'List all cronjobs' },
+    { value: 'getCronjob', label: 'Get cronjob' },
+    { value: 'createCronjob', label: 'Create cronjob' },
+    { value: 'triggerCronjob', label: 'Trigger cronjob now' },
+    { value: 'deleteCronjob', label: 'Delete cronjob' },
+  ],
+  fields: [
+    ...pandaStackCredentialFields,
+    {
+      key: 'cronjobId',
+      section: 'Target',
+      label: 'Cronjob ID',
+      placeholder: '7',
+      hint: 'Required for Get, Trigger, and Delete operations.',
+      when: (config) => ['getCronjob', 'triggerCronjob', 'deleteCronjob'].includes(config.operation),
+    },
+    {
+      key: 'body',
+      section: 'Request',
+      label: 'Request body JSON',
+      type: 'json',
+      placeholder: '{\n  "name": "nightly-sync",\n  "image": "my-org/worker:latest",\n  "schedule": "0 2 * * *"\n}',
+      hint: 'Body for the Create cronjob operation. Leave blank to use upstream input.',
+      when: (config) => config.operation === 'createCronjob',
+    },
+    ...commonNetworkFields,
+  ],
+};
+
+const pandaStackDatabaseDefinition: ServiceDefinition = {
+  title: 'PandaStack · Database',
+  credentialProviderId: 'pandastack',
+  description: 'Inspect PandaStack database instances: list all or get details for a specific database.',
+  operationOptions: [
+    { value: 'listDatabases', label: 'List all databases' },
+    { value: 'getDatabase', label: 'Get database details' },
+  ],
+  fields: [
+    ...pandaStackCredentialFields,
+    {
+      key: 'databaseId',
+      section: 'Target',
+      label: 'Database ID',
+      placeholder: '3',
+      hint: 'Required for the Get database details operation.',
+      when: (config) => config.operation === 'getDatabase',
+    },
+    ...commonNetworkFields,
+  ],
+};
+
+const pandaStackManagedAppDefinition: ServiceDefinition = {
+  title: 'PandaStack · Managed App',
+  credentialProviderId: 'pandastack',
+  description: 'Manage PandaStack managed applications (WordPress/Drupal): list, deploy, check status, or delete.',
+  operationOptions: [
+    { value: 'listManagedApps', label: 'List all managed apps' },
+    { value: 'deployManagedApp', label: 'Deploy managed app' },
+    { value: 'getManagedAppStatus', label: 'Get deployment status' },
+    { value: 'deleteManagedApp', label: 'Delete managed app' },
+  ],
+  fields: [
+    ...pandaStackCredentialFields,
+    {
+      key: 'deploymentUuid',
+      section: 'Target',
+      label: 'Deployment UUID',
+      placeholder: 'e4f9a2b1-...',
+      hint: 'Required for Get deployment status.',
+      when: (config) => config.operation === 'getManagedAppStatus',
+    },
+    {
+      key: 'appId',
+      section: 'Target',
+      label: 'App ID',
+      placeholder: '12',
+      hint: 'Required for Delete managed app.',
+      when: (config) => config.operation === 'deleteManagedApp',
+    },
+    {
+      key: 'body',
+      section: 'Request',
+      label: 'Request body JSON',
+      type: 'json',
+      placeholder: '{\n  "app_type": "wordpress",\n  "plan": "standard"\n}',
+      hint: 'Body for the Deploy managed app operation. Leave blank to use upstream input.',
+      when: (config) => config.operation === 'deployManagedApp',
+    },
+    ...commonNetworkFields,
+  ],
+};
+
+const PandaStackProjectForm = createServiceForm(pandaStackProjectDefinition);
+const PandaStackCronjobForm = createServiceForm(pandaStackCronjobDefinition);
+const PandaStackDatabaseForm = createServiceForm(pandaStackDatabaseDefinition);
+const PandaStackManagedAppForm = createServiceForm(pandaStackManagedAppDefinition);
+
 export const integrationCloudForms: Partial<Record<NodeType, ComponentType<NodeFormProps>>> = {
   [NodeType.INTEGRATION_AWS_S3]: AwsS3Form,
   [NodeType.INTEGRATION_AWS_LAMBDA]: AwsLambdaForm,
@@ -712,4 +867,8 @@ export const integrationCloudForms: Partial<Record<NodeType, ComponentType<NodeF
   [NodeType.INTEGRATION_VERCEL_BLOB]: VercelBlobForm,
   [NodeType.INTEGRATION_NETLIFY]: NetlifyForm,
   [NodeType.INTEGRATION_RAILWAY]: RailwayForm,
+  [NodeType.INTEGRATION_PANDASTACK_PROJECT]: PandaStackProjectForm,
+  [NodeType.INTEGRATION_PANDASTACK_CRONJOB]: PandaStackCronjobForm,
+  [NodeType.INTEGRATION_PANDASTACK_DATABASE]: PandaStackDatabaseForm,
+  [NodeType.INTEGRATION_PANDASTACK_MANAGED_APP]: PandaStackManagedAppForm,
 };

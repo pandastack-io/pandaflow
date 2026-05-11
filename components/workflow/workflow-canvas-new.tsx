@@ -26,6 +26,7 @@ import { SubNode } from './sub-node';
 import { StickyNoteNode, type StickyNoteNodeData } from './sticky-note-node';
 import { NodePalette } from './node-palette';
 import { NodeConfigPanel } from './node-config-panel';
+import { QuickAddMenu } from './quick-add-menu';
 import {
   AGENT_NODE_TYPES,
   WorkflowNodeData,
@@ -41,6 +42,12 @@ import { cn } from '@/lib/utils';
 
 const STICKY_NOTE_WIDTH = 260;
 const STICKY_NOTE_HEIGHT = 200;
+const WORKFLOW_NODE_WIDTH = 220;
+const QUICK_ADD_NODE_GAP = 80;
+const QUICK_ADD_NODE_OFFSET_X = WORKFLOW_NODE_WIDTH + QUICK_ADD_NODE_GAP;
+// Only auto-connect when dropping 0–100px to the RIGHT of a node's right edge and within 80px vertically
+const QUICK_ADD_X_SNAP_MAX = 100;
+const QUICK_ADD_Y_SNAP_THRESHOLD = 80;
 
 const nodeTypes: NodeTypes = {
   custom: CustomNode,
@@ -178,6 +185,7 @@ function WorkflowCanvasInner({
   const [paletteTargetNodeId, setPaletteTargetNodeId] = useState<string | null>(null);
   const [variablesOpen, setVariablesOpen] = useState(false);
   const [copiedVariable, setCopiedVariable] = useState<string | null>(null);
+  const [quickAddSource, setQuickAddSource] = useState<{ nodeId: string; handleId: string; x: number; y: number } | null>(null);
 
   const stickyNoteIds = useMemo(() => new Set(stickyNotes.map((note) => note.id)), [stickyNotes]);
 
@@ -230,6 +238,10 @@ function WorkflowCanvasInner({
     setPaletteTargetNodeId(null);
   }, []);
 
+  const closeQuickAddMenu = useCallback(() => {
+    setQuickAddSource(null);
+  }, []);
+
   const getPaletteNodePosition = useCallback((targetNodeId: string, role: SubNodeRole) => {
     const targetNode = nodes.find((node) => node.id === targetNodeId);
     if (!targetNode) {
@@ -270,6 +282,41 @@ function WorkflowCanvasInner({
     addNode(nodeType, { x: center.x - 110, y: center.y - 50 }, { subNodeRole: null });
   }, [addNode, getPaletteNodePosition, onConnect, paletteFilterRole, paletteTargetNodeId, project]);
 
+  const handleQuickAddNode = useCallback((nodeType: NodeType) => {
+    if (!quickAddSource) {
+      return;
+    }
+
+    const sourceNode = nodes.find((node) => node.id === quickAddSource.nodeId);
+    if (!sourceNode) {
+      closeQuickAddMenu();
+      return;
+    }
+
+    const newNode = addNode(
+      nodeType,
+      {
+        x: sourceNode.position.x + QUICK_ADD_NODE_OFFSET_X,
+        y: sourceNode.position.y,
+      },
+      { subNodeRole: null }
+    );
+
+    if (newNode) {
+      const targetNodeInfo = getNodeByType(nodeType);
+      if (targetNodeInfo && targetNodeInfo.inputs.length > 0) {
+        onConnect({
+          source: quickAddSource.nodeId,
+          sourceHandle: quickAddSource.handleId,
+          target: newNode.id,
+          targetHandle: 'input',
+        } as Connection);
+      }
+    }
+
+    closeQuickAddMenu();
+  }, [addNode, closeQuickAddMenu, nodes, onConnect, quickAddSource]);
+
   useEffect(() => {
     const handleOpenSubNodePalette = (event: Event) => {
       const detail = (event as CustomEvent<{ nodeId?: string; role?: SubNodeRole }>).detail;
@@ -283,6 +330,19 @@ function WorkflowCanvasInner({
 
     window.addEventListener('open-sub-node-palette', handleOpenSubNodePalette as EventListener);
     return () => window.removeEventListener('open-sub-node-palette', handleOpenSubNodePalette as EventListener);
+  }, []);
+
+  useEffect(() => {
+    const handleQuickAdd = (event: Event) => {
+      const detail = (event as CustomEvent<{ nodeId: string; handleId: string; x: number; y: number }>).detail;
+      if (!detail?.nodeId || !detail.handleId) {
+        return;
+      }
+      setQuickAddSource(detail);
+    };
+
+    window.addEventListener('node-quick-add', handleQuickAdd as EventListener);
+    return () => window.removeEventListener('node-quick-add', handleQuickAdd as EventListener);
   }, []);
 
   const availableVariables = useMemo(
@@ -605,7 +665,39 @@ function WorkflowCanvasInner({
         y: (event.clientY - reactFlowBounds.top - viewport.y) / viewport.zoom - 50,
       };
       const dropTarget = getDependencyDropTarget(document.elementFromPoint(event.clientX, event.clientY) ?? event.target);
-      const subNodeRole = getSubNodeRoleForType(nodeType, getNodeByType(nodeType)?.category);
+      const nodeInfo = getNodeByType(nodeType);
+      const subNodeRole = getSubNodeRoleForType(nodeType, nodeInfo?.category);
+      const canAutoConnect = !subNodeRole && Boolean(nodeInfo && nodeInfo.inputs.length > 0);
+      const nearbySourceNode = canAutoConnect
+        ? nodes.reduce<Node<WorkflowNodeData> | null>((closestNode, node) => {
+            if (stickyNoteIds.has(node.id)) {
+              return closestNode;
+            }
+
+            const sourceNodeInfo = getNodeByType(node.data.type);
+            if (!sourceNodeInfo || !sourceNodeInfo.outputs.some((output) => output.name === 'output')) {
+              return closestNode;
+            }
+
+            const nodeRightX = node.position.x + WORKFLOW_NODE_WIDTH;
+            const nodeCenterY = node.position.y + 50;
+            const deltaX = position.x - nodeRightX; // positive = dropped to the right
+            const deltaY = Math.abs(position.y - nodeCenterY);
+
+            // Only snap when dropped clearly to the right (0–100px) and close vertically
+            if (deltaX < 0 || deltaX > QUICK_ADD_X_SNAP_MAX || deltaY >= QUICK_ADD_Y_SNAP_THRESHOLD) {
+              return closestNode;
+            }
+
+            if (!closestNode) {
+              return node;
+            }
+
+            const closestDeltaX = Math.abs(position.x - (closestNode.position.x + WORKFLOW_NODE_WIDTH));
+            const closestDeltaY = Math.abs(position.y - (closestNode.position.y + 50));
+            return deltaX + deltaY < closestDeltaX + closestDeltaY ? node : closestNode;
+          }, null)
+        : null;
 
       if (dropTarget && subNodeRole === dropTarget.role) {
         const dependencyPosition = getPaletteNodePosition(dropTarget.nodeId, dropTarget.role) ?? position;
@@ -618,13 +710,31 @@ function WorkflowCanvasInner({
             targetHandle: dropTarget.role,
           } as Connection);
         }
+      } else if (nearbySourceNode) {
+        const newNode = addNode(
+          nodeType,
+          {
+            x: nearbySourceNode.position.x + QUICK_ADD_NODE_OFFSET_X,
+            y: nearbySourceNode.position.y,
+          },
+          { subNodeRole: null }
+        );
+
+        if (newNode) {
+          onConnect({
+            source: nearbySourceNode.id,
+            sourceHandle: 'output',
+            target: newNode.id,
+            targetHandle: 'input',
+          } as Connection);
+        }
       } else {
         addNode(nodeType, position, { subNodeRole: null });
       }
 
       setSelectedStickyNoteId(null);
     },
-    [addNode, getPaletteNodePosition, getViewport, onConnect]
+    [addNode, getPaletteNodePosition, getViewport, nodes, onConnect, stickyNoteIds]
   );
 
   const onNodeClick = useCallback(
@@ -653,10 +763,11 @@ function WorkflowCanvasInner({
   );
 
   const onPaneClick = useCallback(() => {
+    closeQuickAddMenu();
     setOutputPanelNodeId(null);
     setSelectedStickyNoteId(null);
     selectNode(null);
-  }, [selectNode, setOutputPanelNodeId]);
+  }, [closeQuickAddMenu, selectNode, setOutputPanelNodeId]);
 
   const isValidConnection = useCallback<IsValidConnection>((connection) => {
     if (!connection.source || !connection.target || connection.source === connection.target) {
@@ -926,6 +1037,15 @@ function WorkflowCanvasInner({
             pannable
           />
         </ReactFlow>
+
+        {quickAddSource && (
+          <QuickAddMenu
+            x={quickAddSource.x}
+            y={quickAddSource.y}
+            onSelect={handleQuickAddNode}
+            onClose={closeQuickAddMenu}
+          />
+        )}
 
         {/* Right-click context menu */}
         {contextMenu && (

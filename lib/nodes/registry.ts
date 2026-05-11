@@ -2798,6 +2798,58 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     outputs: [{ name: 'output', type: 'any' }],
   },
 
+  ['integration.pandastack_project']: {
+    type: 'integration.pandastack_project' as NodeType,
+    category: 'integration' as NodeCategory,
+    name: 'PandaStack · Project',
+    description: 'List, get, deploy, or delete projects on PandaStack.',
+    icon: 'Rocket',
+    color: '#863bff',
+    configSchema: baseSchema,
+    defaultConfig: {},
+    inputs: [{ name: 'input', type: 'any', required: false }],
+    outputs: [{ name: 'output', type: 'any' }],
+  },
+
+  ['integration.pandastack_cronjob']: {
+    type: 'integration.pandastack_cronjob' as NodeType,
+    category: 'integration' as NodeCategory,
+    name: 'PandaStack · Cronjob',
+    description: 'List, get, create, trigger, or delete cronjobs on PandaStack.',
+    icon: 'Clock',
+    color: '#863bff',
+    configSchema: baseSchema,
+    defaultConfig: {},
+    inputs: [{ name: 'input', type: 'any', required: false }],
+    outputs: [{ name: 'output', type: 'any' }],
+  },
+
+  ['integration.pandastack_database']: {
+    type: 'integration.pandastack_database' as NodeType,
+    category: 'integration' as NodeCategory,
+    name: 'PandaStack · Database',
+    description: 'List or get database instances on PandaStack.',
+    icon: 'Database',
+    color: '#863bff',
+    configSchema: baseSchema,
+    defaultConfig: {},
+    inputs: [{ name: 'input', type: 'any', required: false }],
+    outputs: [{ name: 'output', type: 'any' }],
+  },
+
+  ['integration.pandastack_managed_app']: {
+    type: 'integration.pandastack_managed_app' as NodeType,
+    category: 'integration' as NodeCategory,
+    name: 'PandaStack · Managed App',
+    description: 'List, deploy, check status, or delete managed apps (WordPress/Drupal) on PandaStack.',
+    icon: 'AppWindow',
+    color: '#863bff',
+    configSchema: baseSchema,
+    defaultConfig: {},
+    inputs: [{ name: 'input', type: 'any', required: false }],
+    outputs: [{ name: 'output', type: 'any' }],
+  },
+
   ['integration.email']: {
     type: 'integration.email' as NodeType,
     category: 'integration' as NodeCategory,

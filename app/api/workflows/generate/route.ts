@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { buildAiGeneratedTags, generateWorkflow } from '@/lib/workflows/ai-generation';
 import { createWorkflowRecord } from '@/lib/workflows/create-workflow';
+import { requireOrgId } from '@/lib/auth/get-org-id';
 
 const generateWorkflowSchema = z.object({
   description: z.string().trim().optional(),
@@ -14,6 +15,7 @@ const generateWorkflowSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const orgId = await requireOrgId();
     const body = await request.json();
     const parsed = generateWorkflowSchema.safeParse(body);
 
@@ -38,6 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     const newWorkflow = await createWorkflowRecord({
+      organizationId: orgId,
       name: generatedWorkflow.name,
       description: generatedWorkflow.description,
       definition: generatedWorkflow.definition,
@@ -52,6 +55,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof Response) return error;
     console.error('Error generating workflow:', error);
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : 'Failed to generate workflow' },

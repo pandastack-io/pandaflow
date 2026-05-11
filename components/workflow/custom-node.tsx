@@ -114,6 +114,7 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
   })();
 
   const hasMultipleOutputs = outputs.length > 1;
+  const hasDefaultOutputHandle = outputs.some((output) => output.name === 'output');
   const minimumHeight = outputs.length >= 3 ? outputs.length * 28 + 48 : undefined;
   const isConnectionPreviewActive = connectionPreview.active;
   const isCompatibleTarget = isConnectionPreviewActive && connectionPreview.compatibleTargetNodeIds.includes(id);
@@ -168,7 +169,7 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        'relative min-w-[200px] max-w-[280px] overflow-visible rounded-xl border bg-card px-3 py-2.5 shadow-sm transition-all duration-300',
+        'group relative min-w-[200px] max-w-[280px] overflow-visible rounded-xl border bg-card px-3 py-2.5 shadow-sm transition-all duration-300',
         status === 'idle' && hasIssues && 'border-amber-500/60',
         status === 'pending' && 'animate-pulse border-yellow-500/50',
         status === 'running' && 'border-blue-500/60 ring-2 ring-blue-500 ring-offset-2 ring-offset-zinc-900',
@@ -478,6 +479,33 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
           )}
         </Handle>
       ))}
+
+      {status !== 'running' && hasDefaultOutputHandle && (
+        <>
+          {/* Invisible bridge keeps the group hovered while cursor travels to the + button */}
+          <div className="absolute right-0 top-0 h-full w-16 translate-x-full" />
+          <button
+            type="button"
+            className="nodrag nopan nowheel absolute right-[-44px] top-1/2 z-30 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background shadow-md transition pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100 hover:bg-accent hover:text-primary"
+            title="Add connected node"
+            onMouseDown={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              event.stopPropagation();
+              const rect = event.currentTarget.getBoundingClientRect();
+              window.dispatchEvent(new CustomEvent('node-quick-add', {
+                detail: {
+                  nodeId: id,
+                  handleId: 'output',
+                  x: rect.right + 8,
+                  y: rect.top + rect.height / 2,
+                },
+              }));
+            }}
+          >
+            <LucideIcons.Plus className="h-4 w-4" />
+          </button>
+        </>
+      )}
     </div>
   );
 });

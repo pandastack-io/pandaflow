@@ -4,6 +4,7 @@ import { workflows } from '@/lib/db/schema';
 import { sanitizeTags } from '@/lib/workflow-utils';
 
 export interface CreateWorkflowInput {
+  organizationId: string;
   name: string;
   description?: string | null;
   definition: unknown;
@@ -13,6 +14,7 @@ export interface CreateWorkflowInput {
 }
 
 export async function createWorkflowRecord({
+  organizationId,
   name,
   description,
   definition,
@@ -25,7 +27,7 @@ export async function createWorkflowRecord({
   const [newWorkflow] = await db
     .insert(workflows)
     .values({
-      organizationId: '00000000-0000-0000-0000-000000000000',
+      organizationId,
       name,
       description: description || '',
       definition,

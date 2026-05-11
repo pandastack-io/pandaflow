@@ -23,6 +23,7 @@ import { integrationCommExecutors } from './integration-comm';
 import { integrationDevtoolsExecutors } from './integration-devtools';
 import { integrationPaymentExecutors } from './integration-payment';
 import { integrationAnalyticsExecutors } from './integration-analytics';
+import { integrationPandaStackExecutors } from './integration-pandastack';
 import { ragExecutors } from './rag';
 import { verdictExecutors } from './verdict';
 
@@ -44,6 +45,7 @@ export const nodeExecutorRegistry: Partial<Record<NodeType, NodeExecutorFn>> = {
   ...integrationDevtoolsExecutors,
   ...integrationPaymentExecutors,
   ...integrationAnalyticsExecutors,
+  ...integrationPandaStackExecutors,
   ...outputExecutors,
   ...utilityExecutors,
   ...dataExecutors,

@@ -65,6 +65,30 @@ export const credentialProviders: CredentialProvider[] = [
     ],
   },
   {
+    id: 'pandastack',
+    name: 'PandaStack',
+    category: 'Cloud',
+    icon: '▲',
+    description: 'Deploy and manage projects, cronjobs, databases, and managed apps on PandaStack.',
+    docsUrl: 'https://pandastack.io/docs',
+    fields: [
+      {
+        key: 'PANDASTACK_API_TOKEN',
+        label: 'API Token',
+        type: 'password',
+        placeholder: 'psk_...',
+        helpText: 'Generate an API token from your PandaStack dashboard under Settings → API Tokens.',
+      },
+      {
+        key: 'PANDASTACK_API_URL',
+        label: 'API Base URL',
+        type: 'url',
+        placeholder: 'https://api.pandastack.io',
+        helpText: 'The base URL of your PandaStack backend API (without trailing slash).',
+      },
+    ],
+  },
+  {
     id: 'openai',
     name: 'OpenAI',
     category: 'AI & LLM',

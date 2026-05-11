@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Bot, ExternalLink, Loader2, MessageSquareText, Play, Save, Settings } from 'lucide-react';
+import { ArrowLeft, Bot, ExternalLink, Loader2, MessageSquareText, Pencil, Play, Save, Settings } from 'lucide-react';
 import { ExecutionResultsPanel } from '@/components/workflow/execution-results-panel';
 import { ExecutionStatusBar } from '@/components/workflow/execution-status-bar';
 import { WorkflowCanvasNew } from '@/components/workflow/workflow-canvas-new';
@@ -11,6 +11,7 @@ import { WorkflowVariablesPanel } from '@/components/workflow/workflow-variables
 import { ChatSettingsDialog } from '@/components/workflow/chat-settings-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Dialog,
   DialogContent,
@@ -97,6 +98,13 @@ export default function NewWorkflowPage() {
   const addNode = useWorkflowStore((state) => state.addNode);
   const setNodes = useWorkflowStore((state) => state.setNodes);
   const setEdges = useWorkflowStore((state) => state.setEdges);
+  const resetWorkflow = useWorkflowStore((state) => state.resetWorkflow);
+
+  // Clear any leftover state from a previous workflow session on first mount.
+  useEffect(() => {
+    resetWorkflow();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const selectNode = useWorkflowStore((state) => state.selectNode);
   const outputPanelNodeId = useWorkflowStore((state) => state.outputPanelNodeId);
   const setOutputPanelNodeId = useWorkflowStore((state) => state.setOutputPanelNodeId);
@@ -104,7 +112,8 @@ export default function NewWorkflowPage() {
   const clearExecutionOutputs = useWorkflowStore((state) => state.clearExecutionOutputs);
 
   useEffect(() => {
-    if (nodes.length > 0) return;
+    // Read current store state directly — avoids stale closure in React 18 StrictMode double-invoke.
+    if (useWorkflowStore.getState().nodes.length > 0) return;
 
     if (workflowType === 'automation') {
       addNode(NodeType.TRIGGER_MANUAL, { x: 300, y: 220 });
@@ -188,6 +197,15 @@ export default function NewWorkflowPage() {
   }, []);
 
   useEffect(() => () => clearPoll(), [clearPoll]);
+
+  // When SSE stream signals completion/failure, immediately reset running state and stop polling.
+  // This is the primary signal — don't wait for the poll to detect DB status.
+  useEffect(() => {
+    if (executionStatus === 'completed' || executionStatus === 'failed' || executionStatus === 'cancelled') {
+      setRunning(false);
+      clearPoll();
+    }
+  }, [executionStatus, clearPoll]);
 
   useEffect(() => {
     setExecutionOutputs(executionOutputs);
@@ -405,17 +423,26 @@ export default function NewWorkflowPage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 rounded-md border border-transparent px-2 py-1 transition-colors hover:border-border focus-within:border-border">
+            <Pencil className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <input
               type="text"
               value={workflowName}
               onChange={(event) => setWorkflowName(event.target.value)}
               placeholder="Untitled Workflow"
-              className="min-w-[220px] border-none bg-transparent text-lg font-semibold focus:outline-none focus:ring-0"
+              className="min-w-[180px] border-none bg-transparent text-lg font-semibold focus:outline-none focus:ring-0"
             />
-            <Badge variant="outline" className="capitalize">{workflowType}</Badge>
           </div>
-        </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Badge variant="outline" className="cursor-pointer capitalize hover:bg-accent">{workflowType}</Badge>
+              </PopoverTrigger>
+              <PopoverContent className="w-[560px] p-4" align="start">
+                <p className="mb-3 text-sm font-medium text-foreground">Choose your flow type</p>
+                <WorkflowTypeSelector value={workflowType} onChange={setWorkflowType} compact />
+              </PopoverContent>
+            </Popover>
+          </div>
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm" onClick={() => setShowWorkflowSettings(true)}>
             <Settings className="mr-2 h-4 w-4" />
@@ -452,16 +479,6 @@ export default function NewWorkflowPage() {
               {running ? 'Running...' : 'Run'}
             </Button>
           )}
-        </div>
-      </div>
-
-      <div className="border-b border-border bg-card/60 px-4 py-4 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4">
-          <div>
-            <p className="text-sm font-medium text-foreground">Choose your flow type</p>
-            <p className="text-sm text-muted-foreground">Start with automation, launch a shareable chat assistant, or design a tool-using AI agent.</p>
-          </div>
-          <WorkflowTypeSelector value={workflowType} onChange={setWorkflowType} />
         </div>
       </div>
 

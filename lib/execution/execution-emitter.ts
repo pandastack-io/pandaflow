@@ -109,4 +109,12 @@ class ExecutionEventEmitter {
   }
 }
 
-export const executionEmitter = new ExecutionEventEmitter();
+// Use globalThis to ensure a single shared instance across all Next.js route
+// module instances (hot-reload, route-chunk splits, etc.).
+// Without this, the executor emits to instance A while the SSE stream
+// subscribes to instance B — events are never delivered.
+const g = globalThis as typeof globalThis & { __executionEmitter?: ExecutionEventEmitter };
+if (!g.__executionEmitter) {
+  g.__executionEmitter = new ExecutionEventEmitter();
+}
+export const executionEmitter = g.__executionEmitter;

@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { AuthShell } from '@/components/auth/auth-shell';
 import { SignInForm } from '@/components/auth/sign-in-form';
 
@@ -9,7 +10,9 @@ export default function SignInPage() {
       title="Sign in"
       description="Access your workflows, secrets, agents, and execution history."
     >
-      <SignInForm googleEnabled={googleEnabled} />
+      <Suspense>
+        <SignInForm googleEnabled={googleEnabled} />
+      </Suspense>
     </AuthShell>
   );
 }
