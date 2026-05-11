@@ -399,6 +399,122 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     outputs: [{ name: 'approved', type: 'any' }, { name: 'rejected', type: 'any' }],
   },
 
+  // ============ MULTI-AGENT ORCHESTRATION ============
+
+  [NodeType.CONTROL_SUB_WORKFLOW]: {
+    type: NodeType.CONTROL_SUB_WORKFLOW,
+    category: NodeCategory.CONTROL,
+    name: 'Sub-Workflow',
+    description: 'Call another workflow as a sub-step. Execution is durable, traced, and resumable on crash.',
+    icon: 'GitBranch',
+    color: '#6366f1',
+    configSchema: z.object({
+      ...baseSchema.shape,
+      workflowId: z.string().min(1, 'Workflow ID is required'),
+      mode: z.enum(['sync', 'async']).default('sync'),
+      timeoutMs: z.coerce.number().min(1000).max(600_000).default(120_000),
+      inputVariable: z.string().optional(),
+    }),
+    defaultConfig: {
+      workflowId: '',
+      mode: 'sync',
+      timeoutMs: 120_000,
+    },
+    inputs: [{ name: 'input', type: 'any', required: false }],
+    outputs: [{ name: 'output', type: 'any' }, { name: 'executionId', type: 'string' }],
+  },
+
+  [NodeType.AGENT_INVOKE]: {
+    type: NodeType.AGENT_INVOKE,
+    category: NodeCategory.AGENT,
+    name: 'Invoke Agent',
+    description: 'Invoke another agent by name or ID. Uses circuit breaker to prevent cascading failures.',
+    icon: 'Bot',
+    color: '#8b5cf6',
+    configSchema: z.object({
+      ...baseSchema.shape,
+      agentId: z.string().optional(),
+      agentName: z.string().optional(),
+      mode: z.enum(['sync', 'async']).default('sync'),
+      timeoutMs: z.coerce.number().min(1000).max(600_000).default(120_000),
+      inputVariable: z.string().optional(),
+    }),
+    defaultConfig: {
+      agentId: '',
+      agentName: '',
+      mode: 'sync',
+      timeoutMs: 120_000,
+    },
+    inputs: [{ name: 'input', type: 'any', required: false }],
+    outputs: [{ name: 'output', type: 'any' }, { name: 'executionId', type: 'string' }],
+  },
+
+  [NodeType.AGENT_SUPERVISOR]: {
+    type: NodeType.AGENT_SUPERVISOR,
+    category: NodeCategory.AGENT,
+    name: 'Supervisor',
+    description: 'LLM plans which worker agents to call, fans out concurrently, then aggregates results into one response.',
+    icon: 'Network',
+    color: '#ec4899',
+    configSchema: z.object({
+      ...baseSchema.shape,
+      task: z.string().optional(),
+      model: z.string().default('gpt-4o'),
+      inputVariable: z.string().optional(),
+      workerTimeoutMs: z.coerce.number().min(5000).max(600_000).default(120_000),
+    }),
+    defaultConfig: {
+      task: '',
+      model: 'gpt-4o',
+      workerTimeoutMs: 120_000,
+    },
+    inputs: [{ name: 'task', type: 'string', required: false }],
+    outputs: [
+      { name: 'result', type: 'any' },
+      { name: 'summary', type: 'string' },
+      { name: 'workerCount', type: 'number' },
+    ],
+  },
+
+  [NodeType.AGENT_PUBLISH]: {
+    type: NodeType.AGENT_PUBLISH,
+    category: NodeCategory.AGENT,
+    name: 'Publish to Bus',
+    description: 'Publish a message to a topic on the agent message bus. Other agents or workflows subscribed to this topic will receive it.',
+    icon: 'Broadcast',
+    color: '#14b8a6',
+    configSchema: z.object({
+      ...baseSchema.shape,
+      topic: z.string().min(1, 'Topic is required'),
+      payloadVariable: z.string().optional(),
+    }),
+    defaultConfig: {
+      topic: '',
+    },
+    inputs: [{ name: 'payload', type: 'any', required: false }],
+    outputs: [{ name: 'published', type: 'boolean' }],
+  },
+
+  [NodeType.AGENT_SUBSCRIBE]: {
+    type: NodeType.AGENT_SUBSCRIBE,
+    category: NodeCategory.AGENT,
+    name: 'Wait for Bus Message',
+    description: 'Block and wait until a message arrives on a topic. Times out if no message received within the timeout window.',
+    icon: 'Radio',
+    color: '#14b8a6',
+    configSchema: z.object({
+      ...baseSchema.shape,
+      topic: z.string().min(1, 'Topic is required'),
+      timeoutMs: z.coerce.number().min(1000).max(3_600_000).default(300_000),
+    }),
+    defaultConfig: {
+      topic: '',
+      timeoutMs: 300_000,
+    },
+    inputs: [{ name: 'trigger', type: 'any', required: false }],
+    outputs: [{ name: 'message', type: 'any' }, { name: 'topic', type: 'string' }],
+  },
+
   // Due to size constraints, I'll create a second part of this file
   // Let me continue with a summary approach for the remaining 150+ nodes
 };

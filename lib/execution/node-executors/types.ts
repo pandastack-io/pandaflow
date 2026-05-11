@@ -30,6 +30,11 @@ export interface ExecutorContext {
    * written files, and environment state across nodes.
    */
   sandbox?: SharedSandbox;
+  // Multi-agent / durable execution context
+  traceId?: string;       // propagated from the root execution through all child executions
+  callDepth?: number;     // 0 = root; incremented by sub_workflow / agent.invoke
+  workflowType?: string;
+  debugMode?: boolean;
 }
 
 export interface ExecutorDeps {

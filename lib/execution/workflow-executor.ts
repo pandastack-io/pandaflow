@@ -36,6 +36,8 @@ interface ExecuteOptions {
   variables?: Record<string, any>;
   envVars?: Record<string, string>;
   debugMode?: boolean;
+  traceId?: string;
+  callDepth?: number;
 }
 
 interface ExecutionResult {
@@ -980,6 +982,9 @@ export class WorkflowExecutor {
         }).map(([key, value]) => [key, resolveSecretReferencesInString(value, secrets)])
       ),
       debugMode: Boolean(options.debugMode),
+      traceId: options.traceId,
+      callDepth: options.callDepth ?? 0,
+      workflowType: options.workflowType,
     } as ExecutionContext & { debugMode?: boolean };
 
     if (context.executionId) {

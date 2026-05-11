@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { CronEditor } from '@/components/agents/cron-editor';
 import { MemoryViewer } from '@/components/agents/memory-viewer';
+import { TraceViewer } from '@/components/agents/trace-viewer';
 import { MainLayout } from '@/components/layouts/main-layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -188,7 +189,23 @@ export default function AgentDetailPage() {
       setCostLoading(true);
       const costPromise = fetch(`/api/agents/${agentId}/cost`, { cache: 'no-store' })
         .then((r) => r.json())
-        .then((p) => { if (p.success) setCostData(p.data); })
+        .then((p) => {
+          if (p.success && p.data) {
+            const d = p.data;
+            setCostData({
+              totalCostUsd: d.totalCostUsd ?? 0,
+              totalExecutions: d.executionCount ?? 0,
+              avgCostPerRun: d.avgCostPerExecution ?? 0,
+              dailyTrend: (d.byDay ?? []).map((day: { date: string; cost: number }) => ({ date: day.date, cost: day.cost })),
+              topNodes: (d.topExpensiveNodes ?? []).map((n: { nodeType: string; nodeName: string; totalCost: number; count: number }) => ({
+                nodeId: n.nodeType,
+                nodeType: n.nodeType,
+                totalCost: n.totalCost,
+                callCount: n.count,
+              })),
+            });
+          }
+        })
         .catch(() => null)
         .finally(() => setCostLoading(false));
 
@@ -401,9 +418,10 @@ export default function AgentDetailPage() {
         </div>
 
         <Tabs defaultValue="overview" className="flex-1">
-          <TabsList className="grid w-full grid-cols-4 bg-zinc-900/80 text-zinc-400">
+          <TabsList className="grid w-full grid-cols-5 bg-zinc-900/80 text-zinc-400">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="executions">Executions</TabsTrigger>
+            <TabsTrigger value="traces">Traces</TabsTrigger>
             <TabsTrigger value="memory">Memory</TabsTrigger>
             <TabsTrigger value="cost">Cost</TabsTrigger>
           </TabsList>
@@ -633,6 +651,10 @@ export default function AgentDetailPage() {
             <MemoryViewer agentId={agentId} />
           </TabsContent>
 
+          <TabsContent value="traces" className="pt-4">
+            <TraceViewer agentId={agentId} />
+          </TabsContent>
+
           <TabsContent value="cost" className="pt-4">
             {costLoading ? (
               <div className="flex items-center justify-center py-12">
@@ -662,7 +684,7 @@ export default function AgentDetailPage() {
                 </div>
 
                 {/* 7-day trend */}
-                {costData.dailyTrend.length > 0 && (
+                {(costData.dailyTrend?.length ?? 0) > 0 && (
                   <Card className="border-zinc-800 bg-zinc-950/70 shadow-none">
                     <CardHeader>
                       <CardTitle className="text-sm font-medium text-zinc-300">7-day spend trend</CardTitle>

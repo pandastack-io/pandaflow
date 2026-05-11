@@ -27,11 +27,16 @@ import { integrationPandaStackExecutors } from './integration-pandastack';
 import { ragExecutors } from './rag';
 import { verdictExecutors } from './verdict';
 
+import { multiAgentExecutors } from './multi-agent';
+
 export const nodeExecutorRegistry: Partial<Record<NodeType, NodeExecutorFn>> = {
   ...triggerExecutors,
   ...sandflareExecutors,
   ...agentExecutors,
   ...agentBusExecutors,
+  // Multi-agent executors come after agentBusExecutors so they override
+  // the stub publish/subscribe with the real durable implementations.
+  ...multiAgentExecutors,
   ...memoryExecutors,
   ...aiExecutors,
   ...ragExecutors,

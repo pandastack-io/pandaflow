@@ -996,7 +996,12 @@ HANDLERS = {
 }
 
 # ─── DAG runner ────────────────────────────────────────────────────────────────
-def execute_node(node: dict, definition: dict, ctx: Ctx) -> Any:
+def execute_node(node: dict, definition: dict, ctx: Ctx, visited_edges: set = None) -> Any:
+    # visited_edges tracks which edges have already been traversed to prevent
+    # infinite loops in cyclic workflows (e.g. control.while) while still
+    # allowing fan-in nodes (e.g. Response) to run once per upstream branch.
+    if visited_edges is None:
+        visited_edges = set()
     node_id = node.get("id", ""); node_type = node.get("data", {}).get("type", "")
     cfg = node.get("data", {}).get("config", {}); node_name = cfg.get("label", cfg.get("name", node_type))
     edges = definition.get("edges", []); start_ms = int(time.time() * 1000)
@@ -1012,17 +1017,22 @@ def execute_node(node: dict, definition: dict, ctx: Ctx) -> Any:
         active_branch = None
         if isinstance(result, dict):
             active_branch = result.get("metadata", {}).get("branch") or result.get("branch")
-        # Execute downstream nodes
+        # Execute downstream nodes — each edge fires at most once (cycle guard),
+        # but a node may execute multiple times if reached via different branches.
         for edge in [e for e in edges if e.get("source") == node_id]:
             source_handle = edge.get("sourceHandle")
             if active_branch is not None and source_handle and source_handle != active_branch:
                 continue
             target_id = edge.get("target")
-            if not target_id or target_id in ctx.node_outputs:
+            if not target_id:
                 continue
+            edge_key = edge.get("id") or f"{node_id}->{target_id}"
+            if edge_key in visited_edges:
+                continue
+            visited_edges.add(edge_key)
             target_node = next((n for n in definition.get("nodes", []) if n.get("id") == target_id), None)
             if target_node:
-                execute_node(target_node, definition, ctx)
+                execute_node(target_node, definition, ctx, visited_edges)
         return result
     except Exception as e:
         duration_ms = int(time.time() * 1000) - start_ms

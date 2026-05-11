@@ -90,7 +90,7 @@ const contributingUrl = 'https://github.com/pandastack-io/pandaflow/blob/main/CO
 const licenseUrl = 'https://github.com/pandastack-io/pandaflow/blob/main/LICENSE';
 
 const stats = [
-  { value: '160+', label: 'Node Types' },
+  { value: '165+', label: 'Node Types' },
   { value: '130+', label: 'Templates' },
   { value: 'MIT', label: 'Licensed' },
   { value: '100%', label: 'Open Source' },
@@ -129,6 +129,16 @@ const features: Feature[] = [
     title: 'Visual workflow builder',
     description: 'Drag, connect, and configure workflows in a React Flow canvas built for multi-step agent systems.',
     icon: Workflow,
+  },
+  {
+    title: 'Multi-agent orchestration',
+    description: 'Compose agents that call other agents. A Supervisor plans the work, fans out to workers in parallel, and aggregates results — all with distributed tracing and circuit breakers.',
+    icon: GitBranch,
+  },
+  {
+    title: 'Durable execution',
+    description: 'Every step is checkpointed to the database before and after it runs. If the process crashes, re-running the workflow replays completed steps instantly from cache.',
+    icon: RefreshCcw,
   },
   {
     title: 'Sandflare execution',
@@ -551,15 +561,13 @@ export default function HomePage() {
           <div className="relative mx-auto max-w-7xl px-6 pb-20 pt-20 lg:px-8 lg:pb-28 lg:pt-24">
             <div className="mx-auto max-w-4xl text-center">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200">
-                <Sparkles className="h-4 w-4 text-emerald-400" />
                 ✨ Open source · MIT licensed · by PandastackIO Inc.
               </div>
               <h1 className="mt-8 text-5xl font-semibold tracking-tight text-white sm:text-6xl lg:text-7xl">
-                The Open Source AI Agent Workflow Builder
+                Build Multi-Agent AI Systems Visually
               </h1>
               <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-zinc-400 sm:text-xl">
-                Build and deploy AI agents visually. Connect 160+ nodes in a drag-and-drop canvas. Every
-                execution runs in an isolated Sandflare microVM — no shared state, no cross-contamination.
+                Connect 165+ nodes in a drag-and-drop canvas. Compose agents that orchestrate other agents with durable execution, distributed tracing, and circuit breakers built in — every run isolated in a Sandflare microVM.
               </p>
               <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Link

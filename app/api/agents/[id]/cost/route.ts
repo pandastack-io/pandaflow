@@ -1,4 +1,4 @@
-import { desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, sql } from 'drizzle-orm';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { agents, executionCosts, executions } from '@/lib/db/schema';
@@ -64,7 +64,10 @@ export async function GET(
         })
         .from(executions)
         .leftJoin(executionCosts, eq(executionCosts.executionId, executions.id))
-        .where(sql`${executions.workflowId} = ${workflowId} and ${executions.createdAt} >= ${sevenDaysAgo}`)
+        .where(and(
+          eq(executions.workflowId, workflowId),
+          gte(executions.createdAt, sevenDaysAgo)
+        ))
         .groupBy(sql`date_trunc('day', ${executions.createdAt})`)
         .orderBy(sql`date_trunc('day', ${executions.createdAt}) asc`),
       db

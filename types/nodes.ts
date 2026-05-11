@@ -83,6 +83,7 @@ export enum NodeType {
   AGENT_PUBLISH = 'agent.publish',
   AGENT_SUBSCRIBE = 'agent.subscribe',
   AGENT_CALL = 'agent.call',
+  AGENT_INVOKE = 'agent.invoke',      // invoke another agent's full workflow (durable, traced)
 
   // Memory
   MEMORY_BUFFER = 'memory.buffer',

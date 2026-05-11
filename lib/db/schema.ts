@@ -6,6 +6,7 @@ export const userRoleEnum = pgEnum('user_role', ['owner', 'admin', 'member', 'vi
 export const workflowStatusEnum = pgEnum('workflow_status', ['draft', 'active', 'paused', 'archived']);
 export const workflowTypeEnum = pgEnum('workflow_type', ['automation', 'chat', 'agent']);
 export const executionStatusEnum = pgEnum('execution_status', ['pending', 'running', 'completed', 'failed', 'cancelled']);
+export const stepStatusEnum = pgEnum('step_status', ['pending', 'running', 'completed', 'failed', 'skipped', 'retrying']);
 export const agentStatusEnum = pgEnum('agent_status', ['deployed', 'running', 'stopped', 'paused', 'error', 'crashed']);
 export const triggerTypeEnum = pgEnum('trigger_type', ['manual', 'schedule', 'webhook', 'event', 'chat']);
 export const logLevelEnum = pgEnum('log_level', ['debug', 'info', 'warn', 'error']);
@@ -144,6 +145,13 @@ export const executions = pgTable('executions', {
   error: jsonb('error'),
   temporalWorkflowId: varchar('temporal_workflow_id', { length: 255 }),
   temporalRunId: varchar('temporal_run_id', { length: 255 }),
+  // Multi-agent / durable execution fields
+  parentExecutionId: uuid('parent_execution_id'), // FK set below via relations (self-ref)
+  traceId: uuid('trace_id'),                       // root execution ID for the entire call tree
+  callDepth: integer('call_depth').default(0),     // 0 = root, 1 = first child, …, max 5
+  callerNodeId: varchar('caller_node_id', { length: 255 }), // which node in parent triggered this
+  isDurable: boolean('is_durable').default(false), // true = TypeScript executor with step checkpointing
+  retryOf: uuid('retry_of'),                       // if this execution is a retry of a DLQ entry
   startedAt: timestamp('started_at', { withTimezone: true }),
   completedAt: timestamp('completed_at', { withTimezone: true }),
   durationMs: integer('duration_ms'),
@@ -159,6 +167,8 @@ export const executions = pgTable('executions', {
   statusIdx: index('idx_executions_status').on(table.status),
   createdAtIdx: index('idx_executions_created_at').on(table.createdAt),
   temporalIdx: index('idx_executions_temporal').on(table.temporalWorkflowId),
+  traceIdx: index('idx_executions_trace').on(table.traceId),
+  parentIdx: index('idx_executions_parent').on(table.parentExecutionId),
 }));
 
 // Execution Logs
@@ -359,6 +369,8 @@ export const executionsRelations = relations(executions, ({ one, many }) => ({
     references: [users.id],
   }),
   logs: many(executionLogs),
+  steps: many(executionSteps),
+  costs: many(executionCosts),
 }));
 
 export const webhooksRelations = relations(webhooks, ({ one, many }) => ({
@@ -543,4 +555,101 @@ export const agentEventsRelations = relations(agentEvents, ({ one }) => ({
 
 export const executionCostsRelations = relations(executionCosts, ({ one }) => ({
   execution: one(executions, { fields: [executionCosts.executionId], references: [executions.id] }),
+}));
+
+// ─── Durable Execution: Steps ─────────────────────────────────────────────────
+// One row per node per attempt within a durable execution.
+// Used by the TypeScript executor's StepEngine for idempotent, resumable execution.
+export const executionSteps = pgTable('execution_steps', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  executionId: uuid('execution_id').references(() => executions.id, { onDelete: 'cascade' }).notNull(),
+  nodeId: varchar('node_id', { length: 255 }).notNull(),
+  nodeName: varchar('node_name', { length: 255 }),
+  nodeType: varchar('node_type', { length: 100 }),
+  status: stepStatusEnum('status').notNull().default('pending'),
+  attempt: integer('attempt').notNull().default(1),      // 1-based retry counter
+  input: jsonb('input'),
+  output: jsonb('output'),
+  error: text('error'),
+  startedAt: timestamp('started_at', { withTimezone: true }),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+  durationMs: integer('duration_ms'),
+  retryAfter: timestamp('retry_after', { withTimezone: true }), // set when status = 'retrying'
+  metadata: jsonb('metadata').default({}),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  executionIdx: index('idx_execution_steps_execution').on(table.executionId),
+  // Unique per execution+node+attempt so we can upsert safely
+  attemptIdx: index('idx_execution_steps_attempt').on(table.executionId, table.nodeId, table.attempt),
+}));
+
+// ─── Durable Execution: Traces ────────────────────────────────────────────────
+// One row per execution in a multi-agent call tree.
+// Lets you reconstruct the full call graph with one query: WHERE trace_id = ?
+export const executionTraces = pgTable('execution_traces', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  traceId: uuid('trace_id').notNull(),                   // shared across all executions in one tree
+  executionId: uuid('execution_id').references(() => executions.id, { onDelete: 'cascade' }).notNull(),
+  parentExecutionId: uuid('parent_execution_id'),         // null for root
+  callerNodeId: varchar('caller_node_id', { length: 255 }),
+  agentId: uuid('agent_id').references(() => agents.id, { onDelete: 'set null' }),
+  agentName: varchar('agent_name', { length: 255 }),
+  workflowId: uuid('workflow_id').references(() => workflows.id, { onDelete: 'cascade' }).notNull(),
+  workflowName: varchar('workflow_name', { length: 255 }),
+  callDepth: integer('call_depth').notNull().default(0),
+  status: executionStatusEnum('status').notNull(),
+  startedAt: timestamp('started_at', { withTimezone: true }),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+  durationMs: integer('duration_ms'),
+  costUsd: decimal('cost_usd', { precision: 10, scale: 6 }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  traceIdx: index('idx_execution_traces_trace').on(table.traceId),
+  executionIdx: index('idx_execution_traces_execution').on(table.executionId),
+  parentIdx: index('idx_execution_traces_parent').on(table.parentExecutionId),
+}));
+
+// ─── Dead Letter Queue ────────────────────────────────────────────────────────
+// Executions that have exhausted all retries land here.
+// Can be manually retried via POST /api/executions/[id]/retry
+export const executionDlq = pgTable('execution_dlq', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organizationId: uuid('organization_id').references(() => organizations.id, { onDelete: 'cascade' }).notNull(),
+  executionId: uuid('execution_id').references(() => executions.id, { onDelete: 'cascade' }).notNull(),
+  workflowId: uuid('workflow_id').references(() => workflows.id, { onDelete: 'cascade' }).notNull(),
+  agentId: uuid('agent_id').references(() => agents.id, { onDelete: 'set null' }),
+  failedNodeId: varchar('failed_node_id', { length: 255 }),
+  failedNodeName: varchar('failed_node_name', { length: 255 }),
+  error: text('error').notNull(),
+  attemptCount: integer('attempt_count').notNull().default(1),
+  originalInput: jsonb('original_input'),
+  traceId: uuid('trace_id'),
+  resolvedAt: timestamp('resolved_at', { withTimezone: true }), // null = unresolved
+  resolvedBy: uuid('resolved_by').references(() => users.id),
+  retryExecutionId: uuid('retry_execution_id'),               // the new execution after manual retry
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  orgIdx: index('idx_dlq_org').on(table.organizationId),
+  executionIdx: index('idx_dlq_execution').on(table.executionId),
+  resolvedIdx: index('idx_dlq_resolved').on(table.resolvedAt),
+}));
+
+// ─── Relations for new tables ──────────────────────────────────────────────────
+export const executionStepsRelations = relations(executionSteps, ({ one }) => ({
+  execution: one(executions, { fields: [executionSteps.executionId], references: [executions.id] }),
+}));
+
+export const executionTracesRelations = relations(executionTraces, ({ one }) => ({
+  execution: one(executions, { fields: [executionTraces.executionId], references: [executions.id] }),
+  workflow: one(workflows, { fields: [executionTraces.workflowId], references: [workflows.id] }),
+  agent: one(agents, { fields: [executionTraces.agentId], references: [agents.id] }),
+}));
+
+export const executionDlqRelations = relations(executionDlq, ({ one }) => ({
+  organization: one(organizations, { fields: [executionDlq.organizationId], references: [organizations.id] }),
+  execution: one(executions, { fields: [executionDlq.executionId], references: [executions.id] }),
+  workflow: one(workflows, { fields: [executionDlq.workflowId], references: [workflows.id] }),
+  agent: one(agents, { fields: [executionDlq.agentId], references: [agents.id] }),
+  resolvedByUser: one(users, { fields: [executionDlq.resolvedBy], references: [users.id] }),
 }));
