@@ -1,20 +1,33 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AlertTriangle, Bell, Save, Trash2, User } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import { MainLayout } from '@/components/layouts/main-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function SettingsPage() {
+  const { data: session, status } = useSession();
+
   const [settings, setSettings] = useState({
-    email: 'user@example.com',
-    name: 'John Doe',
+    email: '',
+    name: '',
     emailNotifications: true,
     executionAlerts: true,
     errorAlerts: true,
   });
+
+  useEffect(() => {
+    if (session?.user) {
+      setSettings((prev) => ({
+        ...prev,
+        email: session.user.email ?? '',
+        name: session.user.name ?? '',
+      }));
+    }
+  }, [session]);
 
   const handleSave = async () => {
     console.log('Saving settings:', settings);

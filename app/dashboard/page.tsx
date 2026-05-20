@@ -18,8 +18,8 @@ import {
   KeyRound,
 } from 'lucide-react';
 import {
-  BarChart,
-  Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -366,18 +366,27 @@ export default function Home() {
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={250}>
-                      <BarChart data={stats.executionsByDay} barGap={8}>
+                      <AreaChart data={stats.executionsByDay} margin={{ top: 6, right: 4, left: -20, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="gradCompleted" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#22c55e" stopOpacity={0.25} />
+                            <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                          </linearGradient>
+                          <linearGradient id="gradFailed" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2} />
+                            <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
                         <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" vertical={false} />
                         <XAxis dataKey="dayLabel" stroke="var(--color-muted-foreground)" tickLine={false} axisLine={false} />
                         <YAxis stroke="var(--color-muted-foreground)" tickLine={false} axisLine={false} allowDecimals={false} />
                         <Tooltip
                           contentStyle={tooltipStyles}
-                          cursor={{ fill: 'color-mix(in srgb, var(--color-muted) 55%, transparent)' }}
                           labelFormatter={(_, payload) => payload?.[0]?.payload?.date || ''}
                         />
-                        <Bar dataKey="completed" name="Completed" fill="#22c55e" radius={[8, 8, 0, 0]} />
-                        <Bar dataKey="failed" name="Failed" fill="#ef4444" radius={[8, 8, 0, 0]} />
-                      </BarChart>
+                        <Area type="monotone" dataKey="completed" name="Completed" stroke="#22c55e" strokeWidth={2} fill="url(#gradCompleted)" dot={{ r: 3, fill: '#22c55e', strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                        <Area type="monotone" dataKey="failed" name="Failed" stroke="#ef4444" strokeWidth={2} fill="url(#gradFailed)" dot={{ r: 3, fill: '#ef4444', strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                      </AreaChart>
                     </ResponsiveContainer>
                   </CardContent>
                 </Card>
