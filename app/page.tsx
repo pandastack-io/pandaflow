@@ -1,3 +1,9 @@
+'use client';
+
+import HeroFlow from '@/components/marketing/HeroFlow';
+import { useRef, useEffect, type ReactNode } from 'react';
+import { motion, useInView, animate, useMotionTemplate, useMotionValue, useSpring } from 'framer-motion';
+
 import Link from 'next/link';
 import type { IconType } from 'react-icons';
 import { SiOpenai, SiAnthropic, SiSlack, SiGithub, SiPostgresql, SiRedis, SiPython, SiNotion, SiAirtable, SiGoogledrive, SiLangchain } from 'react-icons/si';
@@ -496,400 +502,983 @@ function MarqueeRow({ items, direction }: { items: HomeNodeBadge[]; direction: '
   );
 }
 
-export default function HomePage() {
+
+/* ─── Reusable motion primitives ──────────────────────────── */
+
+function FadeUp({
+  children,
+  delay = 0,
+  className,
+  spotlight = false,
+}: {
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+  spotlight?: boolean;
+}) {
+  const sX = useMotionValue(0);
+  const sY = useMotionValue(0);
+  const spotBg = useMotionTemplate`radial-gradient(260px at ${sX}px ${sY}px, rgba(255,255,255,0.05), transparent 80%)`;
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Cloud coming soon banner */}
-      <div className="flex items-center justify-center gap-2 border-b border-indigo-500/20 bg-indigo-950/60 px-4 py-2 text-center text-xs text-indigo-200 backdrop-blur-sm">
-        <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
-        <span>☁️ PandaFlow Cloud is coming soon — hosted &amp; managed by PandastackIO Inc.</span>
-        <a href="#open-source" className="ml-1 underline underline-offset-2 hover:text-white transition">Learn more →</a>
+    <motion.div
+      initial={{ opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-6%' }}
+      transition={{ duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] }}
+      className={cn('relative', className)}
+      onMouseMove={spotlight ? (e: React.MouseEvent<HTMLDivElement>) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        sX.set(e.clientX - r.left);
+        sY.set(e.clientY - r.top);
+      } : undefined}
+    >
+      {spotlight && (
+        <motion.div
+          className="pointer-events-none absolute inset-0 z-10 rounded-[inherit]"
+          style={{ background: spotBg }}
+        />
+      )}
+      {children}
+    </motion.div>
+  );
+}
+
+/* ─── Magnetic button wrapper ───────────────────────────────── */
+function MagneticButton({ children, className }: { children: ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 260, damping: 18 });
+  const springY = useSpring(y, { stiffness: 260, damping: 18 });
+  return (
+    <motion.div
+      ref={ref}
+      style={{ x: springX, y: springY, display: 'inline-flex' }}
+      onMouseMove={(e) => {
+        if (!ref.current) return;
+        const r = ref.current.getBoundingClientRect();
+        x.set((e.clientX - (r.left + r.width / 2)) * 0.32);
+        y.set((e.clientY - (r.top + r.height / 2)) * 0.32);
+      }}
+      onMouseLeave={() => { x.set(0); y.set(0); }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function Counter({ to, suffix = '' }: { to: number; suffix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true });
+  useEffect(() => {
+    if (!inView || !ref.current) return;
+    const ctrl = animate(0, to, {
+      duration: 1.8,
+      ease: [0.16, 1, 0.3, 1],
+      onUpdate(v) {
+        if (ref.current) ref.current.textContent = String(Math.round(v)) + suffix;
+      },
+    });
+    return () => ctrl.stop();
+  }, [inView, to, suffix]);
+  return <span ref={ref}>0{suffix}</span>;
+}
+
+
+/* ─── Animated beam connecting "How it works" steps ─────── */
+function BeamConnector() {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: '-15%' });
+  return (
+    <div
+      ref={ref}
+      className="pointer-events-none absolute left-[16.67%] right-[16.67%] hidden overflow-visible md:block"
+      style={{ top: '38px', height: '2px' }}
+    >
+      {/* beam line */}
+      <motion.div
+        className="absolute inset-0 origin-left"
+        style={{
+          background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.18), transparent)',
+          scaleX: inView ? 1 : 0,
+        }}
+        animate={inView ? { scaleX: 1 } : { scaleX: 0 }}
+        transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+      />
+      {/* travelling particle */}
+      {inView && (
+        <motion.div
+          className="absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 -translate-x-1/2 rounded-full bg-white"
+          style={{ boxShadow: '0 0 10px 3px rgba(255,255,255,0.5)' }}
+          animate={{ left: ['0%', '100%'] }}
+          transition={{
+            duration: 1.6,
+            ease: 'easeInOut',
+            delay: 0.4,
+            repeat: Infinity,
+            repeatDelay: 2.5,
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ─── Main page ────────────────────────────────────────────── */
+
+export default function HomePage() {
+  /* Mouse-tracking spotlight for hero */
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const spotBg = useMotionTemplate`radial-gradient(500px at ${mouseX}px ${mouseY}px, rgba(255,255,255,0.04), transparent 70%)`;
+
+  return (
+    <div className="min-h-screen bg-[#000] text-white selection:bg-white/20">
+
+      {/* ── Announcement bar ────────────────────────────── */}
+      <div className="flex items-center justify-center gap-2 border-b border-white/[0.06] bg-white/[0.02] px-4 py-2.5 text-[11px] text-zinc-500">
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white/30" />
+        PandaFlow Cloud is coming — managed by PandastackIO&nbsp;Inc.
+        <a href="#open-source" className="ml-1 text-zinc-300 underline underline-offset-2 transition hover:text-white">
+          Learn more →
+        </a>
       </div>
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-black/65 backdrop-blur-xl">
+
+      {/* ── Nav ─────────────────────────────────────────── */}
+      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#000]/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
-          <Link href="/" className="inline-flex items-center gap-3 text-lg tracking-tight text-white">
+          <Link href="/" className="flex items-center gap-2.5">
             <img src="/pandaflow-logo.png" alt="PandaFlow" className="h-7 w-7" />
-            <span className="font-bold text-white">PandaFlow</span>
+            <span className="text-sm font-semibold tracking-tight">PandaFlow</span>
           </Link>
 
-          <nav className="hidden items-center gap-8 text-sm text-zinc-400 md:flex">
-            <a href="#features" className="transition hover:text-white">
-              Features
-            </a>
-            <a href="#nodes" className="transition hover:text-white">
-              Nodes
-            </a>
-            <a href="#templates" className="transition hover:text-white">
-              Templates
-            </a>
-            <a href="#open-source" className="transition hover:text-white">
-              Open Source
-            </a>
+          <nav className="hidden items-center gap-7 md:flex">
+            {[
+              { label: 'Features', href: '#features' },
+              { label: 'Nodes', href: '#nodes' },
+              { label: 'Templates', href: '#templates' },
+              { label: 'Open Source', href: '#open-source' },
+            ].map(({ label, href }) => (
+              <a
+                key={label}
+                href={href}
+                className="text-[13px] text-zinc-500 transition hover:text-white"
+              >
+                {label}
+              </a>
+            ))}
           </nav>
 
           <div className="flex items-center gap-3">
-            <Link
+            <a
               href={githubUrl}
               target="_blank"
               rel="noreferrer"
-              className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:border-white/20 hover:bg-white/10 sm:inline-flex"
+              className="hidden sm:flex items-center gap-1.5 rounded-full border border-white/[0.1] px-3.5 py-1.5 text-[12px] text-zinc-400 transition hover:border-white/25 hover:text-white"
             >
-              <Github className="h-4 w-4" />
+              <Github className="h-3.5 w-3.5" />
               Star on GitHub
-            </Link>
-            <Link href="/sign-in" className="hidden text-sm text-zinc-300 transition hover:text-white sm:inline-flex">
-              Sign in
-            </Link>
+            </a>
             <Link
               href="/sign-up"
-              className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500"
+              className="flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-semibold text-black transition hover:bg-zinc-100"
             >
-              Get Started
-              <ArrowRight className="h-4 w-4" />
+              Get started <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
         </div>
       </header>
 
-      <main className="overflow-x-hidden">
-        <section className="relative isolate">
-          <div className="absolute inset-0 marketing-grid opacity-25" />
-          <div className="absolute inset-0 marketing-noise opacity-40" />
-          <div className="absolute left-1/2 top-0 h-80 w-80 -translate-x-1/2 rounded-full bg-indigo-600/20 blur-3xl" />
-          <div className="absolute right-[10%] top-40 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl" />
+      <main>
 
-          <div className="relative mx-auto max-w-7xl px-6 pb-20 pt-20 lg:px-8 lg:pb-28 lg:pt-24">
-            <div className="mx-auto max-w-4xl text-center">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200">
-                ✨ Open source · MIT licensed · by PandastackIO Inc.
-              </div>
-              <h1 className="mt-8 text-5xl font-semibold tracking-tight text-white sm:text-6xl lg:text-7xl">
-                Build Multi-Agent AI Systems Visually
-              </h1>
-              <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-zinc-400 sm:text-xl">
-                Connect 165+ nodes in a drag-and-drop canvas. Compose agents that orchestrate other agents with durable execution, distributed tracing, and circuit breakers built in — every run isolated in a Sandflare microVM.
-              </p>
-              <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                <Link
-                  href="/sign-up"
-                  className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-indigo-500"
-                >
-                  Start Building
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-                <Link
+        {/* ════════════════════════════════════════════════════
+            HERO — split layout with 3D workflow graph
+        ════════════════════════════════════════════════════ */}
+        <section
+          className="relative overflow-hidden border-b border-white/[0.06]"
+          onMouseMove={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            mouseX.set(e.clientX - rect.left);
+            mouseY.set(e.clientY - rect.top);
+          }}
+        >
+          {/* dot grid */}
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)',
+              backgroundSize: '30px 30px',
+              maskImage: 'radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent)',
+            }}
+          />
+          {/* mouse-tracking spotlight */}
+          <motion.div
+            className="pointer-events-none absolute inset-0"
+            style={{ background: spotBg }}
+          />
+
+          <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-6 py-20 lg:grid-cols-2 lg:gap-0 lg:px-8 lg:py-0 lg:min-h-[calc(100vh-105px)]">
+
+            {/* Left ── text */}
+            <div className="flex flex-col lg:py-24">
+              <FadeUp>
+                <a
                   href={githubUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
+                  className="group mb-8 inline-flex w-fit items-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.04] px-4 py-1.5 text-[12px] text-zinc-400 transition hover:border-white/20 hover:text-zinc-200"
                 >
-                  <Github className="h-4 w-4" />
-                  View on GitHub
-                </Link>
-              </div>
+                  <Github className="h-3.5 w-3.5" />
+                  <span>Open source · MIT License</span>
+                  <span className="ml-1 text-zinc-600">·</span>
+                  <span className="flex items-center gap-1 text-zinc-300">
+                    Star on GitHub
+                    <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                  </span>
+                </a>
+              </FadeUp>
+
+              <FadeUp delay={0.06}>
+                <h1 className="text-[52px] font-bold leading-[1.04] tracking-[-0.03em] text-white sm:text-[64px] lg:text-[70px]">
+                  Build AI agents.<br />
+                  Drag.&nbsp;Connect.<br />
+                  <span className="text-zinc-500">Ship.</span>
+                </h1>
+              </FadeUp>
+
+              <FadeUp delay={0.12}>
+                <p className="mt-6 max-w-md text-[15px] leading-7 text-zinc-400">
+                  Compose multi-agent systems with a drag-and-drop canvas. 165+ prebuilt nodes,
+                  durable Temporal execution, and per-run Sandflare microVM isolation.
+                </p>
+              </FadeUp>
+
+              <FadeUp delay={0.16}>
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-zinc-600">
+                  {['Self-hostable', '165+ nodes', 'MIT licensed', 'No vendor lock-in'].map((t, i) => (
+                    <span key={t} className="flex items-center gap-3">
+                      {t}
+                      {i < 3 && <span>·</span>}
+                    </span>
+                  ))}
+                </div>
+              </FadeUp>
+
+              <FadeUp delay={0.2}>
+                <div className="mt-8 flex flex-wrap items-center gap-3">
+                  <MagneticButton>
+                    <Link
+                      href="/sign-up"
+                      className="flex items-center gap-2 rounded-full bg-white px-6 py-3 text-[13px] font-semibold text-black transition hover:bg-zinc-100"
+                    >
+                      Start building free <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </MagneticButton>
+                  <MagneticButton>
+                    <a
+                      href={githubUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.04] px-6 py-3 text-[13px] font-semibold text-zinc-200 transition hover:border-white/20 hover:bg-white/[0.08]"
+                    >
+                      <Github className="h-4 w-4" />
+                      View on GitHub
+                    </a>
+                  </MagneticButton>
+                </div>
+              </FadeUp>
+
+              {/* Integrations strip */}
+              <FadeUp delay={0.26}>
+                <div className="mt-10 border-t border-white/[0.06] pt-8">
+                  <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-700">
+                    Powers workflows alongside
+                  </p>
+                  <div className="flex flex-wrap items-center gap-4">
+                    {([
+                      [SiOpenai, 'OpenAI'],
+                      [SiAnthropic, 'Anthropic'],
+                      [SiPostgresql, 'Postgres'],
+                      [SiRedis, 'Redis'],
+                      [SiPython, 'Python'],
+                      [SiSlack, 'Slack'],
+                      [SiGithub, 'GitHub'],
+                    ] as const).map(([Icon, name]) => (
+                      <div
+                        key={name}
+                        title={name}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-zinc-500 transition hover:border-white/15 hover:text-zinc-300"
+                      >
+                        <Icon className="h-4 w-4" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </FadeUp>
             </div>
 
-            <div className="mt-16 lg:mt-20">
-              <WorkflowPreview />
-            </div>
-          </div>
-        </section>
-
-        <section className="border-y border-white/10 bg-zinc-900/80">
-          <div className="mx-auto grid max-w-7xl gap-8 px-6 py-8 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center lg:text-left">
-                <div className="text-3xl font-semibold tracking-tight text-white">{stat.value}</div>
-                <div className="mt-2 text-sm text-zinc-400">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="relative isolate px-6 py-24 lg:px-8">
-          <div className="absolute inset-0 marketing-grid opacity-20" />
-          <div className="relative mx-auto max-w-7xl">
-            <SectionHeading
-              eyebrow="Sandflare isolation"
-              title="Every execution starts clean."
-              description="PandaFlow runs each workflow execution in a dedicated Sandflare microVM so secrets, memory, packages, and code stay isolated from every other run."
-            />
-
-            <div className="mt-16 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-              <div className="overflow-hidden rounded-[28px] border border-white/10 bg-zinc-900/90 shadow-2xl shadow-emerald-500/5">
-                <div className="flex items-center gap-2 border-b border-white/10 px-5 py-4">
-                  <span className="h-3 w-3 rounded-full bg-red-400" />
-                  <span className="h-3 w-3 rounded-full bg-amber-400" />
-                  <span className="h-3 w-3 rounded-full bg-emerald-400" />
-                  <span className="ml-3 text-sm text-zinc-500">$</span>
-                </div>
-                <div className="space-y-2 bg-black px-5 py-6 font-mono text-sm leading-7 text-zinc-300">
-                  <div className="text-zinc-500"># Invoke a deployed agent via its identity token</div>
-                  <div className="mt-1">{`$ curl -X POST https://your-host/api/agents/invoke \\`}</div>
-                  <div>{`  -H "Authorization: Bearer agt_••••••••••••••••" \\`}</div>
-                  <div>{`  -d '{"input": {"query": "hello"}}'`}</div>
-                  <div className="mt-3 text-zinc-500"># Agent OS handles the rest</div>
-                  <div className="text-emerald-400">[✓] Agent identity verified</div>
-                  <div className="text-emerald-400">[✓] Spawning Sandflare microVM...</div>
-                  <div className="text-emerald-400">[✓] Secrets mounted (read-only)</div>
-                  <div className="text-emerald-400">[✓] Workflow executing...</div>
-                  <div className="text-emerald-400">[✓] microVM terminated — memory wiped</div>
-                </div>
-              </div>
-
-              <div className="grid gap-4">
-                {isolationBullets.map((bullet) => (
-                  <div
-                    key={bullet.title}
-                    className="rounded-[24px] border border-white/10 bg-zinc-900/80 p-5 transition hover:border-emerald-500/20 hover:bg-zinc-900"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-300">
-                        <bullet.icon className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-white">{bullet.title}</h3>
-                        <p className="mt-2 text-sm leading-7 text-zinc-400">{bullet.description}</p>
-                      </div>
+            {/* Right ── 3D scene */}
+            <FadeUp delay={0.1} className="relative lg:h-full lg:flex lg:items-center">
+              <div className="relative w-full">
+                {/* Glow behind the 3D canvas */}
+                <div className="absolute -inset-10 bg-[radial-gradient(ellipse_70%_60%_at_50%_50%,rgba(255,255,255,0.04),transparent)] pointer-events-none" />
+                <div className="overflow-hidden rounded-2xl border border-white/[0.08] shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_40px_100px_rgba(0,0,0,0.9)]">
+                  {/* Browser chrome */}
+                  <div className="flex items-center gap-1.5 border-b border-white/[0.06] bg-white/[0.03] px-4 py-3">
+                    <span className="h-2.5 w-2.5 rounded-full bg-white/[0.15]" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-white/[0.15]" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-white/[0.15]" />
+                    <div className="ml-3 flex-1 rounded-md border border-white/[0.06] bg-white/[0.04] px-3 py-1 font-mono text-[11px] text-zinc-600">
+                      pandaflow.xyz / workflows / competitor-intel
                     </div>
                   </div>
-                ))}
+                  <HeroFlow className="h-[420px] lg:h-[480px]" />
+                </div>
               </div>
+            </FadeUp>
+
+          </div>
+        </section>
+
+        {/* ── Stats bar ─────────────────────────────────── */}
+        <div className="border-b border-white/[0.06]">
+          <div className="mx-auto max-w-4xl">
+            <div className="grid grid-cols-2 divide-x divide-white/[0.06] sm:grid-cols-4">
+              {([
+                { label: 'Node Types', to: 165, suffix: '+' },
+                { label: 'Templates', to: 130, suffix: '+' },
+                { label: 'License', value: 'MIT' },
+                { label: 'Open Source', value: '100%' },
+              ] as Array<{ label: string; to?: number; suffix?: string; value?: string }>).map((s) => (
+                <div key={s.label} className="px-8 py-8 text-center">
+                  <div className="text-2xl font-bold text-white tabular-nums">
+                    {s.to !== undefined ? <Counter to={s.to} suffix={s.suffix} /> : s.value}
+                  </div>
+                  <div className="mt-1 text-[12px] text-zinc-600">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ════════════════════════════════════════════════════
+            BENTO FEATURES
+        ════════════════════════════════════════════════════ */}
+        <section id="features" className="px-6 py-28 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+
+            <FadeUp className="mb-14">
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-600">
+                Capabilities
+              </p>
+              <h2 className="text-5xl font-bold tracking-[-0.03em] text-white sm:text-6xl">
+                Everything in one canvas.
+              </h2>
+              <p className="mt-4 max-w-md text-[15px] leading-7 text-zinc-500">
+                From trigger to output — every piece of your agent pipeline lives in a single visual graph.
+              </p>
+            </FadeUp>
+
+            {/* 3-col × 4-row bento */}
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3 md:grid-rows-4">
+
+              {/* ── 1 · Visual Builder  col-span-2 row-span-2 ── */}
+              <FadeUp
+                delay={0.04}
+                spotlight
+                className="overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.02] md:col-span-2 md:row-span-2 hover:border-white/[0.13] transition-colors group"
+              >
+                <div className="p-8">
+                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-white/[0.06]">
+                    <Workflow className="h-4.5 w-4.5 text-zinc-300" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Visual canvas builder</h3>
+                  <p className="mt-2 text-sm leading-7 text-zinc-500">
+                    Drag nodes, draw edges, wire multi-step pipelines inline. No YAML, no boilerplate.
+                  </p>
+                </div>
+                <div className="h-52 overflow-hidden border-t border-white/[0.06] transition-transform duration-700 group-hover:scale-[1.01]">
+                  <HeroFlow className="h-full w-full" />
+                </div>
+              </FadeUp>
+
+              {/* ── 2 · 165+ Nodes  col-start-3 row-start-1 ── */}
+              <FadeUp
+                delay={0.08}
+                spotlight
+                className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-7 md:col-start-3 md:row-start-1 hover:border-white/[0.13] transition-colors"
+              >
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-white/[0.06]">
+                  <Layers className="h-4 w-4 text-zinc-300" />
+                </div>
+                <div className="text-6xl font-bold tabular-nums text-white">
+                  <Counter to={165} suffix="+" />
+                </div>
+                <h3 className="mt-2 text-sm font-semibold text-white">Prebuilt nodes</h3>
+                <p className="mt-1.5 text-[13px] leading-6 text-zinc-500">
+                  LLMs, databases, code runtimes, vector search, APIs — all prebuilt.
+                </p>
+              </FadeUp>
+
+              {/* ── 3 · microVM Isolation  col-start-3 row-start-2 ── */}
+              <FadeUp
+                delay={0.12}
+                spotlight
+                className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-7 md:col-start-3 md:row-start-2 hover:border-white/[0.13] transition-colors"
+              >
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-white/[0.06]">
+                  <ShieldCheck className="h-4 w-4 text-zinc-300" />
+                </div>
+                <h3 className="text-sm font-semibold text-white">microVM isolation</h3>
+                <p className="mt-2 text-[13px] leading-6 text-zinc-500">
+                  Each run gets its own Sandflare microVM. Clean state, wiped on exit.
+                </p>
+                <div className="mt-5 space-y-2">
+                  {['microVM booted', 'secrets mounted', 'memory wiped'].map((s) => (
+                    <div key={s} className="flex items-center gap-2 font-mono text-[11px] text-zinc-500">
+                      <span className="text-zinc-700">$</span> {s}
+                    </div>
+                  ))}
+                </div>
+              </FadeUp>
+
+              {/* ── 4 · Multi-agent  col-start-1 row-start-3 ── */}
+              <FadeUp
+                delay={0.16}
+                spotlight
+                className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-7 md:col-start-1 md:row-start-3 hover:border-white/[0.13] transition-colors"
+              >
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-white/[0.06]">
+                  <GitBranch className="h-4 w-4 text-zinc-300" />
+                </div>
+                <h3 className="text-sm font-semibold text-white">Multi-agent orchestration</h3>
+                <p className="mt-2 text-[13px] leading-6 text-zinc-500">
+                  Supervisors fan out to parallel workers, aggregate results, handle failures — all on the canvas.
+                </p>
+                {/* Fork diagram SVG */}
+                <svg viewBox="0 0 110 64" className="mt-5 w-full opacity-35" fill="none">
+                  <circle cx="10" cy="32" r="5" fill="#fff" />
+                  <line x1="15" y1="32" x2="38" y2="12" stroke="#fff" strokeWidth="1" />
+                  <line x1="15" y1="32" x2="38" y2="32" stroke="#fff" strokeWidth="1" />
+                  <line x1="15" y1="32" x2="38" y2="52" stroke="#fff" strokeWidth="1" />
+                  <circle cx="43" cy="12" r="4" fill="#fff" />
+                  <circle cx="43" cy="32" r="4" fill="#fff" />
+                  <circle cx="43" cy="52" r="4" fill="#fff" />
+                  <line x1="47" y1="12" x2="63" y2="32" stroke="#fff" strokeWidth="1" />
+                  <line x1="47" y1="32" x2="63" y2="32" stroke="#fff" strokeWidth="1" />
+                  <line x1="47" y1="52" x2="63" y2="32" stroke="#fff" strokeWidth="1" />
+                  <circle cx="68" cy="32" r="5" fill="#fff" />
+                </svg>
+              </FadeUp>
+
+              {/* ── 5 · Open Source  col-span-2 col-start-2 row-start-3 ── */}
+              <FadeUp
+                delay={0.2}
+                spotlight
+                className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-7 md:col-span-2 md:col-start-2 md:row-start-3 hover:border-white/[0.13] transition-colors"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="mb-4 flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-white/[0.06]">
+                        <Github className="h-4 w-4 text-zinc-300" />
+                      </div>
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
+                        MIT Licensed
+                      </span>
+                    </div>
+                    <h3 className="text-sm font-semibold text-white">Open source. No vendor lock-in.</h3>
+                    <p className="mt-2 text-[13px] leading-6 text-zinc-500">
+                      Fork it, extend it, self-host it. Every line of code is on GitHub.
+                    </p>
+                  </div>
+                </div>
+                <code className="mt-5 block rounded-xl border border-white/[0.07] bg-black/70 px-4 py-3.5 font-mono text-[12px] text-zinc-400">
+                  git clone https://github.com/pandastack-io/pandaflow.git
+                </code>
+              </FadeUp>
+
+              {/* ── 6 · Durable Execution  col-span-2 row-start-4 ── */}
+              <FadeUp
+                delay={0.24}
+                spotlight
+                className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-7 md:col-span-2 md:row-start-4 hover:border-white/[0.13] transition-colors"
+              >
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-white/[0.06]">
+                  <RefreshCcw className="h-4 w-4 text-zinc-300" />
+                </div>
+                <h3 className="text-sm font-semibold text-white">Durable execution via Temporal</h3>
+                <p className="mt-2 text-[13px] leading-6 text-zinc-500">
+                  Steps checkpointed before and after. Crashes replay from last known good state. No lost work, ever.
+                </p>
+                {/* Timeline visualization */}
+                <div className="mt-6 flex items-center gap-0">
+                  {[
+                    { label: 'Trigger', done: true },
+                    { label: 'LLM', done: true },
+                    { label: 'Python', done: true },
+                    { label: 'DB write', done: false, current: true },
+                    { label: 'Notify', done: false },
+                  ].map((step, i) => (
+                    <div key={step.label} className="flex items-center">
+                      <div className="flex flex-col items-center">
+                        <div
+                          className={cn(
+                            'h-2.5 w-2.5 rounded-full border',
+                            step.current
+                              ? 'border-white bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]'
+                              : step.done
+                              ? 'border-white/40 bg-white/40'
+                              : 'border-white/15 bg-transparent'
+                          )}
+                        />
+                        <span className="mt-2 text-[10px] text-zinc-600 whitespace-nowrap">{step.label}</span>
+                      </div>
+                      {i < 4 && (
+                        <div className={cn('mx-1.5 h-px w-10 sm:w-16', step.done ? 'bg-white/25' : 'bg-white/08')} />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </FadeUp>
+
+              {/* ── 7 · Real-time Monitoring  col-start-3 row-start-4 ── */}
+              <FadeUp
+                delay={0.28}
+                spotlight
+                className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-7 md:col-start-3 md:row-start-4 hover:border-white/[0.13] transition-colors"
+              >
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-white/[0.06]">
+                  <Zap className="h-4 w-4 text-zinc-300" />
+                </div>
+                <h3 className="text-sm font-semibold text-white">Real-time monitoring</h3>
+                <p className="mt-2 text-[13px] leading-6 text-zinc-500">
+                  Watch each node execute, fail, or retry live via Server-Sent Events.
+                </p>
+                {/* Pulse bars */}
+                <div className="mt-5 flex items-end gap-1.5 h-12">
+                  {[3, 5, 2, 7, 4, 6, 3, 8, 5, 4, 9, 6].map((h, i) => (
+                    <motion.div
+                      key={i}
+                      className="flex-1 rounded-sm bg-white/20"
+                      animate={{ height: [`${h * 5}px`, `${(h + 2) * 5}px`, `${h * 5}px`] }}
+                      transition={{ duration: 1.2 + i * 0.1, repeat: Infinity, ease: 'easeInOut', delay: i * 0.08 }}
+                    />
+                  ))}
+                </div>
+              </FadeUp>
+
             </div>
           </div>
         </section>
 
-        <section id="features" className="px-6 py-24 lg:px-8">
-          <div className="mx-auto max-w-7xl">
-            <SectionHeading
-              eyebrow="Feature set"
-              title="Everything you need to build production agents"
-              description="Design workflows visually, run them with Sandflare isolation, and ship reliable agent systems with the building blocks serious teams need."
-            />
+        {/* ── How it works ────────────────────────────────── */}
+        <section className="border-t border-white/[0.06] px-6 py-28 lg:px-8">
+          <div className="mx-auto max-w-5xl">
+            <FadeUp className="mb-16 text-center">
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-600">How it works</p>
+              <h2 className="text-4xl font-bold tracking-[-0.03em] text-white sm:text-5xl">
+                From idea to deployed agent<br />in three steps.
+              </h2>
+            </FadeUp>
 
-            <div className="mt-16 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {features.map((feature) => (
-                <div
-                  key={feature.title}
-                  className="group rounded-[28px] border border-zinc-800 bg-zinc-900 p-6 transition hover:border-zinc-700 hover:bg-zinc-800/80"
-                >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-indigo-300">
-                    <feature.icon className="h-5 w-5" />
+            <div className="relative grid gap-6 md:grid-cols-3">
+              {/* animated beam + travelling particle */}
+              <BeamConnector />
+
+              {[
+                {
+                  n: '01',
+                  icon: Workflow,
+                  title: 'Design on canvas',
+                  body: 'Drag 165+ nodes onto the canvas. Connect them with edges. Configure each node inline — no code required.',
+                },
+                {
+                  n: '02',
+                  icon: Cpu,
+                  title: 'Run with isolation',
+                  body: 'Hit play. Each execution spawns a fresh Sandflare microVM. Secrets mounted, code runs, VM wiped on exit.',
+                },
+                {
+                  n: '03',
+                  icon: Zap,
+                  title: 'Monitor & iterate',
+                  body: 'Watch execution progress in real time. Each step is checkpointed. Failures replay from where they left off.',
+                },
+              ].map(({ n, icon: Icon, title, body }, i) => (
+                <FadeUp key={n} delay={i * 0.1}>
+                  <div className="relative rounded-2xl border border-white/[0.08] bg-white/[0.02] p-8 hover:border-white/[0.13] transition-colors">
+                    <span className="mb-5 block font-mono text-[11px] text-zinc-700">{n}</span>
+                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-white/[0.06]">
+                      <Icon className="h-4.5 w-4.5 text-zinc-300" />
+                    </div>
+                    <h3 className="text-base font-semibold text-white">{title}</h3>
+                    <p className="mt-2.5 text-[13px] leading-7 text-zinc-500">{body}</p>
                   </div>
-                  <h3 className="mt-6 text-xl font-semibold text-white">{feature.title}</h3>
-                  <p className="mt-3 text-sm leading-7 text-zinc-400">{feature.description}</p>
-                </div>
+                </FadeUp>
               ))}
             </div>
           </div>
         </section>
 
-        <section id="nodes" className="border-y border-white/10 bg-zinc-950/80 px-6 py-24 lg:px-8">
-          <div className="mx-auto max-w-7xl">
-            <SectionHeading
-              eyebrow="Node library"
-              title="160+ nodes. Serious depth."
-              description="From LLMs and loaders to memory, code execution, retrieval, analytics, and integrations — PandaFlow gives advanced builders room to grow."
-            />
-            <div className="mt-14 space-y-4">
+        {/* ════════════════════════════════════════════════════
+            NODES MARQUEE
+        ════════════════════════════════════════════════════ */}
+        <section id="nodes" className="border-t border-white/[0.06] bg-white/[0.01] py-24">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <FadeUp className="mb-12 text-center">
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-600">Node library</p>
+              <h2 className="text-4xl font-bold tracking-[-0.03em] text-white">160+ nodes. Serious depth.</h2>
+              <p className="mx-auto mt-3 max-w-lg text-[15px] text-zinc-500">
+                LLMs, databases, code runtimes, webhooks, transformations, integrations — all prebuilt.
+              </p>
+            </FadeUp>
+            <div className="space-y-3">
               <MarqueeRow items={nodeRowOne} direction="left" />
               <MarqueeRow items={nodeRowTwo} direction="right" />
             </div>
           </div>
         </section>
 
-        <section id="templates" className="px-6 py-24 lg:px-8">
+        {/* ════════════════════════════════════════════════════
+            ISOLATION — terminal section
+        ════════════════════════════════════════════════════ */}
+        <section className="relative border-t border-white/[0.06] px-6 py-28 lg:px-8">
+          <div className="pointer-events-none absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
+
+          <div className="relative mx-auto max-w-7xl">
+            <FadeUp className="mb-14">
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-600">Sandflare isolation</p>
+              <h2 className="text-4xl font-bold tracking-[-0.03em] text-white sm:text-5xl">
+                Every execution<br />starts clean.
+              </h2>
+              <p className="mt-4 max-w-lg text-[15px] leading-7 text-zinc-500">
+                Each workflow run gets a dedicated microVM. Secrets, memory, packages, and code are fully isolated from every other run.
+              </p>
+            </FadeUp>
+
+            <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+              {/* Terminal */}
+              <FadeUp delay={0.06}>
+                <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#080808]">
+                  <div className="flex items-center gap-2 border-b border-white/[0.06] px-5 py-3.5">
+                    <span className="h-2.5 w-2.5 rounded-full bg-white/[0.12]" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-white/[0.12]" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-white/[0.12]" />
+                    <span className="ml-3 font-mono text-[11px] text-zinc-700">pandaflow ~ sandbox</span>
+                  </div>
+                  <div className="space-y-1.5 px-6 py-7 font-mono text-[13px] leading-7">
+                    <div className="text-zinc-700"># Invoke a deployed workflow via API</div>
+                    <div className="text-zinc-300">{'$ curl -X POST https://your-host/api/agents/invoke \\'}</div>
+                    <div className="pl-4 text-zinc-400">{'-H "Authorization: Bearer agt_••••••••" \\'}</div>
+                    <div className="pl-4 text-zinc-500">{"-d '{\"input\": {\"query\": \"analyze repo\"}}'"}  </div>
+                    <div className="mt-4 text-zinc-700"># Runtime handles isolation</div>
+                    <div className="text-zinc-400">[✓] Identity verified</div>
+                    <div className="text-zinc-400">[✓] Spawning microVM...</div>
+                    <div className="text-zinc-400">[✓] Secrets mounted (read-only)</div>
+                    <div className="text-zinc-300">[✓] Workflow executing...</div>
+                    <div className="text-white font-medium">[✓] microVM terminated — memory wiped</div>
+                  </div>
+                </div>
+              </FadeUp>
+
+              {/* Bullets */}
+              <div className="grid gap-3">
+                {isolationBullets.map((b, i) => (
+                  <FadeUp key={b.title} delay={0.08 + i * 0.06}>
+                    <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 hover:border-white/[0.13] transition-colors">
+                      <div className="flex items-start gap-4">
+                        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.04]">
+                          <b.icon className="h-4 w-4 text-zinc-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-semibold text-white">{b.title}</h3>
+                          <p className="mt-1 text-[13px] leading-6 text-zinc-500">{b.description}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </FadeUp>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ════════════════════════════════════════════════════
+            TEMPLATES
+        ════════════════════════════════════════════════════ */}
+        <section id="templates" className="border-t border-white/[0.06] px-6 py-28 lg:px-8">
           <div className="mx-auto max-w-7xl">
-            <SectionHeading
-              eyebrow="Template gallery"
-              title="Start from a template. Ship in minutes."
-              description="Browse real templates from the PandaFlow library, reuse proven node graphs, and adapt them to your own stack."
-            />
+            <FadeUp className="mb-14 text-center">
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-600">Template gallery</p>
+              <h2 className="text-4xl font-bold tracking-[-0.03em] text-white">Start fast. Adapt quickly.</h2>
+              <p className="mx-auto mt-3 max-w-lg text-[15px] text-zinc-500">
+                Browse real templates from the PandaFlow library. Reuse proven node graphs and adapt them to your stack.
+              </p>
+            </FadeUp>
 
-            <div className="mt-16 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {homeTemplates.map((template) => {
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {homeTemplates.map((template, i) => {
                 const Icon = getTemplateIcon(template.icon);
-                const gradient = `linear-gradient(135deg, ${template.color}22 0%, transparent 70%)`;
                 const nodeLabels = getTemplateNodes(template).slice(0, 4).map((node) => getTemplateNodeLabel(node));
-
                 return (
-                  <Card key={template.id} className="group overflow-hidden border border-zinc-800 bg-zinc-900 shadow-sm transition hover:border-indigo-500/30 hover:shadow-[0_20px_80px_rgba(79,70,229,0.12)]">
-                    <CardContent className="p-0">
-                      <div className="border-b border-white/10 p-6" style={{ background: gradient }}>
+                  <FadeUp key={template.id} delay={i * 0.06}>
+                    <div className="group overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.02] hover:border-white/[0.14] transition-colors h-full">
+                      <div className="border-b border-white/[0.07] p-6">
                         <div className="mb-4 flex items-start justify-between gap-3">
                           <div className="flex items-center gap-3">
-                            <div className="rounded-xl border border-white/10 bg-zinc-950/80 p-3 shadow-sm">
-                              <Icon className="h-5 w-5" style={{ color: template.color }} />
+                            <div className="rounded-xl border border-white/[0.1] bg-white/[0.06] p-2.5">
+                              <Icon className="h-4 w-4 text-zinc-300" />
                             </div>
-                            <Badge className={cn('rounded-full border text-xs font-medium', categoryBadgeClasses[template.category] ?? 'border-white/10 bg-white/5 text-zinc-200')}>
+                            <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-600">
                               {template.category}
-                            </Badge>
+                            </span>
                           </div>
-                          <Badge className={cn('capitalize', difficultyClasses[template.difficulty])}>{template.difficulty}</Badge>
+                          <span className="text-[11px] capitalize text-zinc-600">{template.difficulty}</span>
                         </div>
-                        <h3 className="text-2xl font-semibold text-white">{template.name}</h3>
-                        <p className="mt-3 line-clamp-2 text-sm leading-7 text-zinc-400">{template.description}</p>
+                        <h3 className="text-base font-semibold text-white">{template.name}</h3>
+                        <p className="mt-2 line-clamp-2 text-[13px] leading-6 text-zinc-500">{template.description}</p>
                       </div>
-
                       <div className="space-y-4 p-6">
                         <TemplateMiniPreview template={template} />
                         <div className="flex flex-wrap gap-2">
                           {nodeLabels.map((label) => (
                             <span
                               key={`${template.id}-${label}`}
-                              className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-300"
+                              className="rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1 text-[11px] text-zinc-500"
                             >
                               {label}
                             </span>
                           ))}
                         </div>
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="text-xs text-zinc-500">{template.estimatedTime}</div>
-                          <Link href="/templates" className="inline-flex items-center gap-2 text-sm font-medium text-white transition hover:text-indigo-300">
-                            View Template
-                            <ArrowRight className="h-4 w-4" />
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] text-zinc-600">{template.estimatedTime}</span>
+                          <Link
+                            href="/templates"
+                            className="flex items-center gap-1 text-[12px] font-medium text-zinc-300 transition hover:text-white"
+                          >
+                            Use template <ArrowRight className="h-3.5 w-3.5" />
                           </Link>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </FadeUp>
                 );
               })}
             </div>
           </div>
         </section>
 
-        <section id="open-source" className="relative isolate px-6 py-24 lg:px-8">
-          <div className="absolute inset-0 marketing-grid opacity-20" />
-          <div className="absolute left-20 top-12 h-64 w-64 rounded-full bg-indigo-600/10 blur-3xl" />
-          <div className="relative mx-auto max-w-7xl">
-            <SectionHeading
-              eyebrow="Open source + cloud"
-              title="Built in public. Owned by the community."
-              description="PandaFlow is MIT licensed. Self-host it on your own infrastructure, fork it, and extend it. No vendor lock-in."
-            />
-
-            <div className="mt-16 grid gap-6 lg:grid-cols-2">
-              <div className="rounded-[32px] border border-white/10 bg-zinc-900/90 p-8">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 text-zinc-100">
-                  <Lock className="h-6 w-6" />
-                </div>
-                <h3 className="mt-6 text-2xl font-semibold text-white">Self-host</h3>
-                <p className="mt-3 max-w-md text-sm leading-7 text-zinc-400">
-                  Run PandaFlow on your infrastructure with full control over data, networking, secrets, and runtime policy.
-                </p>
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <Button asChild variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10">
-                    <Link href={licenseUrl}>MIT License</Link>
-                  </Button>
-                  <Button asChild variant="ghost" className="text-zinc-300 hover:text-white">
-                    <Link href={contributingUrl}>Contributing</Link>
-                  </Button>
-                </div>
-              </div>
-
-              <div className="relative overflow-hidden rounded-[32px] border border-indigo-500/20 bg-gradient-to-br from-indigo-600/20 via-zinc-900 to-zinc-900 p-8 shadow-[0_24px_120px_rgba(79,70,229,0.18)]">
-                <div className="absolute right-6 top-6">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-400/30 bg-indigo-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-indigo-300">
-                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
-                    Coming Soon
-                  </span>
-                </div>
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/15 text-indigo-100">
-                  <Cloud className="h-6 w-6" />
-                </div>
-                <h3 className="mt-6 text-2xl font-semibold text-white">Cloud</h3>
-                <p className="mt-3 max-w-md text-sm leading-7 text-zinc-300">
-                  We run it for you. Enterprise isolation via Sandflare microVMs, automatic scaling, and a managed control plane. Hosted by PandastackIO Inc.
-                </p>
-                <div className="mt-8 flex flex-wrap items-center gap-3">
-                  <Button disabled className="cursor-not-allowed bg-indigo-600/50 text-white/60">
-                    <Cloud className="h-4 w-4" />
-                    Cloud Waitlist — Coming Soon
-                  </Button>
-                </div>
-                <p className="mt-4 text-xs text-zinc-500">Self-host today · Cloud managed version in progress</p>
-              </div>
-            </div>
-
-            <div className="mt-12 rounded-[32px] border border-white/10 bg-zinc-900/80 p-8 text-center">
-              <div className="text-xs font-medium uppercase tracking-[0.3em] text-zinc-500">OR CONTRIBUTE</div>
-              <div className="mt-5 flex justify-center text-indigo-300">
-                <GitPullRequest className="h-8 w-8" />
-              </div>
-              <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-zinc-300">
-                Want to add nodes, fix bugs, or improve docs? PandaFlow welcomes contributions.
+        {/* ════════════════════════════════════════════════════
+            OPEN SOURCE
+        ════════════════════════════════════════════════════ */}
+        <section id="open-source" className="border-t border-white/[0.06] px-6 py-28 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+            <FadeUp className="mb-14">
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-600">
+                Open source + cloud
               </p>
-              <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Button asChild className="bg-white text-black hover:bg-zinc-200">
-                  <Link href={githubUrl} target="_blank" rel="noreferrer">
-                    View on GitHub
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10">
-                  <Link href={contributingUrl}>
-                    Read Contributing Guide
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
+              <h2 className="text-4xl font-bold tracking-[-0.03em] text-white sm:text-5xl">
+                Built in public.<br />Owned by the community.
+              </h2>
+              <p className="mt-4 max-w-lg text-[15px] leading-7 text-zinc-500">
+                MIT licensed. Self-host it, fork it, extend it. No vendor lock-in, ever.
+              </p>
+            </FadeUp>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <FadeUp delay={0.06}>
+                <div className="h-full rounded-2xl border border-white/[0.08] bg-white/[0.02] p-8 hover:border-white/[0.13] transition-colors">
+                  <div className="mb-6 flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-white/[0.06]">
+                    <Lock className="h-4 w-4 text-zinc-300" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Self-host</h3>
+                  <p className="mt-2 text-sm leading-7 text-zinc-500">
+                    Run PandaFlow on your own infrastructure. Full control over data, networking, secrets, and runtime policy.
+                  </p>
+                  <div className="mt-8 flex flex-wrap gap-3">
+                    <a
+                      href={licenseUrl}
+                      className="flex items-center rounded-full border border-white/[0.1] bg-white/[0.04] px-4 py-2 text-[13px] text-zinc-300 transition hover:border-white/20 hover:bg-white/[0.08]"
+                    >
+                      MIT License
+                    </a>
+                    <a
+                      href={contributingUrl}
+                      className="flex items-center rounded-full px-4 py-2 text-[13px] text-zinc-500 transition hover:text-white"
+                    >
+                      Contributing →
+                    </a>
+                  </div>
+                </div>
+              </FadeUp>
+
+              <FadeUp delay={0.1}>
+                <div className="relative h-full overflow-hidden rounded-2xl border border-white/[0.1] bg-white/[0.03] p-8 hover:border-white/[0.16] transition-colors">
+                  <div className="absolute right-5 top-5">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white/40" />
+                      Coming Soon
+                    </span>
+                  </div>
+                  <div className="mb-6 flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-white/[0.06]">
+                    <Cloud className="h-4 w-4 text-zinc-300" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Cloud</h3>
+                  <p className="mt-2 text-sm leading-7 text-zinc-400">
+                    We run it for you. Enterprise isolation via Sandflare microVMs, automatic scaling, and a managed control plane by PandastackIO Inc.
+                  </p>
+                  <p className="mt-6 text-[12px] text-zinc-600">Self-host today · Cloud managed version in progress</p>
+                </div>
+              </FadeUp>
             </div>
+
+            <FadeUp delay={0.14}>
+              <div className="mt-4 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-10 text-center hover:border-white/[0.13] transition-colors">
+                <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-white/[0.06]">
+                  <GitPullRequest className="h-4 w-4 text-zinc-300" />
+                </div>
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-600">Contribute</p>
+                <p className="mx-auto max-w-md text-sm leading-7 text-zinc-400">
+                  Add nodes, fix bugs, improve docs. PandaFlow welcomes contributions from the community.
+                </p>
+                <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                  <a
+                    href={githubUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 rounded-full bg-white px-6 py-3 text-[13px] font-semibold text-black transition hover:bg-zinc-100"
+                  >
+                    View on GitHub <ArrowRight className="h-4 w-4" />
+                  </a>
+                  <a
+                    href={contributingUrl}
+                    className="flex items-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.04] px-6 py-3 text-[13px] font-semibold text-zinc-200 transition hover:border-white/20 hover:bg-white/[0.08]"
+                  >
+                    Contributing guide
+                  </a>
+                </div>
+              </div>
+            </FadeUp>
           </div>
         </section>
+
+        {/* ════════════════════════════════════════════════════
+            FINAL CTA
+        ════════════════════════════════════════════════════ */}
+        <section className="px-6 pb-28 lg:px-8">
+          <FadeUp>
+            <div className="relative mx-auto max-w-4xl overflow-hidden rounded-2xl border border-white/[0.1] px-10 py-24 text-center">
+              {/* dot grid bg */}
+              <div
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)',
+                  backgroundSize: '24px 24px',
+                }}
+              />
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_100%,rgba(255,255,255,0.06),transparent)]" />
+              <div className="relative">
+                <h2 className="text-5xl font-bold tracking-[-0.03em] text-white sm:text-6xl">
+                  Ready to build?
+                </h2>
+                <p className="mx-auto mt-4 max-w-md text-[15px] leading-7 text-zinc-500">
+                  Start with a template or build from scratch. Free to self-host. Open source forever.
+                </p>
+                <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                  <Link
+                    href="/sign-up"
+                    className="flex items-center gap-2 rounded-full bg-white px-8 py-4 text-[14px] font-semibold text-black transition hover:bg-zinc-100"
+                  >
+                    Start building free <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <a
+                    href={githubUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.04] px-8 py-4 text-[14px] font-semibold text-zinc-200 transition hover:border-white/20 hover:bg-white/[0.08]"
+                  >
+                    <Github className="h-4 w-4" />
+                    Star on GitHub
+                  </a>
+                </div>
+              </div>
+            </div>
+          </FadeUp>
+        </section>
+
       </main>
 
-      <footer className="border-t border-white/10 bg-zinc-950 px-6 py-12 lg:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div className="inline-flex items-center gap-3 text-lg tracking-tight text-white">
-              <img src="/pandaflow-logo.png" alt="PandaFlow" className="h-7 w-7" />
-              <span className="font-bold">PandaFlow</span>
+      {/* ── Footer ─────────────────────────────────────── */}
+      <footer className="border-t border-white/[0.06] px-6 py-14 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
+            <div className="max-w-xs">
+              <div className="flex items-center gap-2.5">
+                <img src="/pandaflow-logo.png" alt="PandaFlow" className="h-7 w-7" />
+                <span className="text-sm font-semibold text-white">PandaFlow</span>
+              </div>
+              <p className="mt-3 text-sm leading-7 text-zinc-600">
+                Open source AI agent workflow builder by PandastackIO Inc.
+              </p>
+              <p className="mt-3 text-xs text-zinc-700">Built with ❤️ by PandastackIO Inc.</p>
             </div>
-            <p className="mt-3 max-w-md text-sm leading-7 text-zinc-400">Open source AI agent workflow builder by PandastackIO Inc.</p>
-            <div className="mt-4 text-sm text-emerald-400">Built with ❤️ from PandastackIO Inc.</div>
+
+            <div className="grid gap-10 text-sm sm:grid-cols-3">
+              {[
+                {
+                  heading: 'Project',
+                  links: [
+                    { label: 'GitHub', href: githubUrl, external: true },
+                    { label: 'MIT License', href: licenseUrl },
+                    { label: 'Contributing', href: contributingUrl },
+                  ],
+                },
+                {
+                  heading: 'Product',
+                  links: [
+                    { label: 'Features', href: '#features' },
+                    { label: 'Nodes', href: '#nodes' },
+                    { label: 'Templates', href: '#templates' },
+                  ],
+                },
+                {
+                  heading: 'Company',
+                  links: [
+                    { label: 'PandastackIO Inc.', href: '#' },
+                    { label: 'pandastack.io', href: 'https://pandastack.io', external: true },
+                  ],
+                },
+              ].map(({ heading, links }) => (
+                <div key={heading}>
+                  <p className="mb-4 text-[12px] font-semibold uppercase tracking-[0.15em] text-zinc-600">
+                    {heading}
+                  </p>
+                  <ul className="space-y-3">
+                    {links.map(({ label, href, external }) => (
+                      <li key={label}>
+                        <Link
+                          href={href}
+                          {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}
+                          className="text-[13px] text-zinc-500 transition hover:text-white"
+                        >
+                          {label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="grid gap-8 text-sm text-zinc-400 sm:grid-cols-2 lg:grid-cols-3">
-            <div>
-              <div className="mb-3 font-medium text-white">Project</div>
-              <div className="space-y-2">
-                <Link href={githubUrl} target="_blank" rel="noreferrer" className="block transition hover:text-white">
-                  GitHub
-                </Link>
-                <Link href={licenseUrl} className="block transition hover:text-white">
-                  MIT License
-                </Link>
-                <Link href={contributingUrl} className="block transition hover:text-white">
-                  Contributing
-                </Link>
-              </div>
-            </div>
-            <div>
-              <div className="mb-3 font-medium text-white">Product</div>
-              <div className="space-y-2">
-                <a href="#features" className="block transition hover:text-white">
-                  Features
-                </a>
-                <a href="#nodes" className="block transition hover:text-white">
-                  Nodes
-                </a>
-                <a href="#templates" className="block transition hover:text-white">
-                  Templates
-                </a>
-              </div>
-            </div>
-            <div>
-              <div className="mb-3 font-medium text-white">Company</div>
-              <div className="space-y-2 text-zinc-500">
-                <div>PandastackIO Inc.</div>
-                <a href="https://pandastack.io" className="hover:text-white transition">pandastack.io</a>
-                <div>© 2025 PandastackIO Inc. PandaFlow is open source under the MIT License.</div>
-              </div>
-            </div>
+          <div className="mt-12 border-t border-white/[0.06] pt-6 text-[12px] text-zinc-700">
+            © 2025 PandastackIO Inc. PandaFlow is open source under the MIT License.
           </div>
         </div>
       </footer>
+
     </div>
   );
 }
