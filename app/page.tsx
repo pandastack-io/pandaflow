@@ -1428,11 +1428,17 @@ export default function HomePage() {
             <div className="grid gap-10 text-sm sm:grid-cols-3">
               {[
                 {
+                  heading: 'Community',
+                  links: [
+                    { label: 'Discord', href: 'https://discord.gg/umvVSQgh', external: true },
+                    { label: 'GitHub', href: githubUrl, external: true },
+                    { label: 'Contributing', href: contributingUrl, external: true },
+                  ],
+                },
+                {
                   heading: 'Project',
                   links: [
-                    { label: 'GitHub', href: githubUrl, external: true },
                     { label: 'MIT License', href: licenseUrl },
-                    { label: 'Contributing', href: contributingUrl },
                   ],
                 },
                 {
