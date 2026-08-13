@@ -56,8 +56,8 @@ CREATE TABLE "execution_traces" (
 	"created_at" timestamp with time zone DEFAULT now()
 );
 --> statement-breakpoint
-ALTER TABLE "users" ALTER COLUMN "email_verified" SET DATA TYPE timestamp with time zone;--> statement-breakpoint
 ALTER TABLE "users" ALTER COLUMN "email_verified" DROP DEFAULT;--> statement-breakpoint
+ALTER TABLE "users" ALTER COLUMN "email_verified" SET DATA TYPE timestamp with time zone USING CASE WHEN "email_verified" THEN now() ELSE NULL END;--> statement-breakpoint
 ALTER TABLE "executions" ADD COLUMN "parent_execution_id" uuid;--> statement-breakpoint
 ALTER TABLE "executions" ADD COLUMN "trace_id" uuid;--> statement-breakpoint
 ALTER TABLE "executions" ADD COLUMN "call_depth" integer DEFAULT 0;--> statement-breakpoint
