@@ -744,10 +744,17 @@ def handle_rag_reranker(node, ctx, node_input):
 def handle_pandastack_python(node, ctx, node_input):
     cfg = node.get("data", {}).get("config", {}); code = cfg.get("code", "")
     if not code: return {"output": None, "note": "No code to execute"}
-    local_vars = {"input": node_input}; local_vars.update(ctx.variables)
-    exec_globals = {"__builtins__": __builtins__, "json": json, "os": os, "time": time, "re": re, "sys": sys, "subprocess": subprocess}
-    exec_locals = dict(local_vars); exec(code, exec_globals, exec_locals)
-    return {"output": exec_locals.get("output", exec_locals.get("result", exec_locals.get("return_value", None))), "exitCode": 0}
+    # Single namespace for exec: with separate globals/locals dicts, names bound at
+    # the top level are invisible inside comprehensions/nested scopes (exec gotcha).
+    ns = {"__builtins__": __builtins__, "json": json, "os": os, "time": time, "re": re, "sys": sys, "subprocess": subprocess,
+          "input": node_input, "input_json": node_input}
+    if isinstance(node_input, str):
+        try: ns["input_json"] = json.loads(node_input)
+        except Exception: pass
+    ns.update(ctx.variables)
+    exec(code, ns, ns)
+    out = next((ns[k] for k in ("output", "output_json", "result", "results", "return_value") if k in ns and ns[k] is not None), None)
+    return {"output": out, "exitCode": 0}
 
 def handle_pandastack_bash(node, ctx, node_input):
     cfg = node.get("data", {}).get("config", {}); cmd = ctx.resolve(cfg.get("command", cfg.get("code", "")))
@@ -850,7 +857,12 @@ def handle_pandastack_git_clone(node, ctx, node_input):
     return {"cloned": r.returncode == 0, "directory": target, "url": repo_url, "branch": branch}
 
 def handle_pandastack_jupyter(node, ctx, node_input): return handle_pandastack_python(node, ctx, node_input)
-def handle_pandastack_execute(node, ctx, node_input): return handle_pandastack_bash(node, ctx, node_input)
+def handle_pandastack_execute(node, ctx, node_input):
+    # Generic execute node: honor the configured language instead of assuming shell.
+    lang = str(node.get("data", {}).get("config", {}).get("language", "")).lower()
+    if lang in ("python", "python3", "jupyter"): return handle_pandastack_python(node, ctx, node_input)
+    if lang in ("nodejs", "node", "javascript"): return handle_pandastack_nodejs(node, ctx, node_input)
+    return handle_pandastack_bash(node, ctx, node_input)
 def handle_pandastack_snapshot(node, ctx, node_input): return {"snapshotId": f"snap-{int(time.time())}", "created": True, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
 def handle_pandastack_fork(node, ctx, node_input): return {"forked": True, "forkId": f"fork-{int(time.time())}", "input": node_input}
 def handle_pandastack_metrics(node, ctx, node_input): return {"cpu": 0.2, "memory": 256, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
