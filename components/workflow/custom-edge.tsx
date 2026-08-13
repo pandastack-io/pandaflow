@@ -76,10 +76,10 @@ export function CustomEdge({
 
   const labelClassName =
     label === 'true'
-      ? 'border-green-500/30 bg-green-500/15 text-green-200'
+      ? 'border-green-500/30 bg-green-500/15 text-green-700 dark:text-green-200'
       : label === 'false'
-        ? 'border-red-500/30 bg-red-500/15 text-red-200'
-        : 'border-zinc-600/50 bg-zinc-800/80 text-zinc-100';
+        ? 'border-red-500/30 bg-red-500/15 text-red-700 dark:text-red-200'
+        : 'border-border bg-card/80 text-card-foreground';
 
   return (
     <>
@@ -108,7 +108,7 @@ export function CustomEdge({
                 </div>
               ) : null}
               {isHovered && durationLabel && data?.heatmapActive ? (
-                <div className="rounded-full border border-zinc-600/40 bg-zinc-900/85 px-1.5 py-0.5 text-[10px] font-medium text-zinc-100 shadow-sm backdrop-blur">
+                <div className="rounded-full border border-border bg-popover/85 px-1.5 py-0.5 text-[10px] font-medium text-popover-foreground shadow-sm backdrop-blur">
                   {durationLabel}
                 </div>
               ) : null}

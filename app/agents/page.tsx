@@ -51,33 +51,33 @@ type ExecutionListItem = {
 
 const statusStyles: Record<AgentStatus, { badge: string; dot: string; pulse?: boolean; label: string }> = {
   running: {
-    badge: 'border-green-500/30 bg-green-500/15 text-green-400',
+    badge: 'border-green-500/30 bg-green-500/15 text-green-600 dark:text-green-400',
     dot: 'bg-green-400',
     pulse: true,
     label: 'Running',
   },
   stopped: {
-    badge: 'border-zinc-500/30 bg-zinc-500/15 text-zinc-400',
-    dot: 'bg-zinc-400',
+    badge: 'border-border bg-muted text-muted-foreground',
+    dot: 'bg-muted-foreground',
     label: 'Stopped',
   },
   crashed: {
-    badge: 'border-red-500/30 bg-red-500/15 text-red-400',
+    badge: 'border-red-500/30 bg-red-500/15 text-red-600 dark:text-red-400',
     dot: 'bg-red-400',
     label: 'Crashed',
   },
   paused: {
-    badge: 'border-yellow-500/30 bg-yellow-500/15 text-yellow-400',
+    badge: 'border-yellow-500/30 bg-yellow-500/15 text-yellow-600 dark:text-yellow-400',
     dot: 'bg-yellow-400',
     label: 'Paused',
   },
   deployed: {
-    badge: 'border-blue-500/30 bg-blue-500/15 text-blue-400',
+    badge: 'border-blue-500/30 bg-blue-500/15 text-blue-600 dark:text-blue-400',
     dot: 'bg-blue-400',
     label: 'Deployed',
   },
   error: {
-    badge: 'border-red-500/30 bg-red-500/15 text-red-400',
+    badge: 'border-red-500/30 bg-red-500/15 text-red-600 dark:text-red-400',
     dot: 'bg-red-400',
     label: 'Error',
   },
@@ -285,7 +285,7 @@ export default function AgentsPage() {
     return (
       <MainLayout>
         <div className="flex h-full items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       </MainLayout>
     );
@@ -297,20 +297,20 @@ export default function AgentsPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-500/10 text-blue-300">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-300">
                 <Bot className="h-5 w-5" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold tracking-tight text-zinc-50">Agent OS</h1>
-                <p className="mt-1 text-sm text-zinc-400">Persistent identity, lifecycle, and process management for deployed workflows.</p>
+                <h1 className="text-3xl font-bold tracking-tight text-foreground">Agent OS</h1>
+                <p className="mt-1 text-sm text-muted-foreground">Persistent identity, lifecycle, and process management for deployed workflows.</p>
               </div>
             </div>
-            <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-zinc-400">
-              <span>Running agents: <span className="font-semibold text-zinc-100">{stats.running}</span></span>
-              <span className="text-zinc-600">|</span>
-              <span>Stopped: <span className="font-semibold text-zinc-100">{stats.stopped}</span></span>
-              <span className="text-zinc-600">|</span>
-              <span>Total executions today: <span className="font-semibold text-zinc-100">{stats.todayExecutions}</span></span>
+            <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <span>Running agents: <span className="font-semibold text-foreground">{stats.running}</span></span>
+              <span className="text-muted-foreground/60">|</span>
+              <span>Stopped: <span className="font-semibold text-foreground">{stats.stopped}</span></span>
+              <span className="text-muted-foreground/60">|</span>
+              <span>Total executions today: <span className="font-semibold text-foreground">{stats.todayExecutions}</span></span>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -327,18 +327,18 @@ export default function AgentsPage() {
 
         <div className="grid gap-4 md:grid-cols-3">
           {[
-            { label: 'Running now', value: stats.running, icon: Activity, accent: 'text-green-400' },
-            { label: 'Stopped', value: stats.stopped, icon: Square, accent: 'text-zinc-300' },
-            { label: 'Executions today', value: stats.todayExecutions, icon: Clock3, accent: 'text-blue-300' },
+            { label: 'Running now', value: stats.running, icon: Activity, accent: 'text-green-600 dark:text-green-400' },
+            { label: 'Stopped', value: stats.stopped, icon: Square, accent: 'text-muted-foreground' },
+            { label: 'Executions today', value: stats.todayExecutions, icon: Clock3, accent: 'text-blue-600 dark:text-blue-300' },
           ].map((stat) => (
-            <Card key={stat.label} className="border-zinc-800 bg-zinc-900/60 shadow-none">
+            <Card key={stat.label} className="border-border bg-muted/50 shadow-none">
               <CardContent className="flex items-center gap-3 p-5">
-                <div className={cn('rounded-xl border border-white/5 bg-black/20 p-3', stat.accent)}>
+                <div className={cn('rounded-xl border border-border bg-muted p-3', stat.accent)}>
                   <stat.icon className="h-5 w-5" />
                 </div>
                 <div>
-                  <div className="text-2xl font-semibold text-zinc-50">{stat.value}</div>
-                  <div className="text-sm text-zinc-500">{stat.label}</div>
+                  <div className="text-2xl font-semibold text-foreground">{stat.value}</div>
+                  <div className="text-sm text-muted-foreground">{stat.label}</div>
                 </div>
               </CardContent>
             </Card>
@@ -346,14 +346,14 @@ export default function AgentsPage() {
         </div>
 
         {agents.length === 0 ? (
-          <Card className="border-dashed border-zinc-800 bg-zinc-950/60 shadow-none">
+          <Card className="border-dashed border-border bg-muted/30 shadow-none">
             <CardContent className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full border border-blue-500/20 bg-blue-500/10 text-blue-300">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full border border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-300">
                 <Bot className="h-8 w-8" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-2xl font-semibold text-zinc-100">No agents deployed yet</h2>
-                <p className="max-w-xl text-sm leading-6 text-zinc-400">
+                <h2 className="text-2xl font-semibold text-foreground">No agents deployed yet</h2>
+                <p className="max-w-xl text-sm leading-6 text-muted-foreground">
                   Deploy a workflow as an agent to give it a persistent identity, memory, and lifecycle management.
                 </p>
               </div>
@@ -364,17 +364,17 @@ export default function AgentsPage() {
             </CardContent>
           </Card>
         ) : (
-          <Card className="border-zinc-800 bg-zinc-950/70 shadow-none">
+          <Card className="border-border bg-card shadow-none">
             <CardHeader className="flex flex-row items-center justify-between gap-4">
               <div>
-                <CardTitle className="text-zinc-100">Agent Registry</CardTitle>
+                <CardTitle className="text-foreground">Agent Registry</CardTitle>
                 <CardDescription>Monitor live agent processes, costs, and workflow links from one control plane.</CardDescription>
               </div>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
-                  <TableRow className="border-zinc-800 hover:bg-transparent">
+                  <TableRow className="border-border hover:bg-transparent">
                     <TableHead>Status</TableHead>
                     <TableHead>Agent</TableHead>
                     <TableHead>Workflow</TableHead>
@@ -388,7 +388,7 @@ export default function AgentsPage() {
                   {agents.map((agent) => {
                     const status = statusStyles[agent.status] ?? statusStyles.stopped;
                     return (
-                      <TableRow key={agent.id} className="border-zinc-800/80 hover:bg-zinc-900/60">
+                      <TableRow key={agent.id} className="border-border/80 hover:bg-muted/60">
                         <TableCell>
                           <Badge variant="outline" className={cn('gap-2 rounded-full px-3 py-1 text-xs', status.badge)}>
                             <span className={cn('h-2.5 w-2.5 rounded-full', status.dot, status.pulse && 'animate-pulse')} />
@@ -397,23 +397,23 @@ export default function AgentsPage() {
                         </TableCell>
                         <TableCell>
                           <div className="space-y-1">
-                            <Link href={`/agents/${agent.id}`} className="font-medium text-zinc-100 transition hover:text-blue-300">
+                            <Link href={`/agents/${agent.id}`} className="font-medium text-foreground transition hover:text-blue-600 dark:hover:text-blue-300">
                               {agent.name}
                             </Link>
-                            <p className="max-w-md text-xs leading-5 text-zinc-400">
+                            <p className="max-w-md text-xs leading-5 text-muted-foreground">
                               {agent.description || 'Persistent workflow agent with lifecycle controls.'}
                             </p>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Link href={`/workflows/${agent.workflowId}`} className="inline-flex items-center gap-2 text-sm text-blue-300 transition hover:text-blue-200">
+                          <Link href={`/workflows/${agent.workflowId}`} className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-300 transition hover:text-blue-500 dark:hover:text-blue-200">
                             <Workflow className="h-4 w-4" />
                             {agent.workflowName || 'Untitled workflow'}
                           </Link>
                         </TableCell>
-                        <TableCell className="text-zinc-300">{formatRelativeTime(agent.lastRunAt)}</TableCell>
-                        <TableCell className="text-zinc-300">{agent.totalExecutions ?? 0}</TableCell>
-                        <TableCell className="text-zinc-300">{formatCurrency(agent.totalCostUsd)}</TableCell>
+                        <TableCell className="text-foreground">{formatRelativeTime(agent.lastRunAt)}</TableCell>
+                        <TableCell className="text-foreground">{agent.totalExecutions ?? 0}</TableCell>
+                        <TableCell className="text-foreground">{formatCurrency(agent.totalCostUsd)}</TableCell>
                         <TableCell>
                           <div className="flex flex-wrap justify-end gap-2">
                             <Button
@@ -452,7 +452,7 @@ export default function AgentsPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="border-red-500/20 text-red-300 hover:bg-red-500/10 hover:text-red-200"
+                              className="border-red-500/20 text-red-600 dark:text-red-300 hover:bg-red-500/10 hover:text-red-700 dark:hover:text-red-200"
                               disabled={pendingAction === `${agent.id}:delete`}
                               onClick={() => void handleDelete(agent.id)}
                             >
@@ -471,27 +471,27 @@ export default function AgentsPage() {
         )}
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <Card className="border-zinc-800 bg-zinc-900/50 shadow-none">
+          <Card className="border-border bg-muted/40 shadow-none">
             <CardHeader>
-              <CardTitle className="text-zinc-100">Process notes</CardTitle>
+              <CardTitle className="text-foreground">Process notes</CardTitle>
               <CardDescription>Each deployed workflow gets a durable identity token, memory namespace, and message history.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm text-zinc-400">
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
               <p>• Start launches the linked workflow and moves the agent into a running state.</p>
               <p>• Pause freezes the process manager state while preserving identity and memory namespace.</p>
               <p>• Stop marks the agent offline without deleting its registry record.</p>
             </CardContent>
           </Card>
-          <Card className="border-zinc-800 bg-zinc-900/50 shadow-none">
+          <Card className="border-border bg-muted/40 shadow-none">
             <CardHeader>
-              <CardTitle className="text-zinc-100">Cost surface</CardTitle>
+              <CardTitle className="text-foreground">Cost surface</CardTitle>
               <CardDescription>Execution cost intelligence is tracked per agent so you can see spend accumulate over time.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm text-zinc-400">
-              <div className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-black/20 p-4">
-                <DollarSign className="h-5 w-5 text-emerald-300" />
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/50 p-4">
+                <DollarSign className="h-5 w-5 text-emerald-600 dark:text-emerald-300" />
                 <div>
-                  <div className="font-medium text-zinc-100">Aggregate cost visibility</div>
+                  <div className="font-medium text-foreground">Aggregate cost visibility</div>
                   <div>Total cost combines all runs triggered under a persistent agent identity.</div>
                 </div>
               </div>
@@ -513,23 +513,23 @@ export default function AgentsPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Select workflow</label>
               {workflowsLoading ? (
-                <div className="flex items-center gap-2 text-sm text-zinc-400"><Loader2 className="h-4 w-4 animate-spin" /> Loading workflows…</div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading workflows…</div>
               ) : workflows.length === 0 ? (
-                <p className="text-sm text-zinc-400">No workflows found. <Link href="/workflows" className="underline">Create one first</Link>.</p>
+                <p className="text-sm text-muted-foreground">No workflows found. <Link href="/workflows" className="underline">Create one first</Link>.</p>
               ) : (
-                <div className="max-h-52 overflow-y-auto rounded-lg border border-zinc-800 bg-zinc-950 divide-y divide-zinc-800">
+                <div className="max-h-52 overflow-y-auto rounded-lg border border-border bg-background divide-y divide-border">
                   {workflows.map((wf) => (
                     <button
                       key={wf.id}
                       type="button"
                       onClick={() => handleSelectWorkflow(wf)}
                       className={cn(
-                        'w-full px-4 py-3 text-left text-sm transition hover:bg-zinc-800/60',
-                        selectedWorkflowId === wf.id && 'bg-blue-500/10 text-blue-300 hover:bg-blue-500/15'
+                        'w-full px-4 py-3 text-left text-sm transition hover:bg-muted',
+                        selectedWorkflowId === wf.id && 'bg-blue-500/10 text-blue-600 dark:text-blue-300 hover:bg-blue-500/15'
                       )}
                     >
                       <div className="font-medium">{wf.name}</div>
-                      {wf.description && <div className="mt-0.5 truncate text-xs text-zinc-500">{wf.description}</div>}
+                      {wf.description && <div className="mt-0.5 truncate text-xs text-muted-foreground">{wf.description}</div>}
                     </button>
                   ))}
                 </div>
@@ -543,7 +543,7 @@ export default function AgentsPage() {
                   <Input id="deploy-name" value={deployName} onChange={(e) => setDeployName(e.target.value)} placeholder="My agent" />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="deploy-desc" className="text-sm font-medium text-foreground">Description <span className="text-zinc-500">(optional)</span></label>
+                  <label htmlFor="deploy-desc" className="text-sm font-medium text-foreground">Description <span className="text-muted-foreground">(optional)</span></label>
                   <Textarea id="deploy-desc" value={deployDescription} onChange={(e) => setDeployDescription(e.target.value)} placeholder="What does this agent do?" className="min-h-[80px]" />
                 </div>
               </>

@@ -105,15 +105,15 @@ export function MemoryViewer({ agentId }: MemoryViewerProps) {
   const hasMemories = (memoryQuery.data?.memories?.length ?? 0) > 0;
 
   return (
-    <div className="space-y-4 rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+    <div className="space-y-4 rounded-xl border border-border bg-muted/40 p-5">
       <div>
-        <div className="flex items-center gap-2 text-zinc-100">
-          <Brain className="h-4 w-4 text-blue-300" />
+        <div className="flex items-center gap-2 text-foreground">
+          <Brain className="h-4 w-4 text-blue-600 dark:text-blue-300" />
           <h3 className="font-semibold">Agent Memory</h3>
         </div>
-        <div className="mt-2 text-sm text-zinc-400">
-          <span className="text-zinc-500">namespace:</span>{' '}
-          <span className="break-all font-mono text-xs text-zinc-200">{memoryQuery.data?.namespace ?? 'Loading...'}</span>
+        <div className="mt-2 text-sm text-muted-foreground">
+          <span className="text-muted-foreground">namespace:</span>{' '}
+          <span className="break-all font-mono text-xs text-foreground">{memoryQuery.data?.namespace ?? 'Loading...'}</span>
         </div>
       </div>
 
@@ -126,8 +126,8 @@ export function MemoryViewer({ agentId }: MemoryViewerProps) {
             className={cn(
               'rounded-lg border px-3 py-1.5 text-sm transition',
               filter === item.value
-                ? 'border-blue-500/40 bg-blue-500/10 text-blue-200'
-                : 'border-zinc-800 bg-zinc-950/60 text-zinc-400 hover:text-zinc-200'
+                ? 'border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-200'
+                : 'border-border bg-muted/30 text-muted-foreground hover:text-foreground'
             )}
           >
             {item.label}
@@ -136,25 +136,25 @@ export function MemoryViewer({ agentId }: MemoryViewerProps) {
       </div>
 
       {memoryQuery.isLoading ? (
-        <div className="flex items-center justify-center py-12 text-zinc-400">
+        <div className="flex items-center justify-center py-12 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
         </div>
       ) : memoryQuery.isError ? (
-        <div className="rounded-xl border border-dashed border-red-500/30 bg-red-500/5 p-4 text-sm text-red-200">
+        <div className="rounded-xl border border-dashed border-red-500/30 bg-red-500/5 p-4 text-sm text-red-700 dark:text-red-200">
           {memoryQuery.error instanceof Error ? memoryQuery.error.message : 'Failed to load memories.'}
         </div>
       ) : memories.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-zinc-800 bg-zinc-950/60 p-8 text-center text-sm text-zinc-500">
+        <div className="rounded-xl border border-dashed border-border bg-muted/30 p-8 text-center text-sm text-muted-foreground">
           No memories yet. This agent hasn&apos;t stored any memory.
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-zinc-800">
-          <div className="grid grid-cols-[minmax(0,1fr)_120px_88px] gap-3 bg-zinc-950/80 px-4 py-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
+        <div className="overflow-hidden rounded-xl border border-border">
+          <div className="grid grid-cols-[minmax(0,1fr)_120px_88px] gap-3 bg-muted/80 px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
             <div>Key</div>
             <div>Updated</div>
             <div>Actions</div>
           </div>
-          <div className="divide-y divide-zinc-800">
+          <div className="divide-y divide-border">
             {memories.map((entry) => {
               const expanded = expandedKey === entry.key;
               const episodic = isEpisodic(entry);
@@ -174,25 +174,25 @@ export function MemoryViewer({ agentId }: MemoryViewerProps) {
                       onClick={() => setExpandedKey(expanded ? null : entry.key)}
                     >
                       {expanded ? (
-                        <ChevronDown className="h-4 w-4 shrink-0 text-zinc-500" />
+                        <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
                       ) : (
-                        <ChevronRight className="h-4 w-4 shrink-0 text-zinc-500" />
+                        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                       )}
                       <div className="min-w-0">
-                        <div className="truncate font-mono text-sm text-zinc-100">{entry.key}</div>
+                        <div className="truncate font-mono text-sm text-foreground">{entry.key}</div>
                         {entry.summary ? (
-                          <div className="truncate text-xs text-zinc-400">{entry.summary}</div>
+                          <div className="truncate text-xs text-muted-foreground">{entry.summary}</div>
                         ) : null}
                       </div>
                     </button>
-                    <div className="text-sm text-zinc-400">
+                    <div className="text-sm text-muted-foreground">
                       {formatDistanceToNow(new Date(entry.updatedAt), { addSuffix: true })}
                     </div>
                     <div>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-zinc-400 hover:text-red-200"
+                        className="h-8 w-8 text-muted-foreground hover:text-red-700 dark:hover:text-red-200"
                         disabled={deleteMutation.isPending}
                         onClick={() => deleteMutation.mutate(entry.key)}
                       >
@@ -206,7 +206,7 @@ export function MemoryViewer({ agentId }: MemoryViewerProps) {
                   </div>
 
                   {expanded ? (
-                    <pre className="mt-3 overflow-x-auto rounded-lg bg-zinc-950 p-4 font-mono text-xs text-zinc-300">
+                    <pre className="mt-3 overflow-x-auto rounded-lg bg-muted p-4 font-mono text-xs text-foreground">
                       {formatJson(entry.value)}
                     </pre>
                   ) : null}
@@ -217,7 +217,7 @@ export function MemoryViewer({ agentId }: MemoryViewerProps) {
         </div>
       )}
 
-      <div className="flex justify-end border-t border-zinc-800 pt-4">
+      <div className="flex justify-end border-t border-border pt-4">
         <Button
           variant="outline"
           size="sm"

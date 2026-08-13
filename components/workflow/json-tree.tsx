@@ -33,26 +33,26 @@ function getSummary(value: Record<string, unknown> | unknown[]) {
 
 function renderPrimitive(value: unknown) {
   if (typeof value === 'string') {
-    return <span className="text-emerald-400">&quot;{value}&quot;</span>;
+    return <span className="text-emerald-600 dark:text-emerald-400">&quot;{value}&quot;</span>;
   }
 
   if (typeof value === 'number') {
-    return <span className="text-amber-400">{value}</span>;
+    return <span className="text-amber-600 dark:text-amber-400">{value}</span>;
   }
 
   if (typeof value === 'boolean') {
-    return <span className="text-violet-400">{String(value)}</span>;
+    return <span className="text-violet-600 dark:text-violet-400">{String(value)}</span>;
   }
 
   if (value === null) {
-    return <span className="text-red-400">null</span>;
+    return <span className="text-red-600 dark:text-red-400">null</span>;
   }
 
   if (typeof value === 'undefined') {
-    return <span className="text-zinc-500">undefined</span>;
+    return <span className="text-muted-foreground">undefined</span>;
   }
 
-  return <span className="text-zinc-200">{String(value)}</span>;
+  return <span className="text-foreground">{String(value)}</span>;
 }
 
 function JsonTreeNode({ nodeKey, value, depth = 0, defaultExpanded = false }: JsonTreeNodeProps) {
@@ -63,8 +63,8 @@ function JsonTreeNode({ nodeKey, value, depth = 0, defaultExpanded = false }: Js
   if (!expandable) {
     return (
       <div className="py-0.5" style={{ paddingLeft: depth * 14 }}>
-        {nodeKey ? <span className="text-sky-400">{nodeKey}</span> : null}
-        {nodeKey ? <span className="text-zinc-500">: </span> : null}
+        {nodeKey ? <span className="text-sky-600 dark:text-sky-400">{nodeKey}</span> : null}
+        {nodeKey ? <span className="text-muted-foreground">: </span> : null}
         {renderPrimitive(value)}
       </div>
     );
@@ -75,12 +75,12 @@ function JsonTreeNode({ nodeKey, value, depth = 0, defaultExpanded = false }: Js
       <button
         type="button"
         onClick={() => setExpanded((current) => !current)}
-        className="flex w-full items-center gap-1 rounded-sm py-0.5 text-left transition-colors hover:bg-white/5"
+        className="flex w-full items-center gap-1 rounded-sm py-0.5 text-left transition-colors hover:bg-accent"
         style={{ paddingLeft: depth * 14 }}
       >
-        {expanded ? <ChevronDown className="h-3.5 w-3.5 text-zinc-400" /> : <ChevronRight className="h-3.5 w-3.5 text-zinc-400" />}
-        {nodeKey ? <span className="text-sky-400">{nodeKey}</span> : <span className="text-zinc-200">root</span>}
-        <span className="text-zinc-500">{getSummary(value)}</span>
+        {expanded ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
+        {nodeKey ? <span className="text-sky-600 dark:text-sky-400">{nodeKey}</span> : <span className="text-foreground">root</span>}
+        <span className="text-muted-foreground">{getSummary(value)}</span>
       </button>
 
       {expanded && (
@@ -90,7 +90,7 @@ function JsonTreeNode({ nodeKey, value, depth = 0, defaultExpanded = false }: Js
               <JsonTreeNode key={`${depth}-${childKey}`} nodeKey={childKey} value={childValue} depth={depth + 1} />
             ))
           ) : (
-            <div className="py-0.5 text-zinc-500" style={{ paddingLeft: (depth + 1) * 14 }}>
+            <div className="py-0.5 text-muted-foreground" style={{ paddingLeft: (depth + 1) * 14 }}>
               {Array.isArray(value) ? '[empty]' : '{empty}'}
             </div>
           )}
@@ -106,7 +106,7 @@ export function JsonTree({ value, className }: JsonTreeProps) {
   return (
     <div
       className={cn(
-        'overflow-auto rounded-xl border border-white/10 bg-zinc-950 px-3 py-2 font-mono text-xs leading-6 text-zinc-100',
+        'overflow-auto rounded-xl border border-border bg-card px-3 py-2 font-mono text-xs leading-6 text-card-foreground',
         className
       )}
     >
@@ -114,7 +114,7 @@ export function JsonTree({ value, className }: JsonTreeProps) {
         rootEntries.length > 0 ? (
           rootEntries.map(([childKey, childValue]) => <JsonTreeNode key={childKey} nodeKey={childKey} value={childValue} />)
         ) : (
-          <div className="py-0.5 text-zinc-500">{Array.isArray(value) ? '[empty]' : '{empty}'}</div>
+          <div className="py-0.5 text-muted-foreground">{Array.isArray(value) ? '[empty]' : '{empty}'}</div>
         )
       ) : (
         <JsonTreeNode value={value} />

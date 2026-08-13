@@ -68,7 +68,7 @@
 ### Infrastructure
 - [x] PostgreSQL via Drizzle ORM (clean migrations)
 - [x] Redis for pub/sub and caching
-- [x] Temporal worker for durable orchestration
+- [x] Durable checkpointed execution (TypeScript executor)
 - [x] Mock sandbox provider for zero-config local dev
 
 ---
@@ -122,7 +122,7 @@
 - [ ] Database migrations as workflow nodes
 
 ### Infrastructure
-- [ ] Horizontal scaling of Temporal workers
+- [ ] Horizontal scaling of workflow executors
 - [ ] Bring-your-own PandaStack key per organization
 - [ ] Self-hosted PandaStack-compatible runtime
 - [ ] Docker Compose one-command self-host

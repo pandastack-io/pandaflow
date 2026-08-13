@@ -93,59 +93,59 @@ export function CostDashboard({ agentId, className }: { agentId: string; classNa
   const sandboxShare = totalBreakdown > 0 ? ((data?.breakdown.sandboxCost ?? 0) / totalBreakdown) * 100 : 0;
 
   return (
-    <Card className={cn('border-zinc-800 bg-zinc-900/50 shadow-none', className)}>
+    <Card className={cn('border-border bg-muted/40 shadow-none', className)}>
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <CardTitle className="text-base text-zinc-50">Cost Intelligence</CardTitle>
-            <p className="mt-1 text-sm text-zinc-400">Runtime spend, token usage, and optimization signals.</p>
+            <CardTitle className="text-base text-foreground">Cost Intelligence</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">Runtime spend, token usage, and optimization signals.</p>
           </div>
-          <Badge variant="outline" className="border-zinc-700 bg-zinc-950 text-zinc-300">
+          <Badge variant="outline" className="border-border bg-muted text-foreground">
             <Cpu className="mr-1 h-3.5 w-3.5" /> Agent OS
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {loading ? (
-          <div className="flex items-center justify-center py-8 text-zinc-400">
+          <div className="flex items-center justify-center py-8 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
           </div>
         ) : !data ? (
-          <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 px-4 py-6 text-sm text-zinc-400">
+          <div className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-sm text-muted-foreground">
             Cost intelligence is unavailable right now.
           </div>
         ) : (
           <>
             <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
-                <div className="text-xs uppercase tracking-wide text-zinc-500">Total spend</div>
+              <div className="rounded-xl border border-border bg-muted/30 p-4">
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">Total spend</div>
                 <div className="mt-2 flex items-end gap-3">
-                  <div className="text-3xl font-semibold text-zinc-50">{formatUsd(data.totalCostUsd)}</div>
-                  <div className={cn('mb-1 inline-flex items-center text-xs', trend.direction === 'up' ? 'text-amber-300' : 'text-emerald-300')}>
+                  <div className="text-3xl font-semibold text-foreground">{formatUsd(data.totalCostUsd)}</div>
+                  <div className={cn('mb-1 inline-flex items-center text-xs', trend.direction === 'up' ? 'text-amber-600 dark:text-amber-300' : 'text-emerald-600 dark:text-emerald-300')}>
                     {trend.direction === 'up' ? <ArrowUpRight className="mr-1 h-3.5 w-3.5" /> : <ArrowDownRight className="mr-1 h-3.5 w-3.5" />}
                     {Math.abs(trend.delta).toFixed(0)}% vs prior days
                   </div>
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <div className="text-zinc-500">Executions</div>
-                    <div className="mt-1 text-zinc-100">{data.executionCount}</div>
+                    <div className="text-muted-foreground">Executions</div>
+                    <div className="mt-1 text-foreground">{data.executionCount}</div>
                   </div>
                   <div>
-                    <div className="text-zinc-500">Avg / run</div>
-                    <div className="mt-1 text-zinc-100">{formatUsd(data.avgCostPerExecution)}</div>
+                    <div className="text-muted-foreground">Avg / run</div>
+                    <div className="mt-1 text-foreground">{formatUsd(data.avgCostPerExecution)}</div>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
-                <div className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-200">
-                  <Coins className="h-4 w-4 text-emerald-300" /> Daily cost
+              <div className="rounded-xl border border-border bg-muted/30 p-4">
+                <div className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
+                  <Coins className="h-4 w-4 text-emerald-600 dark:text-emerald-300" /> Daily cost
                 </div>
                 <svg viewBox="0 0 220 52" className="h-[52px] w-full overflow-visible">
                   <path d={sparklinePath} fill="none" stroke="#60a5fa" strokeWidth="3" strokeLinecap="round" />
                 </svg>
-                <div className="mt-2 flex justify-between text-[11px] text-zinc-500">
+                <div className="mt-2 flex justify-between text-[11px] text-muted-foreground">
                   <span>{data.byDay[0]?.date ?? '—'}</span>
                   <span>{data.byDay[data.byDay.length - 1]?.date ?? '—'}</span>
                 </div>
@@ -153,53 +153,53 @@ export function CostDashboard({ agentId, className }: { agentId: string; classNa
             </div>
 
             <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
-                <div className="mb-3 text-sm font-medium text-zinc-200">Breakdown</div>
+              <div className="rounded-xl border border-border bg-muted/30 p-4">
+                <div className="mb-3 text-sm font-medium text-foreground">Breakdown</div>
                 {[
                   { label: 'LLM', value: data.breakdown.llmCost, percent: llmShare, color: 'bg-blue-400' },
                   { label: 'Sandbox', value: data.breakdown.sandboxCost, percent: sandboxShare, color: 'bg-violet-400' },
                 ].map((item) => (
                   <div key={item.label} className="mb-3 last:mb-0">
-                    <div className="mb-1 flex items-center justify-between text-xs text-zinc-400">
+                    <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
                       <span>{item.label}</span>
                       <span>{formatUsd(item.value)}</span>
                     </div>
-                    <div className="h-2 rounded-full bg-zinc-800">
+                    <div className="h-2 rounded-full bg-muted">
                       <div className={cn('h-2 rounded-full', item.color)} style={{ width: `${item.percent}%` }} />
                     </div>
                   </div>
                 ))}
-                <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-zinc-400">
+                <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-muted-foreground">
                   <div>
                     <div>Input tokens</div>
-                    <div className="mt-1 text-sm text-zinc-100">{data.breakdown.totalTokensInput.toLocaleString()}</div>
+                    <div className="mt-1 text-sm text-foreground">{data.breakdown.totalTokensInput.toLocaleString()}</div>
                   </div>
                   <div>
                     <div>Output tokens</div>
-                    <div className="mt-1 text-sm text-zinc-100">{data.breakdown.totalTokensOutput.toLocaleString()}</div>
+                    <div className="mt-1 text-sm text-foreground">{data.breakdown.totalTokensOutput.toLocaleString()}</div>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
-                <div className="mb-3 text-sm font-medium text-zinc-200">Top expensive nodes</div>
+              <div className="rounded-xl border border-border bg-muted/30 p-4">
+                <div className="mb-3 text-sm font-medium text-foreground">Top expensive nodes</div>
                 <div className="space-y-2">
                   {data.topExpensiveNodes.length === 0 ? (
-                    <div className="text-sm text-zinc-400">No costly nodes recorded yet.</div>
+                    <div className="text-sm text-muted-foreground">No costly nodes recorded yet.</div>
                   ) : data.topExpensiveNodes.map((node) => (
-                    <div key={`${node.nodeType}-${node.nodeName}`} className="flex items-center justify-between rounded-lg border border-zinc-800 px-3 py-2 text-sm">
+                    <div key={`${node.nodeType}-${node.nodeName}`} className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm">
                       <div className="min-w-0">
-                        <div className="truncate text-zinc-100">{node.nodeName}</div>
-                        <div className="text-xs text-zinc-500">{node.nodeType} • {node.count} runs</div>
+                        <div className="truncate text-foreground">{node.nodeName}</div>
+                        <div className="text-xs text-muted-foreground">{node.nodeType} • {node.count} runs</div>
                       </div>
-                      <div className="text-right text-zinc-200">{formatUsd(node.totalCost)}</div>
+                      <div className="text-right text-foreground">{formatUsd(node.totalCost)}</div>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-900 dark:text-emerald-100">
               {optimizationTip}
             </div>
           </>

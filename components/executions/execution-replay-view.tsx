@@ -63,11 +63,11 @@ function formatTimestamp(value?: string | null) {
 
 function getStatusStyles(status: ExecutionStatus) {
   const styles: Record<ExecutionStatus, string> = {
-    completed: 'border-green-500/30 bg-green-500/10 text-green-300',
-    failed: 'border-red-500/30 bg-red-500/10 text-red-300',
-    running: 'border-yellow-500/30 bg-yellow-500/10 text-yellow-300',
-    pending: 'border-zinc-700 bg-zinc-900 text-zinc-300',
-    cancelled: 'border-zinc-700 bg-zinc-900 text-zinc-300',
+    completed: 'border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300',
+    failed: 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300',
+    running: 'border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300',
+    pending: 'border-border bg-muted text-muted-foreground',
+    cancelled: 'border-border bg-muted text-muted-foreground',
   };
 
   return styles[status];
@@ -87,9 +87,9 @@ function StatusIcon({ status }: { status: ExecutionStatus }) {
     case 'failed':
       return <XCircle className="h-4 w-4 text-red-400" />;
     case 'running':
-      return <Loader2 className="h-4 w-4 animate-spin text-yellow-300" />;
+      return <Loader2 className="h-4 w-4 animate-spin text-yellow-500 dark:text-yellow-300" />;
     default:
-      return <Clock className="h-4 w-4 text-zinc-400" />;
+      return <Clock className="h-4 w-4 text-muted-foreground" />;
   }
 }
 
@@ -140,7 +140,7 @@ export function ExecutionReplayView({
 
   if (loading) {
     return (
-      <div className="flex min-h-[320px] items-center justify-center text-zinc-400">
+      <div className="flex min-h-[320px] items-center justify-center text-muted-foreground">
         <Loader2 className="h-6 w-6 animate-spin" />
       </div>
     );
@@ -149,8 +149,8 @@ export function ExecutionReplayView({
   if (!execution) {
     return (
       <div className="flex min-h-[320px] flex-col items-center justify-center gap-2 px-6 text-center">
-        <p className="text-lg font-semibold text-zinc-100">{emptyTitle}</p>
-        <p className="max-w-md text-sm text-zinc-400">{emptyDescription}</p>
+        <p className="text-lg font-semibold text-foreground">{emptyTitle}</p>
+        <p className="max-w-md text-sm text-muted-foreground">{emptyDescription}</p>
       </div>
     );
   }
@@ -159,51 +159,51 @@ export function ExecutionReplayView({
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
-      <Card className="border-zinc-800 bg-zinc-900/50 shadow-none">
-        <CardHeader className="gap-4 border-b border-zinc-800 pb-4 lg:flex-row lg:items-start lg:justify-between">
+      <Card className="border-border bg-card shadow-none">
+        <CardHeader className="gap-4 border-b border-border pb-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-3">
-              <CardTitle className="text-xl text-zinc-50">{execution.workflowName || 'Execution Replay'}</CardTitle>
+              <CardTitle className="text-xl text-foreground">{execution.workflowName || 'Execution Replay'}</CardTitle>
               <Badge variant="outline" className={getStatusStyles(execution.status)}>
                 <StatusIcon status={execution.status} />
                 <span className="capitalize">{execution.status}</span>
               </Badge>
               {execution.triggerType ? (
-                <Badge variant="outline" className="border-zinc-700 bg-zinc-950 text-zinc-300">
+                <Badge variant="outline" className="border-border bg-muted text-muted-foreground">
                   {execution.triggerType}
                 </Badge>
               ) : null}
             </div>
-            <div className="text-xs text-zinc-500 font-mono">{execution.id}</div>
+            <div className="text-xs text-muted-foreground font-mono">{execution.id}</div>
           </div>
           {headerActions ? <div className="flex flex-wrap items-center gap-2">{headerActions}</div> : null}
         </CardHeader>
         <CardContent className="grid gap-4 p-4 md:grid-cols-3 xl:grid-cols-5">
           <div>
-            <div className="text-xs uppercase tracking-wide text-zinc-500">Started</div>
-            <div className="mt-1 text-sm text-zinc-100">{formatTimestamp(execution.startedAt)}</div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">Started</div>
+            <div className="mt-1 text-sm text-foreground">{formatTimestamp(execution.startedAt)}</div>
           </div>
           <div>
-            <div className="text-xs uppercase tracking-wide text-zinc-500">Completed</div>
-            <div className="mt-1 text-sm text-zinc-100">{formatTimestamp(execution.completedAt)}</div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">Completed</div>
+            <div className="mt-1 text-sm text-foreground">{formatTimestamp(execution.completedAt)}</div>
           </div>
           <div>
-            <div className="text-xs uppercase tracking-wide text-zinc-500">Duration</div>
-            <div className="mt-1 text-sm text-zinc-100">{formatDuration(execution.durationMs)}</div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">Duration</div>
+            <div className="mt-1 text-sm text-foreground">{formatDuration(execution.durationMs)}</div>
           </div>
           <div>
-            <div className="text-xs uppercase tracking-wide text-zinc-500">Cost</div>
-            <div className="mt-1 text-sm text-zinc-100">{formatUsd(execution.costUsd)}</div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">Cost</div>
+            <div className="mt-1 text-sm text-foreground">{formatUsd(execution.costUsd)}</div>
           </div>
           <div>
-            <div className="text-xs uppercase tracking-wide text-zinc-500">Steps</div>
-            <div className="mt-1 text-sm text-zinc-100">{steps.length}</div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">Steps</div>
+            <div className="mt-1 text-sm text-foreground">{steps.length}</div>
           </div>
         </CardContent>
       </Card>
 
       {executionError ? (
-        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-800 dark:text-red-200">
           <div className="flex items-start gap-2">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <pre className="overflow-auto whitespace-pre-wrap font-mono text-xs">{executionError}</pre>
@@ -211,7 +211,7 @@ export function ExecutionReplayView({
         </div>
       ) : null}
 
-      <div className="min-h-0 flex-1 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/60">
+      <div className="min-h-0 flex-1 overflow-hidden rounded-xl border border-border bg-background/60">
         <ReplayControls
           currentStep={selectedStepIndex}
           totalSteps={steps.length}

@@ -14,9 +14,6 @@ npm run db:migrate     # Run pending migrations
 npm run db:push        # Push schema directly (dev only)
 npm run db:studio      # Open Drizzle Studio
 
-# Worker (Temporal)
-npm run build:worker   # Compile worker TypeScript
-npm run worker         # Run Temporal worker process
 
 # Tests
 npm run test:unit      # Run all unit tests (Vitest, one-shot)
@@ -33,7 +30,7 @@ npx playwright test tests/e2e/workflows-page.spec.ts
 
 ## Architecture
 
-This is an **AI agent visual workflow builder** — a Next.js 16 app where users build workflows by connecting nodes in a React Flow canvas. Workflows execute via Temporal (durable orchestration) on PandaStack microVMs (isolated code execution).
+This is an **AI agent visual workflow builder** — a Next.js 16 app where users build workflows by connecting nodes in a React Flow canvas. Workflows execute in PandaStack microVMs (isolated code execution) with a durable checkpointing TypeScript executor.
 
 ### Request Flow
 

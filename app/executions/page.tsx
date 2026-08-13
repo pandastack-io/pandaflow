@@ -39,11 +39,11 @@ interface ExecutionListItem {
 }
 
 const statusBadgeClasses: Record<ExecutionListItem['status'], string> = {
-  completed: 'border-green-500/30 bg-green-500/10 text-green-300',
-  failed: 'border-red-500/30 bg-red-500/10 text-red-300',
-  running: 'border-yellow-500/30 bg-yellow-500/10 text-yellow-300',
-  pending: 'border-zinc-700 bg-zinc-900 text-zinc-300',
-  cancelled: 'border-zinc-700 bg-zinc-900 text-zinc-300',
+  completed: 'border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300',
+  failed: 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300',
+  running: 'border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300',
+  pending: 'border-border bg-muted text-muted-foreground',
+  cancelled: 'border-border bg-muted text-muted-foreground',
 };
 
 function StatusIcon({ status }: { status: ExecutionListItem['status'] }) {
@@ -53,9 +53,9 @@ function StatusIcon({ status }: { status: ExecutionListItem['status'] }) {
     case 'failed':
       return <XCircle className="h-4 w-4 text-red-400" />;
     case 'running':
-      return <Loader2 className="h-4 w-4 animate-spin text-yellow-300" />;
+      return <Loader2 className="h-4 w-4 animate-spin text-yellow-500 dark:text-yellow-300" />;
     default:
-      return <Clock className="h-4 w-4 text-zinc-400" />;
+      return <Clock className="h-4 w-4 text-muted-foreground" />;
   }
 }
 
@@ -222,8 +222,8 @@ export default function ExecutionsPage() {
       <div className="flex h-full flex-col px-4 py-6 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-50">Executions</h1>
-            <p className="mt-1 text-sm text-zinc-400">Replay completed runs and step through each node with raw inputs and outputs.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Executions</h1>
+            <p className="mt-1 text-sm text-muted-foreground">Replay completed runs and step through each node with raw inputs and outputs.</p>
           </div>
           <Button variant="outline" size="sm" onClick={() => void fetchExecutions()}>
             <RotateCcw className="h-4 w-4" />
@@ -233,19 +233,19 @@ export default function ExecutionsPage() {
 
         <div className="mb-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
           {[
-            { label: 'Total Runs', value: total, icon: Activity, color: 'text-blue-300' },
-            { label: 'Success Rate', value: `${successRate}%`, icon: TrendingUp, color: 'text-green-300' },
-            { label: 'Avg Duration', value: formatDuration(avgDuration), icon: Timer, color: 'text-violet-300' },
-            { label: 'Running Now', value: running, icon: Loader2, color: 'text-yellow-300', spin: running > 0 },
+            { label: 'Total Runs', value: total, icon: Activity, color: 'text-blue-600 dark:text-blue-300' },
+            { label: 'Success Rate', value: `${successRate}%`, icon: TrendingUp, color: 'text-green-600 dark:text-green-300' },
+            { label: 'Avg Duration', value: formatDuration(avgDuration), icon: Timer, color: 'text-violet-600 dark:text-violet-300' },
+            { label: 'Running Now', value: running, icon: Loader2, color: 'text-yellow-600 dark:text-yellow-300', spin: running > 0 },
           ].map((stat) => (
-            <Card key={stat.label} className="border-zinc-800 bg-zinc-900/50 shadow-none">
+            <Card key={stat.label} className="border-border bg-card shadow-none">
               <CardContent className="flex items-center gap-3 p-4">
                 <div className={stat.color}>
                   <stat.icon className={`h-5 w-5 ${stat.spin ? 'animate-spin' : ''}`} />
                 </div>
                 <div>
-                  <div className="text-2xl font-semibold text-zinc-50">{stat.value}</div>
-                  <div className="text-xs text-zinc-500">{stat.label}</div>
+                  <div className="text-2xl font-semibold text-foreground">{stat.value}</div>
+                  <div className="text-xs text-muted-foreground">{stat.label}</div>
                 </div>
               </CardContent>
             </Card>
@@ -254,13 +254,13 @@ export default function ExecutionsPage() {
 
         <div className="mb-4 flex flex-wrap gap-3">
           <div className="relative min-w-[280px] flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search by workflow or execution ID..."
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              className="w-full rounded-md border border-zinc-800 bg-zinc-950 py-2 pl-10 pr-4 text-sm text-zinc-100 outline-none transition focus:border-blue-500/50"
+              className="w-full rounded-md border border-input bg-background py-2 pl-10 pr-4 text-sm text-foreground outline-none transition focus:border-blue-500/50"
             />
           </div>
           {['all', 'running', 'completed', 'failed', 'pending'].map((status) => (
@@ -270,8 +270,8 @@ export default function ExecutionsPage() {
               onClick={() => setStatusFilter(status)}
               className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
                 statusFilter === status
-                  ? 'border-blue-500/50 bg-blue-500/10 text-blue-200'
-                  : 'border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
+                  ? 'border-blue-500/50 bg-blue-500/10 text-blue-700 dark:text-blue-200'
+                  : 'border-border bg-background text-muted-foreground hover:border-muted-foreground/40 hover:text-foreground'
               }`}
             >
               {status === 'all' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
@@ -282,19 +282,19 @@ export default function ExecutionsPage() {
         <div className="flex min-h-0 flex-1 gap-4">
           <div className={`min-h-0 ${selectedExecutionId ? 'w-[42%] min-w-[420px]' : 'flex-1'} overflow-hidden`}>
             {loading ? (
-              <div className="flex justify-center py-16 text-zinc-400">
+              <div className="flex justify-center py-16 text-muted-foreground">
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
             ) : filteredExecutions.length === 0 ? (
-              <Card className="border-zinc-800 bg-zinc-900/50 shadow-none">
+              <Card className="border-border bg-card shadow-none">
                 <CardContent className="flex flex-col items-center py-16">
-                  <div className="mb-4 rounded-full bg-zinc-900 p-4">
-                    <Play className="h-8 w-8 text-zinc-500" />
+                  <div className="mb-4 rounded-full bg-muted p-4">
+                    <Play className="h-8 w-8 text-muted-foreground" />
                   </div>
-                  <h3 className="mb-2 text-lg font-semibold text-zinc-100">
+                  <h3 className="mb-2 text-lg font-semibold text-foreground">
                     {searchQuery || statusFilter !== 'all' ? 'No executions found' : 'No executions yet'}
                   </h3>
-                  <p className="mb-4 max-w-sm text-center text-sm text-zinc-400">
+                  <p className="mb-4 max-w-sm text-center text-sm text-muted-foreground">
                     {searchQuery || statusFilter !== 'all'
                       ? 'Try adjusting your search or filters.'
                       : 'Run a workflow to see execution history here.'}
@@ -307,16 +307,16 @@ export default function ExecutionsPage() {
                 </CardContent>
               </Card>
             ) : (
-              <Card className="h-full border-zinc-800 bg-zinc-900/50 shadow-none">
+              <Card className="h-full border-border bg-card shadow-none">
                 <CardContent className="h-full overflow-auto p-0">
                   <table className="w-full">
-                    <thead className="sticky top-0 z-10 border-b border-zinc-800 bg-zinc-950/95">
+                    <thead className="sticky top-0 z-10 border-b border-border bg-background/95">
                       <tr>
-                        <th className="p-3 text-left text-xs font-medium uppercase tracking-wide text-zinc-500">Status</th>
-                        <th className="p-3 text-left text-xs font-medium uppercase tracking-wide text-zinc-500">Workflow</th>
-                        <th className="p-3 text-left text-xs font-medium uppercase tracking-wide text-zinc-500">Trigger</th>
-                        <th className="p-3 text-left text-xs font-medium uppercase tracking-wide text-zinc-500">Started</th>
-                        <th className="p-3 text-left text-xs font-medium uppercase tracking-wide text-zinc-500">Duration</th>
+                        <th className="p-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Status</th>
+                        <th className="p-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Workflow</th>
+                        <th className="p-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Trigger</th>
+                        <th className="p-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Started</th>
+                        <th className="p-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Duration</th>
                         <th className="p-3" />
                       </tr>
                     </thead>
@@ -327,7 +327,7 @@ export default function ExecutionsPage() {
                         return (
                           <tr
                             key={execution.id}
-                            className={`border-b border-zinc-800 transition-colors ${selected ? 'bg-blue-500/10' : 'hover:bg-zinc-900/80'} cursor-pointer`}
+                            className={`border-b border-border transition-colors ${selected ? 'bg-blue-500/10' : 'hover:bg-muted/50'} cursor-pointer`}
                             onClick={() => {
                               const nextExecutionId = selected ? null : execution.id;
                               setSelectedExecutionId(nextExecutionId);
@@ -352,28 +352,28 @@ export default function ExecutionsPage() {
                                 <Link
                                   href={`/workflows/${execution.workflowId}`}
                                   onClick={(event) => event.stopPropagation()}
-                                  className="text-sm font-medium text-zinc-100 hover:underline"
+                                  className="text-sm font-medium text-foreground hover:underline"
                                 >
                                   {execution.workflowName || 'Unknown Workflow'}
                                 </Link>
                                 <div className="mt-1 flex items-center gap-2">
-                                  <p className="font-mono text-xs text-zinc-500">{execution.id.slice(0, 8)}…</p>
-                                  <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-200">
+                                  <p className="font-mono text-xs text-muted-foreground">{execution.id.slice(0, 8)}…</p>
+                                  <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200">
                                     {formatUsd(execution.costUsd)}
                                   </Badge>
                                 </div>
                               </div>
                             </td>
                             <td className="p-3">
-                              <Badge variant="outline" className="border-zinc-700 bg-zinc-950 text-zinc-300">{execution.triggerType || 'manual'}</Badge>
+                              <Badge variant="outline" className="border-border bg-muted text-muted-foreground">{execution.triggerType || 'manual'}</Badge>
                             </td>
                             <td className="p-3">
                               <div>
-                                <p className="text-sm text-zinc-100">{formatDistanceToNow(new Date(execution.startedAt), { addSuffix: true })}</p>
-                                <p className="text-xs text-zinc-500">{format(new Date(execution.startedAt), 'MMM d, HH:mm:ss')}</p>
+                                <p className="text-sm text-foreground">{formatDistanceToNow(new Date(execution.startedAt), { addSuffix: true })}</p>
+                                <p className="text-xs text-muted-foreground">{format(new Date(execution.startedAt), 'MMM d, HH:mm:ss')}</p>
                               </div>
                             </td>
-                            <td className="p-3 font-mono text-sm text-zinc-300">{formatDuration(execution.durationMs)}</td>
+                            <td className="p-3 font-mono text-sm text-muted-foreground">{formatDuration(execution.durationMs)}</td>
                             <td className="p-3">
                               <div className="flex items-center justify-end gap-1" onClick={(event) => event.stopPropagation()}>
                                 <Button asChild size="sm" variant="ghost">
@@ -394,7 +394,7 @@ export default function ExecutionsPage() {
                                       : <RotateCcw className="h-3.5 w-3.5" />}
                                   </Button>
                                 ) : null}
-                                <ChevronRight className={`h-4 w-4 text-zinc-500 transition-transform ${selected ? 'rotate-90' : ''}`} />
+                                <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${selected ? 'rotate-90' : ''}`} />
                               </div>
                             </td>
                           </tr>
@@ -409,11 +409,11 @@ export default function ExecutionsPage() {
 
           {selectedExecutionId ? (
             <div className="min-h-0 min-w-0 flex-1">
-              <Card className="h-full overflow-hidden border-zinc-800 bg-zinc-900/50 shadow-none">
-                <div className="sticky top-0 z-20 flex items-center justify-between border-b border-zinc-800 bg-zinc-950/90 px-4 py-3 backdrop-blur">
+              <Card className="h-full overflow-hidden border-border bg-card shadow-none">
+                <div className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-background/90 px-4 py-3 backdrop-blur">
                   <div>
-                    <div className="text-sm font-semibold text-zinc-100">Execution Replay</div>
-                    <div className="text-xs text-zinc-500 font-mono">{selectedExecutionId}</div>
+                    <div className="text-sm font-semibold text-foreground">Execution Replay</div>
+                    <div className="text-xs text-muted-foreground font-mono">{selectedExecutionId}</div>
                   </div>
                   <Button variant="ghost" size="icon" onClick={() => {
                     setSelectedExecutionId(null);

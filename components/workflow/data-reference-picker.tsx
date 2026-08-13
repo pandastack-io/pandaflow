@@ -200,7 +200,7 @@ export function DataReferencePicker({ nodeId, onSelect }: DataReferencePickerPro
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className={cn('h-auto w-full justify-start px-2 py-1 font-mono text-[11px] text-emerald-400 hover:text-emerald-300')}
+                        className={cn('h-auto w-full justify-start px-2 py-1 font-mono text-[11px] text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-emerald-300')}
                         onClick={() => onSelect(reference)}
                       >
                         {`{{${reference}}}`}

@@ -73,26 +73,26 @@ export function CronEditor({ value, timezone, onChange, disabled = false, classN
         </div>
       </div>
 
-      <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 text-sm">
+      <div className="rounded-lg border border-border bg-muted/40 p-4 text-sm">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className="border-zinc-700 text-zinc-300">
+          <Badge variant="outline" className="border-border text-foreground">
             {activePreset ? activePreset.label : 'Custom'}
           </Badge>
-          <span className={description === 'Invalid cron expression' ? 'text-red-400' : 'text-zinc-300'}>{description}</span>
+          <span className={description === 'Invalid cron expression' ? 'text-red-600 dark:text-red-400' : 'text-foreground'}>{description}</span>
         </div>
 
         <div className="mt-4 space-y-2">
-          <div className="text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">Next 3 runs</div>
+          <div className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">Next 3 runs</div>
           {nextRuns.length > 0 ? (
-            <ul className="space-y-2 text-zinc-300">
+            <ul className="space-y-2 text-foreground">
               {nextRuns.map((run, index) => (
-                <li key={`${run.toISOString()}-${index}`} className="rounded-md border border-zinc-800 bg-black/20 px-3 py-2">
+                <li key={`${run.toISOString()}-${index}`} className="rounded-md border border-border bg-muted/50 px-3 py-2">
                   {formatRun(run, timezone)}
                 </li>
               ))}
             </ul>
           ) : (
-            <div className="text-zinc-500">Unable to calculate upcoming runs.</div>
+            <div className="text-muted-foreground">Unable to calculate upcoming runs.</div>
           )}
         </div>
       </div>

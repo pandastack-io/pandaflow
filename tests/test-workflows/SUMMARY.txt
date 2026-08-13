@@ -25,7 +25,7 @@
    ├─ Name: Code Execution Workflow
    ├─ Nodes: 4
    ├─ Flow: Manual Trigger → Python Execute → Log → Output
-   └─ Purpose: Test Sandflare code execution with data analysis
+   └─ Purpose: Test PandaStack code execution with data analysis
 
 3️⃣  3-conditional-workflow.json (5.5 KB)
    ├─ Name: Conditional Workflow
@@ -107,7 +107,7 @@ Node Type Coverage:
    • Unique Types: 11
    • Categories: 6
    • Trigger: 100% manual triggers
-   • Sandflare: 100% (execute + scrape)
+   • PandaStack: 100% (execute + scrape)
    • Control: 50% (condition + loop)
    • Transform: 75%
    • Integration: 25% (HTTP only)

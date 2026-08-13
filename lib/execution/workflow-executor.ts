@@ -89,11 +89,11 @@ function pickTemplate(nodeTypes: string[]): string {
     [NodeType.PANDASTACK_PYTHON, NodeType.PANDASTACK_GIT_CLONE, NodeType.PANDASTACK_INSTALL].includes(t as NodeType)
   );
 
-  if (hasJupyter || hasPlaywright) return 'browser-agent'; // Has chromium + Playwright
-  if (hasNode && hasPython) return 'ai-agent'; // ai-agent has both
-  if (hasNode) return 'ai-agent';
-  if (hasPython) return 'ai-agent';
-  return 'ai-agent'; // Sensible default — has LLM libs, requests, pandas, etc.
+  if (hasJupyter || hasPlaywright) return 'browser'; // Has chromium + Playwright
+  if (hasNode && hasPython) return 'code-interpreter'; // has both runtimes
+  if (hasNode) return 'code-interpreter';
+  if (hasPython) return 'code-interpreter';
+  return 'code-interpreter'; // Sensible default — has LLM libs, requests, pandas, etc.
 }
 
 function toFiniteNumber(value: unknown): number | undefined {

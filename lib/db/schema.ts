@@ -143,8 +143,6 @@ export const executions = pgTable('executions', {
   input: jsonb('input'),
   output: jsonb('output'),
   error: jsonb('error'),
-  temporalWorkflowId: varchar('temporal_workflow_id', { length: 255 }),
-  temporalRunId: varchar('temporal_run_id', { length: 255 }),
   // Multi-agent / durable execution fields
   parentExecutionId: uuid('parent_execution_id'), // FK set below via relations (self-ref)
   traceId: uuid('trace_id'),                       // root execution ID for the entire call tree
@@ -166,7 +164,6 @@ export const executions = pgTable('executions', {
   orgIdx: index('idx_executions_org').on(table.organizationId),
   statusIdx: index('idx_executions_status').on(table.status),
   createdAtIdx: index('idx_executions_created_at').on(table.createdAt),
-  temporalIdx: index('idx_executions_temporal').on(table.temporalWorkflowId),
   traceIdx: index('idx_executions_trace').on(table.traceId),
   parentIdx: index('idx_executions_parent').on(table.parentExecutionId),
 }));

@@ -51,8 +51,8 @@ export function ReplayControls({
   const hasSteps = totalSteps > 0;
 
   return (
-    <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 bg-zinc-950/90 px-4 py-3 backdrop-blur">
-      <div className="text-sm font-medium text-zinc-200">
+    <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background/90 px-4 py-3 backdrop-blur">
+      <div className="text-sm font-medium text-foreground">
         {hasSteps ? `Step ${currentStep + 1} of ${totalSteps}` : 'No steps'}
       </div>
       <div className="flex flex-wrap items-center gap-2">

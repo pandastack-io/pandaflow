@@ -90,12 +90,12 @@ type ExecutionListItem = {
 };
 
 const statusStyles: Record<AgentStatus, { badge: string; dot: string; pulse?: boolean; label: string }> = {
-  running: { badge: 'border-green-500/30 bg-green-500/15 text-green-400', dot: 'bg-green-400', pulse: true, label: 'Running' },
-  stopped: { badge: 'border-zinc-500/30 bg-zinc-500/15 text-zinc-400', dot: 'bg-zinc-400', label: 'Stopped' },
-  crashed: { badge: 'border-red-500/30 bg-red-500/15 text-red-400', dot: 'bg-red-400', label: 'Crashed' },
-  paused: { badge: 'border-yellow-500/30 bg-yellow-500/15 text-yellow-400', dot: 'bg-yellow-400', label: 'Paused' },
-  deployed: { badge: 'border-blue-500/30 bg-blue-500/15 text-blue-400', dot: 'bg-blue-400', label: 'Deployed' },
-  error: { badge: 'border-red-500/30 bg-red-500/15 text-red-400', dot: 'bg-red-400', label: 'Error' },
+  running: { badge: 'border-green-500/30 bg-green-500/15 text-green-600 dark:text-green-400', dot: 'bg-green-400', pulse: true, label: 'Running' },
+  stopped: { badge: 'border-border bg-muted text-muted-foreground', dot: 'bg-muted-foreground', label: 'Stopped' },
+  crashed: { badge: 'border-red-500/30 bg-red-500/15 text-red-600 dark:text-red-400', dot: 'bg-red-400', label: 'Crashed' },
+  paused: { badge: 'border-yellow-500/30 bg-yellow-500/15 text-yellow-600 dark:text-yellow-400', dot: 'bg-yellow-400', label: 'Paused' },
+  deployed: { badge: 'border-blue-500/30 bg-blue-500/15 text-blue-600 dark:text-blue-400', dot: 'bg-blue-400', label: 'Deployed' },
+  error: { badge: 'border-red-500/30 bg-red-500/15 text-red-600 dark:text-red-400', dot: 'bg-red-400', label: 'Error' },
 };
 
 function formatRelativeTime(value?: string | null) {
@@ -329,7 +329,7 @@ export default function AgentDetailPage() {
     return (
       <MainLayout>
         <div className="flex h-full items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       </MainLayout>
     );
@@ -343,32 +343,32 @@ export default function AgentDetailPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-500/10 text-blue-300">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-300">
                 <Bot className="h-5 w-5" />
               </div>
               <div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <h1 className="text-3xl font-bold tracking-tight text-zinc-50">{agent.name}</h1>
+                  <h1 className="text-3xl font-bold tracking-tight text-foreground">{agent.name}</h1>
                   <Badge variant="outline" className={cn('gap-2 rounded-full px-3 py-1 text-xs', status.badge)}>
                     <span className={cn('h-2.5 w-2.5 rounded-full', status.dot, status.pulse && 'animate-pulse')} />
                     {status.label}
                   </Badge>
                 </div>
-                <p className="mt-2 max-w-2xl text-sm text-zinc-400">
+                <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
                   {agent.description || 'Persistent workflow agent with an isolated identity, memory namespace, and event timeline.'}
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-400">
-              <Link href={`/workflows/${agent.workflow?.id || agent.workflowId}`} className="inline-flex items-center gap-2 text-blue-300 transition hover:text-blue-200">
+            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <Link href={`/workflows/${agent.workflow?.id || agent.workflowId}`} className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-300 transition hover:text-blue-500 dark:hover:text-blue-200">
                 <Workflow className="h-4 w-4" />
                 {agent.workflow?.name || 'Workflow'}
               </Link>
-              <span className="text-zinc-600">|</span>
-              <span>Last heartbeat: <span className="text-zinc-100">{formatRelativeTime(agent.lastHeartbeatAt)}</span></span>
-              <span className="text-zinc-600">|</span>
-              <span>Last run: <span className="text-zinc-100">{formatRelativeTime(agent.lastRunAt)}</span></span>
+              <span className="text-muted-foreground/60">|</span>
+              <span>Last heartbeat: <span className="text-foreground">{formatRelativeTime(agent.lastHeartbeatAt)}</span></span>
+              <span className="text-muted-foreground/60">|</span>
+              <span>Last run: <span className="text-foreground">{formatRelativeTime(agent.lastRunAt)}</span></span>
             </div>
           </div>
 
@@ -398,19 +398,19 @@ export default function AgentDetailPage() {
 
         <div className="grid gap-4 md:grid-cols-4">
           {[
-            { label: 'Total executions', value: agent.totalExecutions ?? 0, icon: Activity, accent: 'text-blue-300' },
-            { label: 'Running executions', value: executionSummary.running, icon: Play, accent: 'text-green-300' },
-            { label: 'Completed runs', value: executionSummary.completed, icon: Clock3, accent: 'text-violet-300' },
-            { label: 'Total cost', value: formatCurrency(agent.totalCostUsd), icon: Bot, accent: 'text-emerald-300' },
+            { label: 'Total executions', value: agent.totalExecutions ?? 0, icon: Activity, accent: 'text-blue-600 dark:text-blue-300' },
+            { label: 'Running executions', value: executionSummary.running, icon: Play, accent: 'text-green-600 dark:text-green-300' },
+            { label: 'Completed runs', value: executionSummary.completed, icon: Clock3, accent: 'text-violet-600 dark:text-violet-300' },
+            { label: 'Total cost', value: formatCurrency(agent.totalCostUsd), icon: Bot, accent: 'text-emerald-600 dark:text-emerald-300' },
           ].map((stat) => (
-            <Card key={stat.label} className="border-zinc-800 bg-zinc-900/60 shadow-none">
+            <Card key={stat.label} className="border-border bg-muted/50 shadow-none">
               <CardContent className="flex items-center gap-3 p-5">
-                <div className={cn('rounded-xl border border-white/5 bg-black/20 p-3', stat.accent)}>
+                <div className={cn('rounded-xl border border-border bg-muted p-3', stat.accent)}>
                   <stat.icon className="h-5 w-5" />
                 </div>
                 <div>
-                  <div className="text-2xl font-semibold text-zinc-50">{stat.value}</div>
-                  <div className="text-sm text-zinc-500">{stat.label}</div>
+                  <div className="text-2xl font-semibold text-foreground">{stat.value}</div>
+                  <div className="text-sm text-muted-foreground">{stat.label}</div>
                 </div>
               </CardContent>
             </Card>
@@ -418,7 +418,7 @@ export default function AgentDetailPage() {
         </div>
 
         <Tabs defaultValue="overview" className="flex-1">
-          <TabsList className="grid w-full grid-cols-5 bg-zinc-900/80 text-zinc-400">
+          <TabsList className="grid w-full grid-cols-5 bg-muted text-muted-foreground">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="executions">Executions</TabsTrigger>
             <TabsTrigger value="traces">Traces</TabsTrigger>
@@ -428,78 +428,78 @@ export default function AgentDetailPage() {
 
           <TabsContent value="overview" className="space-y-4 pt-4">
             <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-              <Card className="border-zinc-800 bg-zinc-950/70 shadow-none">
+              <Card className="border-border bg-card shadow-none">
                 <CardHeader>
-                  <CardTitle className="text-zinc-100">Identity</CardTitle>
+                  <CardTitle className="text-foreground">Identity</CardTitle>
                   <CardDescription>Use the token below to invoke this agent from any external system.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4 text-sm">
                   {/* Identity token with reveal + copy */}
-                  <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+                  <div className="rounded-xl border border-border bg-muted/50 p-4">
                     <div className="flex items-center justify-between">
-                      <div className="text-xs uppercase tracking-[0.2em] text-zinc-500">Identity token</div>
+                      <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Identity token</div>
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => setTokenRevealed((v) => !v)}
-                          className="rounded p-1 text-zinc-500 hover:text-zinc-300 transition"
+                          className="rounded p-1 text-muted-foreground hover:text-foreground transition"
                           title={tokenRevealed ? 'Hide token' : 'Reveal token'}
                         >
                           {tokenRevealed ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                         </button>
                         <button
                           onClick={() => copyToken(agent.identityToken)}
-                          className="rounded p-1 text-zinc-500 hover:text-zinc-300 transition"
+                          className="rounded p-1 text-muted-foreground hover:text-foreground transition"
                           title="Copy token"
                         >
-                          {tokenCopied ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
+                          {tokenCopied ? <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
                         </button>
                       </div>
                     </div>
-                    <div className="mt-2 font-mono text-sm text-zinc-100 break-all">
+                    <div className="mt-2 font-mono text-sm text-foreground break-all">
                       {tokenRevealed ? agent.identityToken : maskToken(agent.identityToken)}
                     </div>
                   </div>
 
                   {/* How to invoke */}
                   <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 space-y-2">
-                    <div className="text-xs font-medium text-blue-300">How to invoke this agent externally</div>
-                    <pre className="overflow-x-auto rounded-lg bg-black/40 p-3 text-xs text-zinc-300 whitespace-pre-wrap">{`curl -X POST https://your-domain/api/agents/invoke \\
+                    <div className="text-xs font-medium text-blue-600 dark:text-blue-300">How to invoke this agent externally</div>
+                    <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs text-foreground whitespace-pre-wrap">{`curl -X POST https://your-domain/api/agents/invoke \\
   -H "Authorization: Bearer ${tokenRevealed ? agent.identityToken : maskToken(agent.identityToken)}" \\
   -H "Content-Type: application/json" \\
   -d '{"input": {"message": "hello"}}'`}</pre>
-                    <div className="text-xs text-zinc-500">Returns: <code className="text-zinc-300">{'{ executionId, agentId, status }'}</code></div>
+                    <div className="text-xs text-muted-foreground">Returns: <code className="text-foreground">{'{ executionId, agentId, status }'}</code></div>
                   </div>
 
                   {/* Memory namespace */}
-                  <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-                    <div className="text-xs uppercase tracking-[0.2em] text-zinc-500">Memory namespace</div>
-                    <div className="mt-2 break-all font-mono text-sm text-zinc-100">{agent.memoryNamespace}</div>
+                  <div className="rounded-xl border border-border bg-muted/50 p-4">
+                    <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Memory namespace</div>
+                    <div className="mt-2 break-all font-mono text-sm text-foreground">{agent.memoryNamespace}</div>
                   </div>
-                  <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-                    <div className="text-xs uppercase tracking-[0.2em] text-zinc-500">Config</div>
-                    <pre className="mt-2 overflow-x-auto rounded-lg bg-black/30 p-3 text-xs text-zinc-300">{JSON.stringify(agent.config ?? {}, null, 2)}</pre>
+                  <div className="rounded-xl border border-border bg-muted/50 p-4">
+                    <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Config</div>
+                    <pre className="mt-2 overflow-x-auto rounded-lg bg-muted p-3 text-xs text-foreground">{JSON.stringify(agent.config ?? {}, null, 2)}</pre>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border-zinc-800 bg-zinc-950/70 shadow-none">
+              <Card className="border-border bg-card shadow-none">
                 <CardHeader>
-                  <CardTitle className="text-zinc-100">Message bus</CardTitle>
+                  <CardTitle className="text-foreground">Message bus</CardTitle>
                   <CardDescription>Recent inbound and outbound agent traffic.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {agent.messages.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-zinc-800 bg-zinc-900/40 p-6 text-sm text-zinc-500">
+                    <div className="rounded-xl border border-dashed border-border bg-muted/30 p-6 text-sm text-muted-foreground">
                       No inter-agent messages yet.
                     </div>
                   ) : (
                     agent.messages.map((message) => (
-                      <div key={message.id} className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 text-sm text-zinc-300">
+                      <div key={message.id} className="rounded-xl border border-border bg-muted/50 p-4 text-sm text-foreground">
                         <div className="flex items-center justify-between gap-3">
-                          <div className="font-medium text-zinc-100">{message.topic}</div>
-                          <Badge variant="outline" className="border-zinc-700 text-zinc-300">{message.status}</Badge>
+                          <div className="font-medium text-foreground">{message.topic}</div>
+                          <Badge variant="outline" className="border-border text-foreground">{message.status}</Badge>
                         </div>
-                        <div className="mt-2 text-xs text-zinc-500">{formatRelativeTime(message.createdAt)}</div>
+                        <div className="mt-2 text-xs text-muted-foreground">{formatRelativeTime(message.createdAt)}</div>
                       </div>
                     ))
                   )}
@@ -507,10 +507,10 @@ export default function AgentDetailPage() {
               </Card>
             </div>
 
-            <Card className="border-zinc-800 bg-zinc-950/70 shadow-none">
+            <Card className="border-border bg-card shadow-none">
               <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <CardTitle className="text-zinc-100">Schedule</CardTitle>
+                  <CardTitle className="text-foreground">Schedule</CardTitle>
                   <CardDescription>Run this deployed agent automatically on a cron schedule.</CardDescription>
                 </div>
                 <Button size="sm" onClick={() => void handleScheduleSave()} disabled={savingSchedule || !scheduleDirty}>
@@ -520,18 +520,18 @@ export default function AgentDetailPage() {
               </CardHeader>
               <CardContent className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+                  <div className="flex items-center justify-between rounded-xl border border-border bg-muted/50 p-4">
                     <div>
-                      <div className="text-sm font-medium text-zinc-100">Enable scheduled execution</div>
-                      <div className="text-xs text-zinc-500">External cron can call the scheduler tick route every minute.</div>
+                      <div className="text-sm font-medium text-foreground">Enable scheduled execution</div>
+                      <div className="text-xs text-muted-foreground">External cron can call the scheduler tick route every minute.</div>
                     </div>
                     <Switch checked={scheduleConfig.enabled} onCheckedChange={(checked) => updateScheduleConfig({ enabled: checked })} />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="agent-schedule-timezone" className="text-zinc-300">Timezone</Label>
+                    <Label htmlFor="agent-schedule-timezone" className="text-foreground">Timezone</Label>
                     <Select value={scheduleConfig.timezone} onValueChange={(value) => updateScheduleConfig({ timezone: value })}>
-                      <SelectTrigger id="agent-schedule-timezone" className="border-zinc-800 bg-zinc-900/60 text-zinc-100">
+                      <SelectTrigger id="agent-schedule-timezone" className="border-border bg-muted/50 text-foreground">
                         <SelectValue placeholder="Select timezone" />
                       </SelectTrigger>
                       <SelectContent>
@@ -550,58 +550,58 @@ export default function AgentDetailPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+                  <div className="rounded-xl border border-border bg-muted/50 p-4">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="outline" className={cn('border-zinc-700', scheduleConfig.enabled ? 'text-green-300' : 'text-zinc-400')}>
+                      <Badge variant="outline" className={cn('border-border', scheduleConfig.enabled ? 'text-green-600 dark:text-green-300' : 'text-muted-foreground')}>
                         {scheduleConfig.enabled ? 'Enabled' : 'Disabled'}
                       </Badge>
-                      <span className="text-sm text-zinc-400">{scheduleConfig.timezone}</span>
+                      <span className="text-sm text-muted-foreground">{scheduleConfig.timezone}</span>
                     </div>
 
-                    <div className="mt-4 text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">Next 5 runs</div>
+                    <div className="mt-4 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">Next 5 runs</div>
                     <div className="mt-3 space-y-2">
                       {scheduleConfig.enabled && nextFiveRuns.length > 0 ? (
                         nextFiveRuns.map((run, index) => (
-                          <div key={`${run.toISOString()}-${index}`} className="rounded-lg border border-zinc-800 bg-black/20 px-3 py-2 text-sm text-zinc-300">
+                          <div key={`${run.toISOString()}-${index}`} className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground">
                             {formatScheduleRun(run, scheduleConfig.timezone)}
                           </div>
                         ))
                       ) : (
-                        <div className="rounded-lg border border-dashed border-zinc-800 bg-black/20 px-3 py-4 text-sm text-zinc-500">
+                        <div className="rounded-lg border border-dashed border-border bg-muted/50 px-3 py-4 text-sm text-muted-foreground">
                           {scheduleConfig.enabled ? 'Enter a valid cron expression to preview upcoming runs.' : 'Enable the schedule to preview upcoming runs.'}
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm text-zinc-300">
-                    <div className="font-medium text-blue-300">Scheduler endpoint</div>
-                    <p className="mt-2 text-zinc-400">Call <code className="text-zinc-200">GET /api/agents/scheduler/tick</code> every minute with the <code className="text-zinc-200">X-Scheduler-Secret</code> header.</p>
+                  <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm text-foreground">
+                    <div className="font-medium text-blue-600 dark:text-blue-300">Scheduler endpoint</div>
+                    <p className="mt-2 text-muted-foreground">Call <code className="text-foreground">GET /api/agents/scheduler/tick</code> every minute with the <code className="text-foreground">X-Scheduler-Secret</code> header.</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-zinc-800 bg-zinc-950/70 shadow-none">
+            <Card className="border-border bg-card shadow-none">
               <CardHeader>
-                <CardTitle className="text-zinc-100">Recent events timeline</CardTitle>
+                <CardTitle className="text-foreground">Recent events timeline</CardTitle>
                 <CardDescription>Status changes, heartbeats, and deployments are recorded here.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {agent.recentEvents.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-zinc-800 bg-zinc-900/40 p-6 text-sm text-zinc-500">
+                  <div className="rounded-xl border border-dashed border-border bg-muted/30 p-6 text-sm text-muted-foreground">
                     No events recorded yet.
                   </div>
                 ) : (
                   agent.recentEvents.map((event) => (
-                    <div key={event.id} className="flex gap-4 rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+                    <div key={event.id} className="flex gap-4 rounded-xl border border-border bg-muted/50 p-4">
                       <div className="mt-1 h-2.5 w-2.5 rounded-full bg-blue-400" />
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center justify-between gap-3">
-                          <div className="font-medium capitalize text-zinc-100">{event.type.replace(/-/g, ' ')}</div>
-                          <div className="text-xs text-zinc-500">{formatRelativeTime(event.createdAt)}</div>
+                          <div className="font-medium capitalize text-foreground">{event.type.replace(/-/g, ' ')}</div>
+                          <div className="text-xs text-muted-foreground">{formatRelativeTime(event.createdAt)}</div>
                         </div>
-                        <pre className="mt-2 overflow-x-auto rounded-lg bg-black/30 p-3 text-xs text-zinc-400">{JSON.stringify(event.data ?? {}, null, 2)}</pre>
+                        <pre className="mt-2 overflow-x-auto rounded-lg bg-muted p-3 text-xs text-muted-foreground">{JSON.stringify(event.data ?? {}, null, 2)}</pre>
                       </div>
                     </div>
                   ))
@@ -611,14 +611,14 @@ export default function AgentDetailPage() {
           </TabsContent>
 
           <TabsContent value="executions" className="pt-4">
-            <Card className="border-zinc-800 bg-zinc-950/70 shadow-none">
+            <Card className="border-border bg-card shadow-none">
               <CardHeader>
-                <CardTitle className="text-zinc-100">Workflow executions</CardTitle>
+                <CardTitle className="text-foreground">Workflow executions</CardTitle>
                 <CardDescription>All runs triggered for the workflow behind this agent.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 {executions.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-zinc-800 bg-zinc-900/40 p-6 text-sm text-zinc-500">
+                  <div className="rounded-xl border border-dashed border-border bg-muted/30 p-6 text-sm text-muted-foreground">
                     No executions have been recorded yet.
                   </div>
                 ) : (
@@ -626,19 +626,19 @@ export default function AgentDetailPage() {
                     <Link
                       key={execution.id}
                       href={`/executions/${execution.id}`}
-                      className="block rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 transition hover:border-blue-500/30 hover:bg-zinc-900"
+                      className="block rounded-xl border border-border bg-muted/50 p-4 transition hover:border-blue-500/30 hover:bg-muted"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
-                          <div className="font-medium text-zinc-100">{execution.id}</div>
-                          <div className="mt-1 text-xs text-zinc-500">Triggered via {execution.triggerType}</div>
+                          <div className="font-medium text-foreground">{execution.id}</div>
+                          <div className="mt-1 text-xs text-muted-foreground">Triggered via {execution.triggerType}</div>
                         </div>
-                        <Badge variant="outline" className="border-zinc-700 text-zinc-300 capitalize">{execution.status}</Badge>
+                        <Badge variant="outline" className="border-border text-foreground capitalize">{execution.status}</Badge>
                       </div>
-                      <div className="mt-3 grid gap-3 text-sm text-zinc-400 sm:grid-cols-3">
-                        <div>Started: <span className="text-zinc-100">{formatRelativeTime(execution.startedAt)}</span></div>
-                        <div>Duration: <span className="text-zinc-100">{execution.durationMs ? `${execution.durationMs} ms` : '—'}</span></div>
-                        <div>Cost: <span className="text-zinc-100">{formatCurrency(execution.costUsd)}</span></div>
+                      <div className="mt-3 grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
+                        <div>Started: <span className="text-foreground">{formatRelativeTime(execution.startedAt)}</span></div>
+                        <div>Duration: <span className="text-foreground">{execution.durationMs ? `${execution.durationMs} ms` : '—'}</span></div>
+                        <div>Cost: <span className="text-foreground">{formatCurrency(execution.costUsd)}</span></div>
                       </div>
                     </Link>
                   ))
@@ -658,25 +658,25 @@ export default function AgentDetailPage() {
           <TabsContent value="cost" className="pt-4">
             {costLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             ) : costData ? (
               <div className="space-y-4">
                 {/* Summary cards */}
                 <div className="grid gap-4 sm:grid-cols-3">
                   {[
-                    { label: 'Total spend', value: formatCurrency(costData.totalCostUsd), icon: DollarSign, accent: 'text-emerald-300' },
-                    { label: 'Total runs', value: String(costData.totalExecutions), icon: Activity, accent: 'text-blue-300' },
-                    { label: 'Avg per run', value: formatCurrency(costData.avgCostPerRun), icon: TrendingUp, accent: 'text-violet-300' },
+                    { label: 'Total spend', value: formatCurrency(costData.totalCostUsd), icon: DollarSign, accent: 'text-emerald-600 dark:text-emerald-300' },
+                    { label: 'Total runs', value: String(costData.totalExecutions), icon: Activity, accent: 'text-blue-600 dark:text-blue-300' },
+                    { label: 'Avg per run', value: formatCurrency(costData.avgCostPerRun), icon: TrendingUp, accent: 'text-violet-600 dark:text-violet-300' },
                   ].map((stat) => (
-                    <Card key={stat.label} className="border-zinc-800 bg-zinc-900/60 shadow-none">
+                    <Card key={stat.label} className="border-border bg-muted/50 shadow-none">
                       <CardContent className="flex items-center gap-3 p-5">
-                        <div className={cn('rounded-xl border border-white/5 bg-black/20 p-3', stat.accent)}>
+                        <div className={cn('rounded-xl border border-border bg-muted p-3', stat.accent)}>
                           <stat.icon className="h-5 w-5" />
                         </div>
                         <div>
-                          <div className="text-xl font-semibold text-zinc-50">{stat.value}</div>
-                          <div className="text-sm text-zinc-500">{stat.label}</div>
+                          <div className="text-xl font-semibold text-foreground">{stat.value}</div>
+                          <div className="text-sm text-muted-foreground">{stat.label}</div>
                         </div>
                       </CardContent>
                     </Card>
@@ -685,9 +685,9 @@ export default function AgentDetailPage() {
 
                 {/* 7-day trend */}
                 {(costData.dailyTrend?.length ?? 0) > 0 && (
-                  <Card className="border-zinc-800 bg-zinc-950/70 shadow-none">
+                  <Card className="border-border bg-card shadow-none">
                     <CardHeader>
-                      <CardTitle className="text-sm font-medium text-zinc-300">7-day spend trend</CardTitle>
+                      <CardTitle className="text-sm font-medium text-foreground">7-day spend trend</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-end gap-1.5 h-24">
@@ -700,7 +700,7 @@ export default function AgentDetailPage() {
                                 style={{ height: `${Math.max((day.cost / max) * 80, day.cost > 0 ? 4 : 0)}px` }}
                                 title={`${day.date}: ${formatCurrency(day.cost)}`}
                               />
-                              <span className="text-[10px] text-zinc-600">{day.date.slice(5)}</span>
+                              <span className="text-[10px] text-muted-foreground/60">{day.date.slice(5)}</span>
                             </div>
                           ));
                         })()}
@@ -711,18 +711,18 @@ export default function AgentDetailPage() {
 
                 {/* Top nodes by cost */}
                 {costData.topNodes.length > 0 && (
-                  <Card className="border-zinc-800 bg-zinc-950/70 shadow-none">
+                  <Card className="border-border bg-card shadow-none">
                     <CardHeader>
-                      <CardTitle className="text-sm font-medium text-zinc-300">Top nodes by spend</CardTitle>
+                      <CardTitle className="text-sm font-medium text-foreground">Top nodes by spend</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
                       {costData.topNodes.map((node) => (
-                        <div key={node.nodeId} className="flex items-center justify-between rounded-lg border border-zinc-800 bg-black/20 px-4 py-3">
+                        <div key={node.nodeId} className="flex items-center justify-between rounded-lg border border-border bg-muted/50 px-4 py-3">
                           <div>
-                            <div className="text-sm font-medium text-zinc-100">{node.nodeType}</div>
-                            <div className="text-xs text-zinc-500">{node.callCount} call{node.callCount !== 1 ? 's' : ''} · ID: {node.nodeId.slice(0, 8)}…</div>
+                            <div className="text-sm font-medium text-foreground">{node.nodeType}</div>
+                            <div className="text-xs text-muted-foreground">{node.callCount} call{node.callCount !== 1 ? 's' : ''} · ID: {node.nodeId.slice(0, 8)}…</div>
                           </div>
-                          <div className="text-sm font-semibold text-emerald-300">{formatCurrency(node.totalCost)}</div>
+                          <div className="text-sm font-semibold text-emerald-600 dark:text-emerald-300">{formatCurrency(node.totalCost)}</div>
                         </div>
                       ))}
                     </CardContent>
@@ -730,14 +730,14 @@ export default function AgentDetailPage() {
                 )}
               </div>
             ) : (
-              <Card className="border-dashed border-zinc-800 bg-zinc-950/60 shadow-none">
+              <Card className="border-dashed border-border bg-muted/30 shadow-none">
                 <CardContent className="flex flex-col items-center justify-center gap-3 py-14 text-center">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-300">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
                     <DollarSign className="h-7 w-7" />
                   </div>
                   <div className="space-y-1">
-                    <h3 className="text-base font-semibold text-zinc-100">No cost data yet</h3>
-                    <p className="text-sm text-zinc-400">Run this agent to start tracking token and sandbox spend per node.</p>
+                    <h3 className="text-base font-semibold text-foreground">No cost data yet</h3>
+                    <p className="text-sm text-muted-foreground">Run this agent to start tracking token and sandbox spend per node.</p>
                   </div>
                 </CardContent>
               </Card>

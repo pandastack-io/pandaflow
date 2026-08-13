@@ -50,6 +50,13 @@
       "when": 1778497715570,
       "tag": "0006_rebrand_metric_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1786623175543,
+      "tag": "0007_drop_temporal_columns",
+      "breakpoints": true
     }
   ]
 }

@@ -339,7 +339,7 @@ export function NodePalette({
 
       <div className="border-t border-border p-4 text-xs text-muted-foreground">
         <div>Drag nodes onto the canvas or click to add</div>
-        <div className="mt-1 text-[11px] text-zinc-500">Press Space to add node</div>
+        <div className="mt-1 text-[11px] text-muted-foreground">Press Space to add node</div>
       </div>
     </div>
   );
