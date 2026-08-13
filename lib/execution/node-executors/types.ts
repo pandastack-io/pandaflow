@@ -1,9 +1,9 @@
 import { Node, Edge } from 'reactflow';
 import { WorkflowNodeData } from '@/types/nodes';
-import type { SandboxProvider } from '@/lib/sandflare/types';
+import type { SandboxProvider } from '@/lib/pandastack/types';
 
 export interface SharedSandbox {
-  /** Sandflare sandbox ID, e.g. "sb-xk9m2p" */
+  /** PandaStack sandbox ID, e.g. "sb-xk9m2p" */
   id: string;
   /** The provider instance that created this sandbox */
   provider: SandboxProvider;
@@ -25,7 +25,7 @@ export interface ExecutorContext {
   envVars?: Record<string, string>;
   /**
    * Shared sandbox for the current workflow execution.
-   * All Sandflare code-execution nodes reuse this instead of
+   * All PandaStack code-execution nodes reuse this instead of
    * creating/destroying their own — preserving installed packages,
    * written files, and environment state across nodes.
    */

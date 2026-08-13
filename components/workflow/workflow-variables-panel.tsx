@@ -150,7 +150,7 @@ export function WorkflowVariablesPanel({ variables, envVars, onChange }: Props) 
         <CardHeader className="flex flex-row items-start justify-between space-y-0">
           <div>
             <CardTitle>Environment Variables</CardTitle>
-            <CardDescription>Injected into Sandflare sandboxes for every workflow execution.</CardDescription>
+            <CardDescription>Injected into PandaStack sandboxes for every workflow execution.</CardDescription>
           </div>
           <Button
             type="button"

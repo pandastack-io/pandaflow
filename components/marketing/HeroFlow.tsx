@@ -158,7 +158,7 @@ export default function HeroFlow({ className }: { className?: string }) {
           <NodeCard x={C1} y={R2} label="Webhook"    sub="trigger.manual"   icon={<Webhook        className={ICON_S} />} highlight delay={0}   />
           <NodeCard x={C2} y={R1} label="Scrape URL" sub="web.scraper"       icon={<Globe          className={ICON_S} />}           delay={150} />
           <NodeCard x={C2} y={R3} label="GPT-4o"     sub="ai.llm"            icon={<Bot            className={ICON_S} />} highlight delay={200} />
-          <NodeCard x={C3} y={R2} label="Python"     sub="sandflare.python"  icon={<TerminalSquare className={ICON_S} />}           delay={350} />
+          <NodeCard x={C3} y={R2} label="Python"     sub="pandastack.python"  icon={<TerminalSquare className={ICON_S} />}           delay={350} />
           <NodeCard x={C4} y={R1} label="Postgres"   sub="db.postgres"       icon={<Database       className={ICON_S} />}           delay={500} />
           <NodeCard x={C4} y={R3} label="Slack"      sub="notify.slack"      icon={<MessageSquare  className={ICON_S} />} highlight delay={500} />
           <NodeCard x={C5} y={R2} label="Done"       sub="trigger.output"    icon={<Zap            className={ICON_S} />}           delay={650} />

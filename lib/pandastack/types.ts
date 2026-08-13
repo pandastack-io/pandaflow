@@ -1,4 +1,4 @@
-// Sandflare Types
+// PandaStack sandbox types
 
 export interface SandboxConfig {
   language: 'python' | 'nodejs' | 'go' | 'rust' | 'bash';

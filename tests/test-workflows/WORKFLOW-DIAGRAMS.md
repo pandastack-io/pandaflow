@@ -41,7 +41,7 @@ Purpose: Test web scraping → HTTP integration
            │
            ▼
 ┌─────────────────────┐
-│  Sandflare Execute  │
+│  PandaStack Execute  │
 │  Language: Python   │
 │  Statistical        │
 │  Analysis Code      │
@@ -138,7 +138,7 @@ Paths: 2 (mutually exclusive)
       │                                │
       ▼                                ▼
 ┌─────────────────────┐    ┌─────────────────────┐
-│  Sandflare Execute  │    │  Aggregate          │
+│  PandaStack Execute  │    │  Aggregate          │
 │  Process item:      │    │  Sum, Count, Avg    │
 │  - squared          │    │  Min, Max           │
 │  - cubed            │    └──────────┬──────────┘
@@ -218,8 +218,8 @@ Start → Prepare → Loop ──┬→ Process → Next Item
 | Node Type | Count | Workflows Used In |
 |-----------|-------|-------------------|
 | Manual Trigger | 4 | All workflows |
-| Sandflare Execute | 2 | 2, 4 |
-| Sandflare Scrape | 1 | 1 |
+| PandaStack Execute | 2 | 2, 4 |
+| PandaStack Scrape | 1 | 1 |
 | HTTP Request | 1 | 1 |
 | Condition | 1 | 3 |
 | Loop | 1 | 4 |
@@ -233,7 +233,7 @@ Start → Prepare → Loop ──┬→ Process → Next Item
 | Category | Node Types Used | Test Coverage |
 |----------|----------------|---------------|
 | Trigger | Manual | 100% |
-| Sandflare | Execute, Scrape | 100% |
+| PandaStack | Execute, Scrape | 100% |
 | AI | None | 0% |
 | Transform | Data, Aggregate | 66% |
 | Control | Condition, Loop | 50% |
@@ -242,7 +242,7 @@ Start → Prepare → Loop ──┬→ Process → Next Item
 | Utility | Log | 33% |
 
 **Coverage Analysis**:
-- ✅ Well covered: Triggers, Sandflare, Transform, Control
+- ✅ Well covered: Triggers, PandaStack, Transform, Control
 - ⚠️ Partially covered: Integration, Output, Utility
 - ❌ Not covered: AI nodes, Database, Email, Webhooks
 

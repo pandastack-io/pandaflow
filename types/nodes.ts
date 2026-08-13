@@ -11,7 +11,7 @@ export interface BaseNodeConfig {
 // Node categories
 export enum NodeCategory {
   TRIGGER = 'trigger',
-  SANDFLARE = 'sandflare',
+  PANDASTACK = 'pandastack',
   AGENT = 'agent',
   MEMORY = 'memory',
   AI = 'ai',
@@ -45,31 +45,31 @@ export enum NodeType {
   TRIGGER_WEBSOCKET = 'trigger.websocket',
   TRIGGER_KAFKA = 'trigger.kafka',
 
-  // Sandflare/Code Execution (12 types)
-  SANDFLARE_EXECUTE = 'sandflare.execute',
-  SANDFLARE_SCRAPE = 'sandflare.scrape',
-  SANDFLARE_PYTHON = 'sandflare.python',
-  SANDFLARE_NODEJS = 'sandflare.nodejs',
-  SANDFLARE_GO = 'sandflare.go',
-  SANDFLARE_RUST = 'sandflare.rust',
-  SANDFLARE_BASH = 'sandflare.bash',
-  SANDFLARE_RUBY = 'sandflare.ruby',
-  SANDFLARE_PHP = 'sandflare.php',
-  SANDFLARE_JAVA = 'sandflare.java',
-  SANDFLARE_DOCKER = 'sandflare.docker',
-  SANDFLARE_JUPYTER = 'sandflare.jupyter',
-  // Sandflare advanced features (all operate on the shared sandbox)
-  SANDFLARE_FILE_WRITE = 'sandflare.file_write',
-  SANDFLARE_FILE_READ = 'sandflare.file_read',
-  SANDFLARE_FILE_LIST = 'sandflare.file_list',
-  SANDFLARE_INSTALL = 'sandflare.install',
-  SANDFLARE_SNAPSHOT = 'sandflare.snapshot',
-  SANDFLARE_FORK = 'sandflare.fork',
-  SANDFLARE_GIT_CLONE = 'sandflare.git_clone',
-  SANDFLARE_PLAYWRIGHT = 'sandflare.playwright',
-  SANDFLARE_MEMORY_ADD = 'sandflare.memory_add',
-  SANDFLARE_MEMORY_SEARCH = 'sandflare.memory_search',
-  SANDFLARE_METRICS = 'sandflare.metrics',
+  // PandaStack/Code Execution (12 types)
+  PANDASTACK_EXECUTE = 'pandastack.execute',
+  PANDASTACK_SCRAPE = 'pandastack.scrape',
+  PANDASTACK_PYTHON = 'pandastack.python',
+  PANDASTACK_NODEJS = 'pandastack.nodejs',
+  PANDASTACK_GO = 'pandastack.go',
+  PANDASTACK_RUST = 'pandastack.rust',
+  PANDASTACK_BASH = 'pandastack.bash',
+  PANDASTACK_RUBY = 'pandastack.ruby',
+  PANDASTACK_PHP = 'pandastack.php',
+  PANDASTACK_JAVA = 'pandastack.java',
+  PANDASTACK_DOCKER = 'pandastack.docker',
+  PANDASTACK_JUPYTER = 'pandastack.jupyter',
+  // PandaStack advanced features (all operate on the shared sandbox)
+  PANDASTACK_FILE_WRITE = 'pandastack.file_write',
+  PANDASTACK_FILE_READ = 'pandastack.file_read',
+  PANDASTACK_FILE_LIST = 'pandastack.file_list',
+  PANDASTACK_INSTALL = 'pandastack.install',
+  PANDASTACK_SNAPSHOT = 'pandastack.snapshot',
+  PANDASTACK_FORK = 'pandastack.fork',
+  PANDASTACK_GIT_CLONE = 'pandastack.git_clone',
+  PANDASTACK_PLAYWRIGHT = 'pandastack.playwright',
+  PANDASTACK_MEMORY_ADD = 'pandastack.memory_add',
+  PANDASTACK_MEMORY_SEARCH = 'pandastack.memory_search',
+  PANDASTACK_METRICS = 'pandastack.metrics',
 
   // Agent Chain (8 types)
   AGENT_LLM = 'agent.llm',
@@ -686,8 +686,8 @@ export interface RagRerankerConfig extends BaseNodeConfig {
   topN: number;
 }
 
-// Sandflare Nodes
-export interface SandflareExecuteConfig extends BaseNodeConfig {
+// PandaStack Nodes
+export interface PandaStackExecuteConfig extends BaseNodeConfig {
   language: 'python' | 'nodejs' | 'go' | 'rust' | 'bash';
   code: string;
   environment?: Record<string, string>;
@@ -696,7 +696,7 @@ export interface SandflareExecuteConfig extends BaseNodeConfig {
   memoryLimit?: number;
 }
 
-export interface SandflareScraperConfig extends BaseNodeConfig {
+export interface PandaStackScraperConfig extends BaseNodeConfig {
   url: string;
   extractionRules?: any;
   javascript?: boolean;

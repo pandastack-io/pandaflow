@@ -1,12 +1,12 @@
 import { SandboxProvider, ExecutionOptions, ExecutionResult, ScraperOptions, ScrapedData } from './types';
-import { SandflareClient } from './client';
+import { PandaStackClient } from './client';
 import { MockSandboxProvider } from './providers/mock';
 
-type ProviderType = 'sandflare' | 'mock' | 'auto';
+type ProviderType = 'pandastack' | 'mock' | 'auto';
 
 interface SandboxManagerConfig {
   provider?: ProviderType;
-  sandflareApiKey?: string;
+  pandastackApiKey?: string;
   fallbackToMock?: boolean;
 }
 
@@ -31,27 +31,27 @@ export class SandboxManager {
     // Always add mock provider for development
     this.providers.set('mock', new MockSandboxProvider());
 
-    // Add Sandflare provider if API key is available (and not a mock key)
-    const apiKey = config.sandflareApiKey || process.env.SANDFLARE_API_KEY;
+    // Add PandaStack provider if API key is available (and not a mock key)
+    const apiKey = config.pandastackApiKey || process.env.PANDASTACK_API_KEY;
     if (apiKey && apiKey !== 'mock-api-key' && !apiKey.startsWith('mock-')) {
       try {
-        this.providers.set('sandflare', new SandflareClient({ apiKey }));
+        this.providers.set('pandastack', new PandaStackClient({ apiKey }));
       } catch (error) {
-        console.warn('Failed to initialize Sandflare provider:', error);
+        console.warn('Failed to initialize PandaStack provider:', error);
       }
     }
 
     // Select active provider
     if (providerType === 'auto') {
-      // Use Sandflare if available, otherwise mock
-      this.activeProvider = this.providers.has('sandflare') ? 'sandflare' : 'mock';
+      // Use PandaStack if available, otherwise mock
+      this.activeProvider = this.providers.has('pandastack') ? 'pandastack' : 'mock';
     } else if (providerType === 'mock') {
       this.activeProvider = 'mock';
-    } else if (providerType === 'sandflare') {
-      if (!this.providers.has('sandflare')) {
-        throw new Error('Sandflare provider requested but API key not configured');
+    } else if (providerType === 'pandastack') {
+      if (!this.providers.has('pandastack')) {
+        throw new Error('PandaStack provider requested but API key not configured');
       }
-      this.activeProvider = 'sandflare';
+      this.activeProvider = 'pandastack';
     } else {
       this.activeProvider = 'mock';
     }

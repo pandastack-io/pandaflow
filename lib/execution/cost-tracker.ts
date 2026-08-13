@@ -53,7 +53,7 @@ const MODEL_COSTS: Record<string, { input: number; output: number }> = {
   default: { input: 0, output: 0 },
 };
 
-const SANDFLARE_COST_PER_MS = 0.000000008;
+const PANDASTACK_COST_PER_MS = 0.000000008;
 
 export interface NodeCostRecord {
   executionId: string;
@@ -62,7 +62,7 @@ export interface NodeCostRecord {
   nodeType?: string;
   tokensInput?: number;
   tokensOutput?: number;
-  sandflareMs?: number;
+  pandastackMs?: number;
   model?: string;
   costUsd: number;
 }
@@ -93,8 +93,8 @@ export function calculateLLMCost(model: string, tokensInput: number, tokensOutpu
   return (tokensInput * rates.input) + (tokensOutput * rates.output);
 }
 
-export function calculateSandflareCost(durationMs: number): number {
-  return durationMs * SANDFLARE_COST_PER_MS;
+export function calculatePandaStackCost(durationMs: number): number {
+  return durationMs * PANDASTACK_COST_PER_MS;
 }
 
 export async function recordNodeCost(record: NodeCostRecord): Promise<void> {
@@ -106,7 +106,7 @@ export async function recordNodeCost(record: NodeCostRecord): Promise<void> {
       nodeType: record.nodeType,
       tokensInput: record.tokensInput ?? 0,
       tokensOutput: record.tokensOutput ?? 0,
-      sandflareMs: record.sandflareMs ?? 0,
+      pandastackMs: record.pandastackMs ?? 0,
       costUsd: record.costUsd.toFixed(8),
       model: record.model,
     });

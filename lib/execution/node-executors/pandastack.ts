@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import { NodeType } from '@/types/nodes';
-import { SandboxManager } from '@/lib/sandflare/manager';
-import { SandboxProvider } from '@/lib/sandflare/types';
+import { SandboxManager } from '@/lib/pandastack/manager';
+import { SandboxProvider } from '@/lib/pandastack/types';
 import { NodeExecutorFn, ExecutorContext, ExecutorDeps, SharedSandbox } from './types';
 import {
   interpolate,
@@ -18,7 +18,7 @@ type RetryableError = Error & {
   retryAfterMs?: number;
 };
 
-type SandflareLanguage =
+type PandaStackLanguage =
   | 'python'
   | 'nodejs'
   | 'go'
@@ -83,7 +83,7 @@ async function logExecution(
   }
 }
 
-function createSandflareExecutor(
+function createPandaStackExecutor(
   label: string,
   handler: (args: ExecutorHandlerArgs) => Promise<Record<string, any>>
 ): NodeExecutorFn {
@@ -134,18 +134,18 @@ function resolveConfiguredValue(
   return '';
 }
 
-function getSandflareApiKey(config: Record<string, any>, context: ExecutorContext): string {
-  return resolveConfiguredValue(config, context, ['apiKey'], ['SANDFLARE_API_KEY']);
+function getPandaStackApiKey(config: Record<string, any>, context: ExecutorContext): string {
+  return resolveConfiguredValue(config, context, ['apiKey'], ['PANDASTACK_API_KEY']);
 }
 
-function getSandflareBaseUrl(config: Record<string, any>, context: ExecutorContext): string {
-  return resolveConfiguredValue(config, context, ['baseUrl'], ['SANDFLARE_BASE_URL']) || 'https://api.sandflare.io';
+function getPandaStackBaseUrl(config: Record<string, any>, context: ExecutorContext): string {
+  return resolveConfiguredValue(config, context, ['baseUrl'], ['PANDASTACK_API']) || 'https://api.pandastack.ai';
 }
 
 function getManager(config: Record<string, any>, context: ExecutorContext): SandboxManager {
   return new SandboxManager({
     provider: config.provider || 'auto',
-    sandflareApiKey: getSandflareApiKey(config, context),
+    pandastackApiKey: getPandaStackApiKey(config, context),
     fallbackToMock: config.fallbackToMock ?? true,
   });
 }
@@ -191,12 +191,12 @@ function parseOutput(stdout: string, config: Record<string, any>): any {
   return config.parseJsonOutput === false ? stdout : safeJsonParse(stdout);
 }
 
-function buildCode(config: Record<string, any>, input: any, language: SandflareLanguage): string {
+function buildCode(config: Record<string, any>, input: any, language: PandaStackLanguage): string {
   const sections = [config.prelude, config.code, config.command].filter(Boolean).map((value) => String(value));
   if (sections.length > 0) return sections.join('\n\n');
   if (typeof input === 'string' && input.trim()) return input;
   if (input?.code) return stringifyValue(input.code);
-  throw new Error(`Sandflare ${language} execution requires config.code, config.command, or string input`);
+  throw new Error(`PandaStack ${language} execution requires config.code, config.command, or string input`);
 }
 
 async function retryable<T>(label: string, fn: () => Promise<T>): Promise<T> {
@@ -219,7 +219,7 @@ async function retryable<T>(label: string, fn: () => Promise<T>): Promise<T> {
  */
 async function executeSandboxLifecycle(
   config: Record<string, any>,
-  language: SandflareLanguage,
+  language: PandaStackLanguage,
   code: string,
   input: any,
   context: ExecutorContext,
@@ -252,7 +252,7 @@ async function executeSandboxLifecycle(
   if (useShared) {
     sandboxId = context.sandbox!.id;
   } else {
-    const sandbox = await retryable('Sandflare sandbox creation', () =>
+    const sandbox = await retryable('PandaStack sandbox creation', () =>
       provider.createSandbox({
         language: language === 'jupyter' ? ('python' as any) : (language as any),
         environment,
@@ -268,7 +268,7 @@ async function executeSandboxLifecycle(
   }
 
   try {
-    const execution = await retryable('Sandflare code execution', () =>
+    const execution = await retryable('PandaStack code execution', () =>
       provider.executeSandbox(sandboxId, {
         code,
         language,
@@ -282,7 +282,7 @@ async function executeSandboxLifecycle(
 
     if (execution.exitCode !== 0 && config.failOnNonZeroExit !== false) {
       throw new Error(
-        `Sandflare ${language} execution failed: exit code ${execution.exitCode}${execution.stderr ? ` - ${execution.stderr}` : ''}`
+        `PandaStack ${language} execution failed: exit code ${execution.exitCode}${execution.stderr ? ` - ${execution.stderr}` : ''}`
       );
     }
 
@@ -333,7 +333,7 @@ async function executeJupyter(
   const cells = buildJupyterCells(config, input);
 
   if (cells.length === 0) {
-    throw new Error('Sandflare jupyter execution requires config.cells, config.notebook, config.code, or code input');
+    throw new Error('PandaStack jupyter execution requires config.cells, config.notebook, config.code, or code input');
   }
 
   const useShared = !!context.sandbox;
@@ -414,20 +414,20 @@ async function executeJupyter(
   }
 }
 
-function createLanguageExecutor(language: SandflareLanguage): NodeExecutorFn {
-  return createSandflareExecutor(`Sandflare ${language}`, async ({ config, input, context }) => {
+function createLanguageExecutor(language: PandaStackLanguage): NodeExecutorFn {
+  return createPandaStackExecutor(`PandaStack ${language}`, async ({ config, input, context }) => {
     const code = buildCode(config, input, language);
     const stdinSource = typeof config.stdin === 'string' ? config.stdin : undefined;
     return executeSandboxLifecycle(config, language, code, input, context, stdinSource);
   });
 }
 
-const sandflareExecuteExecutor: NodeExecutorFn = createSandflareExecutor(
-  'Sandflare execute',
+const pandastackExecuteExecutor: NodeExecutorFn = createPandaStackExecutor(
+  'PandaStack execute',
   async ({ config, input, context }) => {
-    const requestedLanguage = String(config.language || input?.language || 'python').toLowerCase() as SandflareLanguage;
+    const requestedLanguage = String(config.language || input?.language || 'python').toLowerCase() as PandaStackLanguage;
     if (!['python', 'nodejs', 'go', 'rust', 'bash', 'ruby', 'php', 'java', 'docker', 'jupyter'].includes(requestedLanguage)) {
-      throw new Error(`Unsupported Sandflare language: ${requestedLanguage}`);
+      throw new Error(`Unsupported PandaStack language: ${requestedLanguage}`);
     }
     if (requestedLanguage === 'jupyter') {
       return executeJupyter({ ...config, language: requestedLanguage }, input, context);
@@ -444,13 +444,13 @@ const sandflareExecuteExecutor: NodeExecutorFn = createSandflareExecutor(
   }
 );
 
-const sandflareScrapeExecutor: NodeExecutorFn = createSandflareExecutor(
-  'Sandflare scrape',
+const pandastackScrapeExecutor: NodeExecutorFn = createPandaStackExecutor(
+  'PandaStack scrape',
   async ({ config, input, context }) => {
     const url = String(config.url || input?.url || '').trim();
-    if (!url) throw new Error('Sandflare scrape requires a URL');
+    if (!url) throw new Error('PandaStack scrape requires a URL');
     const manager = getManager(config, context);
-    const result = await retryable('Sandflare scrape', () =>
+    const result = await retryable('PandaStack scrape', () =>
       manager.scrapeWebsite({
         url,
         javascript: config.javascript !== false,
@@ -470,19 +470,19 @@ const sandflareScrapeExecutor: NodeExecutorFn = createSandflareExecutor(
   }
 );
 
-// ─── Advanced Sandflare feature executors ───────────────────────────────────
+// ─── Advanced PandaStack feature executors ───────────────────────────────────
 
-const sandflareFileWriteExecutor: NodeExecutorFn = createSandflareExecutor(
-  'Sandflare file write',
+const pandastackFileWriteExecutor: NodeExecutorFn = createPandaStackExecutor(
+  'PandaStack file write',
   async ({ config, input, context }) => {
-    if (!context.sandbox) throw new Error('sandflare.file_write requires a shared sandbox (add a Sandflare code node earlier in the workflow)');
+    if (!context.sandbox) throw new Error('pandastack.file_write requires a shared sandbox (add a PandaStack code node earlier in the workflow)');
     const { provider, id: sandboxId } = context.sandbox;
     const path = config.path || (typeof input?.path === 'string' ? input.path : '/home/user/file.txt');
     const content = config.content ?? input?.content ?? stringifyValue(input);
-    const apiKey = getSandflareApiKey(config, context);
-    const baseUrl = getSandflareBaseUrl(config, context);
+    const apiKey = getPandaStackApiKey(config, context);
+    const baseUrl = getPandaStackBaseUrl(config, context);
 
-    if (!apiKey) throw new Error('SANDFLARE_API_KEY not configured for shared file write');
+    if (!apiKey) throw new Error('PANDASTACK_API_KEY not configured for shared file write');
     const url = `${baseUrl}/sandboxes/${sandboxId}/files?path=${encodeURIComponent(path)}`;
     const res = await fetchWithTimeout(url, {
       method: 'POST',
@@ -494,16 +494,16 @@ const sandflareFileWriteExecutor: NodeExecutorFn = createSandflareExecutor(
   }
 );
 
-const sandflareFileReadExecutor: NodeExecutorFn = createSandflareExecutor(
-  'Sandflare file read',
+const pandastackFileReadExecutor: NodeExecutorFn = createPandaStackExecutor(
+  'PandaStack file read',
   async ({ config, input, context }) => {
-    if (!context.sandbox) throw new Error('sandflare.file_read requires a shared sandbox');
+    if (!context.sandbox) throw new Error('pandastack.file_read requires a shared sandbox');
     const { id: sandboxId } = context.sandbox;
     const path = config.path || (typeof input?.path === 'string' ? input.path : '/home/user/file.txt');
-    const apiKey = getSandflareApiKey(config, context);
-    const baseUrl = getSandflareBaseUrl(config, context);
+    const apiKey = getPandaStackApiKey(config, context);
+    const baseUrl = getPandaStackBaseUrl(config, context);
 
-    if (!apiKey) throw new Error('SANDFLARE_API_KEY not configured for shared file read');
+    if (!apiKey) throw new Error('PANDASTACK_API_KEY not configured for shared file read');
     const url = `${baseUrl}/sandboxes/${sandboxId}/files?path=${encodeURIComponent(path)}`;
     const res = await fetchWithTimeout(url, { headers: { 'X-API-Key': apiKey || '' } });
     if (!res.ok) throw new Error(`File read failed: ${res.status} ${await res.text()}`);
@@ -513,16 +513,16 @@ const sandflareFileReadExecutor: NodeExecutorFn = createSandflareExecutor(
   }
 );
 
-const sandflareFileListExecutor: NodeExecutorFn = createSandflareExecutor(
-  'Sandflare file list',
+const pandastackFileListExecutor: NodeExecutorFn = createPandaStackExecutor(
+  'PandaStack file list',
   async ({ config, input, context }) => {
-    if (!context.sandbox) throw new Error('sandflare.file_list requires a shared sandbox');
+    if (!context.sandbox) throw new Error('pandastack.file_list requires a shared sandbox');
     const { id: sandboxId } = context.sandbox;
     const path = config.path || '/home/user';
-    const apiKey = getSandflareApiKey(config, context);
-    const baseUrl = getSandflareBaseUrl(config, context);
+    const apiKey = getPandaStackApiKey(config, context);
+    const baseUrl = getPandaStackBaseUrl(config, context);
 
-    if (!apiKey) throw new Error('SANDFLARE_API_KEY not configured for shared file list');
+    if (!apiKey) throw new Error('PANDASTACK_API_KEY not configured for shared file list');
     const url = `${baseUrl}/sandboxes/${sandboxId}/ls?path=${encodeURIComponent(path)}`;
     const res = await fetchWithTimeout(url, { headers: { 'X-API-Key': apiKey || '' } });
     if (!res.ok) throw new Error(`File list failed: ${res.status} ${await res.text()}`);
@@ -531,14 +531,14 @@ const sandflareFileListExecutor: NodeExecutorFn = createSandflareExecutor(
   }
 );
 
-const sandflareInstallExecutor: NodeExecutorFn = createSandflareExecutor(
-  'Sandflare install',
+const pandastackInstallExecutor: NodeExecutorFn = createPandaStackExecutor(
+  'PandaStack install',
   async ({ config, input, context }) => {
-    if (!context.sandbox) throw new Error('sandflare.install requires a shared sandbox');
+    if (!context.sandbox) throw new Error('pandastack.install requires a shared sandbox');
     const { provider, id: sandboxId } = context.sandbox;
     const packages = normalizePackages(config.packages || input?.packages);
     const runtime: string = config.runtime || 'pip';
-    if (packages.length === 0) throw new Error('sandflare.install: no packages specified');
+    if (packages.length === 0) throw new Error('pandastack.install: no packages specified');
 
     const installed: string[] = [];
     const failed: string[] = [];
@@ -560,20 +560,20 @@ const sandflareInstallExecutor: NodeExecutorFn = createSandflareExecutor(
   }
 );
 
-const sandflareSnapshotExecutor: NodeExecutorFn = createSandflareExecutor(
-  'Sandflare snapshot',
+const pandastackSnapshotExecutor: NodeExecutorFn = createPandaStackExecutor(
+  'PandaStack snapshot',
   async ({ config, context }) => {
-    if (!context.sandbox) throw new Error('sandflare.snapshot requires a shared sandbox');
+    if (!context.sandbox) throw new Error('pandastack.snapshot requires a shared sandbox');
     const { id: sandboxId } = context.sandbox;
-    const apiKey = getSandflareApiKey(config, context);
-    const baseUrl = getSandflareBaseUrl(config, context);
+    const apiKey = getPandaStackApiKey(config, context);
+    const baseUrl = getPandaStackBaseUrl(config, context);
 
     const body: Record<string, any> = {};
     if (config.name) body.name = config.name;
     if (config.description) body.description = config.description;
     if (config.tags) body.tags = Array.isArray(config.tags) ? config.tags : [config.tags];
 
-    if (!apiKey) throw new Error('SANDFLARE_API_KEY not configured for sandbox snapshots');
+    if (!apiKey) throw new Error('PANDASTACK_API_KEY not configured for sandbox snapshots');
     const res = await fetchWithTimeout(`${baseUrl}/sandboxes/${sandboxId}/snapshot`, {
       method: 'POST',
       headers: { 'X-API-Key': apiKey || '', 'Content-Type': 'application/json' },
@@ -590,13 +590,13 @@ const sandflareSnapshotExecutor: NodeExecutorFn = createSandflareExecutor(
   }
 );
 
-const sandflareGitCloneExecutor: NodeExecutorFn = createSandflareExecutor(
-  'Sandflare git clone',
+const pandastackGitCloneExecutor: NodeExecutorFn = createPandaStackExecutor(
+  'PandaStack git clone',
   async ({ config, input, context }) => {
-    if (!context.sandbox) throw new Error('sandflare.git_clone requires a shared sandbox');
+    if (!context.sandbox) throw new Error('pandastack.git_clone requires a shared sandbox');
     const { provider, id: sandboxId } = context.sandbox;
     const repoUrl = config.repoUrl || input?.repoUrl;
-    if (!repoUrl) throw new Error('sandflare.git_clone: repoUrl is required');
+    if (!repoUrl) throw new Error('pandastack.git_clone: repoUrl is required');
     const branch = config.branch || 'main';
     const path = config.path || '/repo';
     const depth = config.depth ? `--depth=${config.depth}` : '--depth=1';
@@ -613,10 +613,10 @@ const sandflareGitCloneExecutor: NodeExecutorFn = createSandflareExecutor(
   }
 );
 
-const sandflarePlaywrightExecutor: NodeExecutorFn = createSandflareExecutor(
-  'Sandflare Playwright',
+const pandastackPlaywrightExecutor: NodeExecutorFn = createPandaStackExecutor(
+  'PandaStack Playwright',
   async ({ config, input, context }) => {
-    if (!context.sandbox) throw new Error('sandflare.playwright requires a shared sandbox');
+    if (!context.sandbox) throw new Error('pandastack.playwright requires a shared sandbox');
     const { provider, id: sandboxId } = context.sandbox;
 
     // Install playwright if not already done
@@ -682,15 +682,15 @@ with sync_playwright() as p:
   }
 );
 
-const sandflareMemoryAddExecutor: NodeExecutorFn = createSandflareExecutor(
-  'Sandflare memory add',
+const pandastackMemoryAddExecutor: NodeExecutorFn = createPandaStackExecutor(
+  'PandaStack memory add',
   async ({ config, input, context }) => {
-    const apiKey = getSandflareApiKey(config, context);
-    const baseUrl = getSandflareBaseUrl(config, context);
+    const apiKey = getPandaStackApiKey(config, context);
+    const baseUrl = getPandaStackBaseUrl(config, context);
     const content = config.content || (typeof input === 'string' ? input : stringifyValue(input));
-    if (!content) throw new Error('sandflare.memory_add: content is required');
+    if (!content) throw new Error('pandastack.memory_add: content is required');
 
-    if (!apiKey) throw new Error('SANDFLARE_API_KEY not configured for Sandflare memory');
+    if (!apiKey) throw new Error('PANDASTACK_API_KEY not configured for PandaStack memory');
     const res = await fetchWithTimeout(`${baseUrl}/memory`, {
       method: 'POST',
       headers: { 'X-API-Key': apiKey || '', 'Content-Type': 'application/json' },
@@ -702,19 +702,19 @@ const sandflareMemoryAddExecutor: NodeExecutorFn = createSandflareExecutor(
   }
 );
 
-const sandflareMemorySearchExecutor: NodeExecutorFn = createSandflareExecutor(
-  'Sandflare memory search',
+const pandastackMemorySearchExecutor: NodeExecutorFn = createPandaStackExecutor(
+  'PandaStack memory search',
   async ({ config, input, context }) => {
-    const apiKey = getSandflareApiKey(config, context);
-    const baseUrl = getSandflareBaseUrl(config, context);
+    const apiKey = getPandaStackApiKey(config, context);
+    const baseUrl = getPandaStackBaseUrl(config, context);
     const query = config.query || (typeof input === 'string' ? input : input?.query);
-    if (!query) throw new Error('sandflare.memory_search: query is required');
+    if (!query) throw new Error('pandastack.memory_search: query is required');
 
     const params = new URLSearchParams({ q: query });
     if (config.limit) params.set('limit', String(config.limit));
     if (config.category) params.set('category', config.category);
 
-    if (!apiKey) throw new Error('SANDFLARE_API_KEY not configured for Sandflare memory');
+    if (!apiKey) throw new Error('PANDASTACK_API_KEY not configured for PandaStack memory');
     const res = await fetchWithTimeout(`${baseUrl}/memory?${params}`, {
       headers: { 'X-API-Key': apiKey || '' },
     });
@@ -724,18 +724,18 @@ const sandflareMemorySearchExecutor: NodeExecutorFn = createSandflareExecutor(
   }
 );
 
-const sandflareMetricsExecutor: NodeExecutorFn = createSandflareExecutor(
-  'Sandflare metrics',
+const pandastackMetricsExecutor: NodeExecutorFn = createPandaStackExecutor(
+  'PandaStack metrics',
   async ({ config, context }) => {
-    if (!context.sandbox) throw new Error('sandflare.metrics requires a shared sandbox');
+    if (!context.sandbox) throw new Error('pandastack.metrics requires a shared sandbox');
     const { provider, id: sandboxId } = context.sandbox;
     const metrics = await provider.getMetrics(sandboxId);
-    const apiKey = getSandflareApiKey(config, context);
-    const baseUrl = getSandflareBaseUrl(config, context);
+    const apiKey = getPandaStackApiKey(config, context);
+    const baseUrl = getPandaStackBaseUrl(config, context);
 
     // Also fetch process list
     if (!apiKey) {
-      return { ...metrics, processes: [], sandboxId, warning: 'SANDFLARE_API_KEY not configured for process metrics' };
+      return { ...metrics, processes: [], sandboxId, warning: 'PANDASTACK_API_KEY not configured for process metrics' };
     }
 
     const procRes = await fetchWithTimeout(`${baseUrl}/sandboxes/${sandboxId}/agent/processes`, {
@@ -747,16 +747,16 @@ const sandflareMetricsExecutor: NodeExecutorFn = createSandflareExecutor(
   }
 );
 
-const sandflareForkExecutor: NodeExecutorFn = createSandflareExecutor(
-  'Sandflare fork',
+const pandastackForkExecutor: NodeExecutorFn = createPandaStackExecutor(
+  'PandaStack fork',
   async ({ config, context }) => {
-    if (!context.sandbox) throw new Error('sandflare.fork requires a shared sandbox');
+    if (!context.sandbox) throw new Error('pandastack.fork requires a shared sandbox');
     const { id: sandboxId } = context.sandbox;
     const count = Math.min(Number(config.count) || 2, 8); // API limit: 8
-    const apiKey = getSandflareApiKey(config, context);
-    const baseUrl = getSandflareBaseUrl(config, context);
+    const apiKey = getPandaStackApiKey(config, context);
+    const baseUrl = getPandaStackBaseUrl(config, context);
 
-    if (!apiKey) throw new Error('SANDFLARE_API_KEY not configured for sandbox fork');
+    if (!apiKey) throw new Error('PANDASTACK_API_KEY not configured for sandbox fork');
     const res = await fetchWithTimeout(`${baseUrl}/sandboxes/${sandboxId}/fork`, {
       method: 'POST',
       headers: { 'X-API-Key': apiKey || '', 'Content-Type': 'application/json' },
@@ -769,18 +769,18 @@ const sandflareForkExecutor: NodeExecutorFn = createSandflareExecutor(
   }
 );
 
-export const sandflareExecutors: Partial<Record<NodeType, NodeExecutorFn>> = {
-  [NodeType.SANDFLARE_EXECUTE]: sandflareExecuteExecutor,
-  [NodeType.SANDFLARE_SCRAPE]: sandflareScrapeExecutor,
-  [NodeType.SANDFLARE_PYTHON]: createLanguageExecutor('python'),
-  [NodeType.SANDFLARE_NODEJS]: createLanguageExecutor('nodejs'),
-  [NodeType.SANDFLARE_GO]: createLanguageExecutor('go'),
-  [NodeType.SANDFLARE_RUST]: createLanguageExecutor('rust'),
-  [NodeType.SANDFLARE_BASH]: createLanguageExecutor('bash'),
-  [NodeType.SANDFLARE_RUBY]: createLanguageExecutor('ruby'),
-  [NodeType.SANDFLARE_PHP]: createLanguageExecutor('php'),
-  [NodeType.SANDFLARE_JAVA]: createLanguageExecutor('java'),
-  [NodeType.SANDFLARE_DOCKER]: createSandflareExecutor('Sandflare docker', async ({ config, input, context }) => {
+export const pandastackExecutors: Partial<Record<NodeType, NodeExecutorFn>> = {
+  [NodeType.PANDASTACK_EXECUTE]: pandastackExecuteExecutor,
+  [NodeType.PANDASTACK_SCRAPE]: pandastackScrapeExecutor,
+  [NodeType.PANDASTACK_PYTHON]: createLanguageExecutor('python'),
+  [NodeType.PANDASTACK_NODEJS]: createLanguageExecutor('nodejs'),
+  [NodeType.PANDASTACK_GO]: createLanguageExecutor('go'),
+  [NodeType.PANDASTACK_RUST]: createLanguageExecutor('rust'),
+  [NodeType.PANDASTACK_BASH]: createLanguageExecutor('bash'),
+  [NodeType.PANDASTACK_RUBY]: createLanguageExecutor('ruby'),
+  [NodeType.PANDASTACK_PHP]: createLanguageExecutor('php'),
+  [NodeType.PANDASTACK_JAVA]: createLanguageExecutor('java'),
+  [NodeType.PANDASTACK_DOCKER]: createPandaStackExecutor('PandaStack docker', async ({ config, input, context }) => {
     const authHeaders = buildAuthHeaders(config.registryAuth);
     const inlineAuth = Object.keys(authHeaders).length > 0 ? `# registry auth configured: ${Object.keys(authHeaders).join(', ')}` : '';
     const dockerfile = config.dockerfile ? String(config.dockerfile) : '';
@@ -789,18 +789,18 @@ export const sandflareExecutors: Partial<Record<NodeType, NodeExecutorFn>> = {
       .filter(Boolean).join('\n\n');
     return executeSandboxLifecycle(config, 'docker', code, input, context, typeof config.stdin === 'string' ? config.stdin : undefined);
   }),
-  [NodeType.SANDFLARE_JUPYTER]: createSandflareExecutor('Sandflare jupyter', async ({ config, input, context }) =>
+  [NodeType.PANDASTACK_JUPYTER]: createPandaStackExecutor('PandaStack jupyter', async ({ config, input, context }) =>
     executeJupyter(config, input, context)
   ),
-  [NodeType.SANDFLARE_FILE_WRITE]: sandflareFileWriteExecutor,
-  [NodeType.SANDFLARE_FILE_READ]: sandflareFileReadExecutor,
-  [NodeType.SANDFLARE_FILE_LIST]: sandflareFileListExecutor,
-  [NodeType.SANDFLARE_INSTALL]: sandflareInstallExecutor,
-  [NodeType.SANDFLARE_SNAPSHOT]: sandflareSnapshotExecutor,
-  [NodeType.SANDFLARE_FORK]: sandflareForkExecutor,
-  [NodeType.SANDFLARE_GIT_CLONE]: sandflareGitCloneExecutor,
-  [NodeType.SANDFLARE_PLAYWRIGHT]: sandflarePlaywrightExecutor,
-  [NodeType.SANDFLARE_MEMORY_ADD]: sandflareMemoryAddExecutor,
-  [NodeType.SANDFLARE_MEMORY_SEARCH]: sandflareMemorySearchExecutor,
-  [NodeType.SANDFLARE_METRICS]: sandflareMetricsExecutor,
+  [NodeType.PANDASTACK_FILE_WRITE]: pandastackFileWriteExecutor,
+  [NodeType.PANDASTACK_FILE_READ]: pandastackFileReadExecutor,
+  [NodeType.PANDASTACK_FILE_LIST]: pandastackFileListExecutor,
+  [NodeType.PANDASTACK_INSTALL]: pandastackInstallExecutor,
+  [NodeType.PANDASTACK_SNAPSHOT]: pandastackSnapshotExecutor,
+  [NodeType.PANDASTACK_FORK]: pandastackForkExecutor,
+  [NodeType.PANDASTACK_GIT_CLONE]: pandastackGitCloneExecutor,
+  [NodeType.PANDASTACK_PLAYWRIGHT]: pandastackPlaywrightExecutor,
+  [NodeType.PANDASTACK_MEMORY_ADD]: pandastackMemoryAddExecutor,
+  [NodeType.PANDASTACK_MEMORY_SEARCH]: pandastackMemorySearchExecutor,
+  [NodeType.PANDASTACK_METRICS]: pandastackMetricsExecutor,
 };

@@ -66,8 +66,8 @@ const AI_ALIAS_TO_NODE_TYPE: Record<string, NodeType> = {
   'http.request': NodeType.INTEGRATION_HTTP,
   'data.transform': NodeType.TRANSFORM_DATA,
   'data.filter': NodeType.TRANSFORM_FILTER,
-  'code.javascript': NodeType.SANDFLARE_NODEJS,
-  'code.python': NodeType.SANDFLARE_PYTHON,
+  'code.javascript': NodeType.PANDASTACK_NODEJS,
+  'code.python': NodeType.PANDASTACK_PYTHON,
   'output.email': NodeType.OUTPUT_EMAIL,
   'output.slack': NodeType.INTEGRATION_SLACK,
   'output.webhook': NodeType.OUTPUT_WEBHOOK,
@@ -75,7 +75,7 @@ const AI_ALIAS_TO_NODE_TYPE: Record<string, NodeType> = {
   'memory.write': NodeType.MEMORY_AGENT_WRITE,
   'control.condition': NodeType.CONTROL_CONDITION,
   'control.delay': NodeType.UTILITY_DELAY,
-  'scraping.webpage': NodeType.SANDFLARE_SCRAPE,
+  'scraping.webpage': NodeType.PANDASTACK_SCRAPE,
   'notification.email': NodeType.OUTPUT_EMAIL,
 };
 
@@ -223,7 +223,7 @@ function normalizeNodeConfig(nodeType: NodeType, rawConfig: Record<string, unkno
         condition: String(rawConfig.condition ?? 'Boolean(input)'),
         ...baseConfig,
       };
-    case NodeType.SANDFLARE_NODEJS:
+    case NodeType.PANDASTACK_NODEJS:
       return {
         provider: 'auto',
         language: 'nodejs',
@@ -231,7 +231,7 @@ function normalizeNodeConfig(nodeType: NodeType, rawConfig: Record<string, unkno
         timeout: typeof rawConfig.timeout === 'number' ? rawConfig.timeout : 30000,
         ...baseConfig,
       };
-    case NodeType.SANDFLARE_PYTHON:
+    case NodeType.PANDASTACK_PYTHON:
       return {
         provider: 'auto',
         language: 'python',
@@ -283,7 +283,7 @@ function normalizeNodeConfig(nodeType: NodeType, rawConfig: Record<string, unkno
         duration: typeof rawConfig.duration === 'number' ? rawConfig.duration : 1000,
         ...baseConfig,
       };
-    case NodeType.SANDFLARE_SCRAPE:
+    case NodeType.PANDASTACK_SCRAPE:
       return {
         provider: 'auto',
         url: String(rawConfig.url ?? 'https://example.com'),
@@ -595,7 +595,7 @@ export function buildFallbackWorkflow(description: string): GeneratedWorkflowDat
   const wantsWebhookOutput = /webhook|callback|post to/.test(normalized);
 
   if (shouldScrape) {
-    nodes.push(createNode('node-2', NodeType.SANDFLARE_SCRAPE, {
+    nodes.push(createNode('node-2', NodeType.PANDASTACK_SCRAPE, {
       label: /competitor/.test(normalized) ? 'Scrape Competitor Sites' : 'Scrape Source Content',
       url: /news/.test(normalized) ? 'https://news.ycombinator.com/' : 'https://example.com',
       selector: 'body',
@@ -623,7 +623,7 @@ export function buildFallbackWorkflow(description: string): GeneratedWorkflowDat
   }));
 
   if (shouldUsePython) {
-    nodes.push(createNode('node-4', NodeType.SANDFLARE_PYTHON, {
+    nodes.push(createNode('node-4', NodeType.PANDASTACK_PYTHON, {
       label: 'Run Python Analysis',
       code: 'records = input.get("records", input)\nreturn {"analysis": records, "summary": "Analysis complete"}',
       timeout: 30000,

@@ -22,7 +22,7 @@ test.describe('Workflow Editor', () => {
 
     // Check categories
     await expect(page.getByText('Triggers')).toBeVisible();
-    await expect(page.getByText('Sandflare')).toBeVisible();
+    await expect(page.getByText('PandaStack')).toBeVisible();
     await expect(page.getByText('AI & ML')).toBeVisible();
   });
 
@@ -93,11 +93,11 @@ test.describe('Workflow Editor', () => {
   });
 
   test('should display different node types', async ({ page }) => {
-    // Expand Sandflare category
-    const sandflareButton = page.getByRole('button', { name: /Sandflare/i });
-    await sandflareButton.click();
+    // Expand PandaStack category
+    const pandastackButton = page.getByRole('button', { name: /PandaStack/i });
+    await pandastackButton.click();
 
-    // Check for Sandflare nodes
+    // Check for PandaStack nodes
     await expect(page.getByText('Code Execution')).toBeVisible();
     await expect(page.getByText('Web Scraper')).toBeVisible();
 

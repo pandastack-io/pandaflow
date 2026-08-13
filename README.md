@@ -1,16 +1,16 @@
 # PandaFlow
 
-> Open source AI agent visual workflow builder by [PandastackIO Inc.](https://pandastack.io)
+> Open source AI agent visual workflow builder by [PandastackIO Inc.](https://pandastack.ai)
 
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-pandastack--io%2Fpandaflow-black?logo=github)](https://github.com/pandastack-io/pandaflow)
 
-Build, deploy, and orchestrate AI agents visually. Connect LLMs, databases, APIs, and code execution nodes on a drag-and-drop canvas. Powered by [Sandflare.io](https://sandflare.io) isolated microVM execution.
+Build, deploy, and orchestrate AI agents visually. Connect LLMs, databases, APIs, and code execution nodes on a drag-and-drop canvas. Powered by [PandaStack](https://pandastack.ai) isolated microVM execution.
 
 ## Features
 
 - 🎨 **Visual Workflow Builder** — Drag-and-drop canvas powered by React Flow
-- ⚡ **Isolated Code Execution** — Run Python, Node.js, Go, and Bash in [Sandflare microVMs](https://docs.sandflare.io/sandbox) with [browser automation](https://docs.sandflare.io/templates) support
+- ⚡ **Isolated Code Execution** — Run Python, Node.js, Go, and Bash in [PandaStack microVMs](https://docs.pandastack.ai/docs/concepts/sandbox-lifecycle) with [browser automation](https://docs.pandastack.ai/docs/concepts/templates) support
 - 🤖 **160+ Nodes** — LLMs, databases, APIs, webhooks, transformations, and more
 - 🔄 **Real-time Monitoring** — Live execution tracking via Server-Sent Events
 - 🔐 **Secrets Management** — Encrypted per-organization secret store
@@ -25,7 +25,7 @@ Build, deploy, and orchestrate AI agents visually. Connect LLMs, databases, APIs
 | Backend | Next.js API Routes, Drizzle ORM |
 | Database | PostgreSQL 16 |
 | Cache | Redis 7 |
-| Execution | [Sandflare](https://docs.sandflare.io) microVMs ([browser-agent](https://docs.sandflare.io/templates/available#browser-agent) + [code-interpreter](https://docs.sandflare.io/templates/available#code-interpreter) templates) |
+| Execution | [PandaStack](https://docs.pandastack.ai) microVMs ([`browser`](https://docs.pandastack.ai/docs/concepts/templates) + [`code-interpreter`](https://docs.pandastack.ai/docs/guides/code-interpreter) templates) |
 | Auth | NextAuth v5 (email + Google OAuth) |
 | Infrastructure | [Specific](https://specific.app) |
 
@@ -67,14 +67,14 @@ Open [http://localhost:3000](http://localhost:3000) to see PandaFlow running loc
 | `REDIS_URL` | Redis connection string |
 | `NEXTAUTH_SECRET` | Random secret for NextAuth session signing |
 | `ENCRYPTION_KEY` | 32-byte hex key for secrets encryption |
-| `SANDFLARE_API_KEY` | [Sandflare API key](https://docs.sandflare.io/api-keys) (use `mock-api-key` for local dev) |
+| `PANDASTACK_API_KEY` | PandaStack API key — a `pds_...` token from the [dashboard](https://pandastack.ai)'s API Tokens page (use `mock-api-key` for local dev) |
 | `AUTH_GOOGLE_ID` | Google OAuth client ID (optional) |
 | `AUTH_GOOGLE_SECRET` | Google OAuth client secret (optional) |
 | `SKIP_AUTH` | Set to `true` to bypass auth in local dev |
 
-## Deploy on Pandastack.io
+## Deploy on PandaStack
 
-The easiest way to deploy PandaFlow is via **[Pandastack.io](https://pandastack.io)** — the managed cloud platform by PandastackIO Inc. that runs PandaFlow with enterprise-grade isolation, automatic scaling, and a managed control plane backed by [Sandflare microVMs](https://www.sandflare.io).
+The easiest way to deploy PandaFlow is via **[PandaStack](https://pandastack.ai)** — the managed cloud platform by PandastackIO Inc. that runs PandaFlow with enterprise-grade isolation, automatic scaling, and a managed control plane backed by PandaStack microVMs.
 
 > ☁️ **PandaFlow Cloud is coming soon.** Self-host today using the instructions above.
 
@@ -82,16 +82,16 @@ For self-hosting on your own infrastructure, see [QUICKSTART.md](./QUICKSTART.md
 
 ---
 
-## How PandaFlow Uses Sandflare
+## How PandaFlow Uses PandaStack
 
-PandaFlow executes all workflow nodes in isolated [Sandflare microVMs](https://docs.sandflare.io) for security and performance:
+PandaFlow executes all workflow nodes in isolated [PandaStack microVMs](https://docs.pandastack.ai) for security and performance:
 
-- **[Code Interpreter](https://docs.sandflare.io/templates/available#code-interpreter)** — Python, Node.js, Go code execution with popular libraries pre-installed
-- **[Browser Agent](https://docs.sandflare.io/templates/available#browser-agent)** — Playwright automation for web scraping and browser testing
-- **[Sandbox Lifecycle](https://docs.sandflare.io/sandbox/lifecycle)** — Ephemeral sandboxes with automatic cleanup (TTL: 2 hours)
-- **[Execution API](https://docs.sandflare.io/execution/commands)** — Run commands via `/exec`, `/run/python`, or `/run/node` endpoints
+- **[`code-interpreter`](https://docs.pandastack.ai/docs/guides/code-interpreter)** — Python, Node.js, Go code execution with popular libraries pre-installed
+- **[`browser`](https://docs.pandastack.ai/docs/concepts/templates)** — Playwright automation for web scraping and browser testing
+- **[Sandbox Lifecycle](https://docs.pandastack.ai/docs/concepts/sandbox-lifecycle)** — Ephemeral sandboxes with automatic cleanup
+- **[Execution API](https://docs.pandastack.ai/docs/concepts/exec)** — Run commands via `POST /v1/sandboxes/{id}/exec` or the SDK's `runCode()`/`execStream()`
 
-Each workflow execution creates a fresh sandbox, runs all nodes sequentially, streams results via SSE, and automatically terminates on completion. See [`lib/execution/sandflare-workflow-runner.ts`](./lib/execution/sandflare-workflow-runner.ts) for implementation details.
+Each workflow execution creates a fresh sandbox, runs all nodes sequentially, streams results via SSE, and automatically terminates on completion. See [`lib/execution/pandastack-workflow-runner.ts`](./lib/execution/pandastack-workflow-runner.ts) for implementation details.
 
 ## Contributing
 

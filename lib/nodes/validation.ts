@@ -22,8 +22,8 @@ type ValidationRule =
 const ignoredEmptyDefaultKeys = new Set(['label', 'description']);
 
 const requiredFieldRules: Partial<Record<NodeType, ValidationRule[]>> = {
-  [NodeType.SANDFLARE_EXECUTE]: [{ field: 'code', label: 'Code' }],
-  [NodeType.SANDFLARE_SCRAPE]: [{ field: 'url', label: 'URL' }],
+  [NodeType.PANDASTACK_EXECUTE]: [{ field: 'code', label: 'Code' }],
+  [NodeType.PANDASTACK_SCRAPE]: [{ field: 'url', label: 'URL' }],
   [NodeType.RAG_PDF_LOADER]: [
     { field: 'url', label: 'URL', when: (config) => (config.source ?? 'url') === 'url' },
     { field: 'variableName', label: 'Variable Name', when: (config) => config.source === 'variable' },

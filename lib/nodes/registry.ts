@@ -358,8 +358,8 @@ const kafkaTriggerSchema = triggerBaseSchema.extend({
   consumerGroup: z.string().optional(),
 });
 
-const sandflareRuntimeSchema = baseSchema.extend({
-  provider: z.enum(['auto', 'sandflare', 'mock']).optional(),
+const pandastackRuntimeSchema = baseSchema.extend({
+  provider: z.enum(['auto', 'pandastack', 'mock']).optional(),
   apiKey: z.string().optional(),
   inputVariable: z.string().optional(),
   code: z.string().optional(),
@@ -381,8 +381,8 @@ const sandflareRuntimeSchema = baseSchema.extend({
   language: z.enum(['python', 'nodejs', 'go', 'rust', 'bash', 'ruby', 'php', 'java', 'docker', 'jupyter']).optional(),
 });
 
-const sandflareScrapeSchema = baseSchema.extend({
-  provider: z.enum(['auto', 'sandflare', 'mock']).optional(),
+const pandastackScrapeSchema = baseSchema.extend({
+  provider: z.enum(['auto', 'pandastack', 'mock']).optional(),
   apiKey: z.string().optional(),
   inputVariable: z.string().optional(),
   url: z.string().optional(),
@@ -1490,8 +1490,8 @@ const integrationRedisSchema = baseSchema.extend({
   retries: z.number().int().min(0).optional(),
 });
 
-// ==== SANDFLARE FILE SCHEMAS ====
-const sandflareFileWriteSchema = baseSchema.extend({
+// ==== PANDASTACK FILE SCHEMAS ====
+const pandastackFileWriteSchema = baseSchema.extend({
   inputVariable: z.string().optional(),
   path: z.string().optional(),
   content: z.any().optional(),
@@ -1499,32 +1499,32 @@ const sandflareFileWriteSchema = baseSchema.extend({
   append: z.boolean().optional(),
 });
 
-const sandflareFileReadSchema = baseSchema.extend({
+const pandastackFileReadSchema = baseSchema.extend({
   inputVariable: z.string().optional(),
   path: z.string().optional(),
   encoding: z.string().optional(),
 });
 
-const sandflareFileListSchema = baseSchema.extend({
+const pandastackFileListSchema = baseSchema.extend({
   path: z.string().optional(),
 });
 
-const sandflareInstallSchema = baseSchema.extend({
+const pandastackInstallSchema = baseSchema.extend({
   packages: z.union([z.string(), z.array(z.string())]).optional(),
   runtime: z.enum(['pip', 'npm', 'apt']).optional(),
 });
 
-const sandflareSnapshotSchema = baseSchema.extend({
+const pandastackSnapshotSchema = baseSchema.extend({
   name: z.string().optional(),
   description: z.string().optional(),
   tags: z.any().optional(),
 });
 
-const sandflareForkSchema = baseSchema.extend({
+const pandastackForkSchema = baseSchema.extend({
   count: z.number().int().min(1).max(10).optional(),
 });
 
-const sandflareGitCloneSchema = baseSchema.extend({
+const pandastackGitCloneSchema = baseSchema.extend({
   repoUrl: z.string().optional(),
   branch: z.string().optional(),
   path: z.string().optional(),
@@ -1532,7 +1532,7 @@ const sandflareGitCloneSchema = baseSchema.extend({
   token: z.string().optional(),
 });
 
-const sandflarePlaywrightSchema = baseSchema.extend({
+const pandastackPlaywrightSchema = baseSchema.extend({
   script: z.string().optional(),
   url: z.string().optional(),
   action: z.enum(['screenshot', 'scrape', 'click', 'fill']).optional(),
@@ -1544,12 +1544,12 @@ const sandflarePlaywrightSchema = baseSchema.extend({
   viewport: z.any().optional(),
 });
 
-const sandflareMemoryAddSchema = baseSchema.extend({
+const pandastackMemoryAddSchema = baseSchema.extend({
   content: z.any().optional(),
   category: z.string().optional(),
 });
 
-const sandflareMemorySearchSchema = baseSchema.extend({
+const pandastackMemorySearchSchema = baseSchema.extend({
   query: z.string().optional(),
   limit: z.number().int().positive().optional(),
 });
@@ -1686,295 +1686,295 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.python']: {
-    type: 'sandflare.python' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.python']: {
+    type: 'pandastack.python' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Python',
     description: 'Execute Python code',
     icon: 'Code',
     color: '#0ea5e9',
-    configSchema: sandflareRuntimeSchema,
+    configSchema: pandastackRuntimeSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.nodejs']: {
-    type: 'sandflare.nodejs' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.nodejs']: {
+    type: 'pandastack.nodejs' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Node.js',
     description: 'Execute Node.js code',
     icon: 'Code',
     color: '#0ea5e9',
-    configSchema: sandflareRuntimeSchema,
+    configSchema: pandastackRuntimeSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.go']: {
-    type: 'sandflare.go' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.go']: {
+    type: 'pandastack.go' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Go',
     description: 'Execute Go code',
     icon: 'Code',
     color: '#0ea5e9',
-    configSchema: sandflareRuntimeSchema,
+    configSchema: pandastackRuntimeSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.rust']: {
-    type: 'sandflare.rust' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.rust']: {
+    type: 'pandastack.rust' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Rust',
     description: 'Execute Rust code',
     icon: 'Code',
     color: '#0ea5e9',
-    configSchema: sandflareRuntimeSchema,
+    configSchema: pandastackRuntimeSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.bash']: {
-    type: 'sandflare.bash' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.bash']: {
+    type: 'pandastack.bash' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Bash',
     description: 'Execute Bash scripts',
     icon: 'Terminal',
     color: '#0ea5e9',
-    configSchema: sandflareRuntimeSchema,
+    configSchema: pandastackRuntimeSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.ruby']: {
-    type: 'sandflare.ruby' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.ruby']: {
+    type: 'pandastack.ruby' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Ruby',
     description: 'Execute Ruby code',
     icon: 'Code',
     color: '#0ea5e9',
-    configSchema: sandflareRuntimeSchema,
+    configSchema: pandastackRuntimeSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.php']: {
-    type: 'sandflare.php' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.php']: {
+    type: 'pandastack.php' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'PHP',
     description: 'Execute PHP code',
     icon: 'Code',
     color: '#0ea5e9',
-    configSchema: sandflareRuntimeSchema,
+    configSchema: pandastackRuntimeSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.java']: {
-    type: 'sandflare.java' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.java']: {
+    type: 'pandastack.java' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Java',
     description: 'Execute Java code',
     icon: 'Code',
     color: '#0ea5e9',
-    configSchema: sandflareRuntimeSchema,
+    configSchema: pandastackRuntimeSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.docker']: {
-    type: 'sandflare.docker' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.docker']: {
+    type: 'pandastack.docker' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Docker',
     description: 'Run Docker container',
     icon: 'Container',
     color: '#0ea5e9',
-    configSchema: sandflareRuntimeSchema,
+    configSchema: pandastackRuntimeSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.jupyter']: {
-    type: 'sandflare.jupyter' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.jupyter']: {
+    type: 'pandastack.jupyter' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Jupyter',
     description: 'Jupyter notebook',
     icon: 'BookOpen',
     color: '#0ea5e9',
-    configSchema: sandflareRuntimeSchema,
+    configSchema: pandastackRuntimeSchema,
     defaultConfig: {},
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.execute']: {
-    type: 'sandflare.execute' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.execute']: {
+    type: 'pandastack.execute' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Code Execute',
-    description: 'Generic code execution in a Sandflare sandbox',
+    description: 'Generic code execution in a PandaStack sandbox',
     icon: 'Code2',
     color: '#0ea5e9',
-    configSchema: sandflareRuntimeSchema,
+    configSchema: pandastackRuntimeSchema,
     defaultConfig: { language: 'python', code: '', timeout: 30000, fallbackToMock: true, parseJsonOutput: true },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.scrape']: {
-    type: 'sandflare.scrape' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.scrape']: {
+    type: 'pandastack.scrape' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Web Scraper',
-    description: 'Scrape websites using a Sandflare sandbox',
+    description: 'Scrape websites using a PandaStack sandbox',
     icon: 'Globe',
     color: '#0ea5e9',
-    configSchema: sandflareScrapeSchema,
+    configSchema: pandastackScrapeSchema,
     defaultConfig: { url: '', javascript: true, timeout: 30000, fallbackToMock: true },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.file_write']: {
-    type: 'sandflare.file_write' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.file_write']: {
+    type: 'pandastack.file_write' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Write File',
     description: 'Write a file into the shared sandbox filesystem',
     icon: 'FileOutput',
     color: '#0ea5e9',
-    configSchema: sandflareFileWriteSchema,
+    configSchema: pandastackFileWriteSchema,
     defaultConfig: { path: '/home/user/file.txt', content: '' },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.file_read']: {
-    type: 'sandflare.file_read' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.file_read']: {
+    type: 'pandastack.file_read' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Read File',
     description: 'Read a file from the shared sandbox filesystem',
     icon: 'FileInput',
     color: '#0ea5e9',
-    configSchema: sandflareFileReadSchema,
+    configSchema: pandastackFileReadSchema,
     defaultConfig: { path: '/home/user/file.txt', encoding: 'utf8' },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.file_list']: {
-    type: 'sandflare.file_list' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.file_list']: {
+    type: 'pandastack.file_list' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'List Files',
     description: 'List directory contents inside the sandbox',
     icon: 'FolderOpen',
     color: '#0ea5e9',
-    configSchema: sandflareFileListSchema,
+    configSchema: pandastackFileListSchema,
     defaultConfig: { path: '/home/user' },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.install']: {
-    type: 'sandflare.install' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.install']: {
+    type: 'pandastack.install' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Install Package',
     description: 'Install packages (pip/npm/apt) into the shared sandbox',
     icon: 'Package',
     color: '#0ea5e9',
-    configSchema: sandflareInstallSchema,
+    configSchema: pandastackInstallSchema,
     defaultConfig: { packages: '', runtime: 'pip' },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.snapshot']: {
-    type: 'sandflare.snapshot' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.snapshot']: {
+    type: 'pandastack.snapshot' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Snapshot',
     description: 'Save the current sandbox state as a reusable snapshot',
     icon: 'Camera',
     color: '#0ea5e9',
-    configSchema: sandflareSnapshotSchema,
+    configSchema: pandastackSnapshotSchema,
     defaultConfig: { name: '', description: '' },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.fork']: {
-    type: 'sandflare.fork' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.fork']: {
+    type: 'pandastack.fork' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Fork Sandbox',
     description: 'Fork the sandbox into N parallel copies for parallel exploration',
     icon: 'GitFork',
     color: '#0ea5e9',
-    configSchema: sandflareForkSchema,
+    configSchema: pandastackForkSchema,
     defaultConfig: { count: 2 },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.git_clone']: {
-    type: 'sandflare.git_clone' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.git_clone']: {
+    type: 'pandastack.git_clone' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Git Clone',
     description: 'Clone a git repository into the shared sandbox',
     icon: 'GitBranch',
     color: '#0ea5e9',
-    configSchema: sandflareGitCloneSchema,
+    configSchema: pandastackGitCloneSchema,
     defaultConfig: { repoUrl: '', branch: 'main', path: '/repo', depth: 1 },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.playwright']: {
-    type: 'sandflare.playwright' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.playwright']: {
+    type: 'pandastack.playwright' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Playwright Browser',
     description: 'Headless browser automation — screenshots, scraping, form filling',
     icon: 'MonitorPlay',
     color: '#0ea5e9',
-    configSchema: sandflarePlaywrightSchema,
+    configSchema: pandastackPlaywrightSchema,
     defaultConfig: { script: '', url: '', action: 'screenshot' },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.memory_add']: {
-    type: 'sandflare.memory_add' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.memory_add']: {
+    type: 'pandastack.memory_add' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Add Memory',
     description: 'Store a memory that persists across workflow runs',
     icon: 'Brain',
     color: '#0ea5e9',
-    configSchema: sandflareMemoryAddSchema,
+    configSchema: pandastackMemoryAddSchema,
     defaultConfig: { content: '', category: 'general' },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.memory_search']: {
-    type: 'sandflare.memory_search' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.memory_search']: {
+    type: 'pandastack.memory_search' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Search Memory',
     description: 'Search persisted memories by semantic query',
     icon: 'Search',
     color: '#0ea5e9',
-    configSchema: sandflareMemorySearchSchema,
+    configSchema: pandastackMemorySearchSchema,
     defaultConfig: { query: '', limit: 10 },
     inputs: [{ name: 'input', type: 'any', required: false }],
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  ['sandflare.metrics']: {
-    type: 'sandflare.metrics' as NodeType,
-    category: 'sandflare' as NodeCategory,
+  ['pandastack.metrics']: {
+    type: 'pandastack.metrics' as NodeType,
+    category: 'pandastack' as NodeCategory,
     name: 'Sandbox Metrics',
     description: 'Get CPU, memory, and process metrics from the shared sandbox',
     icon: 'Activity',

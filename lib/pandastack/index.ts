@@ -1,4 +1,4 @@
-// Export all Sandflare-related modules
+// Export all PandaStack sandbox modules
 export * from './types';
 export * from './client';
 export * from './manager';

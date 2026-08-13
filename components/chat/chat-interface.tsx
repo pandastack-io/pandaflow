@@ -311,7 +311,7 @@ export function ChatInterface({ chatId, workflowName, chatSettings, embedded = f
             </div>
             <div className="hidden items-center gap-2 md:flex">
               <Badge variant="outline" className="border-white/10 bg-white/5 text-white/70">Powered by ⚡</Badge>
-              <Badge variant="outline" className="border-white/10 bg-white/5 text-white/70">Sandflare-ready</Badge>
+              <Badge variant="outline" className="border-white/10 bg-white/5 text-white/70">PandaStack-ready</Badge>
             </div>
           </div>
         </div>
@@ -387,7 +387,7 @@ export function ChatInterface({ chatId, workflowName, chatSettings, embedded = f
 
             <div className="mt-3 flex flex-col justify-between gap-2 text-xs text-white/45 md:flex-row md:items-center">
               <span>Enter to send · Shift + Enter for a newline</span>
-              <span>Powered by AI Agent Builder + Sandflare</span>
+              <span>Powered by AI Agent Builder + PandaStack</span>
             </div>
           </div>
         </div>

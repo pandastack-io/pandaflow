@@ -5,10 +5,10 @@ import { maybeStoreEpisodicMemory } from '@/lib/agents/episodic';
 import { syncAgentStatusAfterExecution } from '@/lib/agents/status-sync';
 import { updateAgentTotalCost } from '@/lib/execution/cost-tracker';
 import { WorkflowExecutor } from '@/lib/execution/workflow-executor';
-import { isSandflareEnabled, runWorkflowInSandbox } from '@/lib/execution/sandflare-workflow-runner';
+import { isPandaStackEnabled, runWorkflowInSandbox } from '@/lib/execution/pandastack-workflow-runner';
 import type { WorkflowDefinition } from '@/types/nodes';
 
-/** Node types that require the TypeScript (durable) executor instead of Sandflare. */
+/** Node types that require the TypeScript (durable) executor instead of PandaStack. */
 const DURABLE_NODE_TYPES = new Set([
   'control.sub_workflow',
   'agent.invoke',
@@ -85,7 +85,7 @@ export async function startWorkflowExecution(options: StartWorkflowExecutionOpti
 
   const isDurable =
     Boolean(options.debug) ||
-    !isSandflareEnabled() ||
+    !isPandaStackEnabled() ||
     requiresDurableExecution(workflow.definition as WorkflowDefinition);
 
   // traceId propagates down the call tree; root executions generate their own.
@@ -191,8 +191,8 @@ export async function executeWorkflowAsync(
       startedAt: new Date(),
     }).catch((e) => console.warn('[Trace] Failed to write trace row:', e));
 
-    if (!isDurable && isSandflareEnabled()) {
-      // Fast path: single-agent workflow in Sandflare microVM (unchanged behaviour).
+    if (!isDurable && isPandaStackEnabled()) {
+      // Fast path: single-agent workflow in PandaStack microVM (unchanged behaviour).
       result = await runWorkflowInSandbox(workflow.definition as WorkflowDefinition, input, {
         executionId,
         organizationId: workflow.organizationId,

@@ -1,6 +1,6 @@
 # PandaFlow Roadmap
 
-> **PandaFlow** is an open source AI agent workflow builder by [PandastackIO Inc.](https://pandastack.io). This roadmap reflects what's been shipped, what's actively being worked on, and where the project is headed. It is public and community-driven.
+> **PandaFlow** is an open source AI agent workflow builder by [PandastackIO Inc.](https://pandastack.ai). This roadmap reflects what's been shipped, what's actively being worked on, and where the project is headed. It is public and community-driven.
 
 ---
 
@@ -16,7 +16,7 @@
 - [x] Workflow versioning
 
 ### Execution Engine
-- [x] Sandflare microVM isolated execution
+- [x] PandaStack microVM isolated execution
 - [x] Local `WorkflowExecutor` for development / mock mode
 - [x] Real-time SSE execution status streaming
 - [x] Execution replay debugger (DevTools-style step timeline)
@@ -36,7 +36,7 @@
 ### Node Library
 - [x] LLM: OpenAI GPT-4/4o, Claude (Anthropic), Mistral, Groq, Ollama
 - [x] Triggers: Manual, Webhook, Schedule, Chat
-- [x] Sandflare execution: Python, JavaScript, Bash, Go, Rust
+- [x] PandaStack execution: Python, JavaScript, Bash, Go, Rust
 - [x] Data: HTTP Request, PostgreSQL, Redis, Queue
 - [x] Document Loaders: CSV, JSON, PDF, Webpage, GitHub, Notion, Google Drive, Airtable, RSS, Sitemap
 - [x] Embeddings: OpenAI, Cohere, HuggingFace
@@ -123,8 +123,8 @@
 
 ### Infrastructure
 - [ ] Horizontal scaling of Temporal workers
-- [ ] Bring-your-own Sandflare key per organization
-- [ ] Self-hosted Sandflare-compatible runtime
+- [ ] Bring-your-own PandaStack key per organization
+- [ ] Self-hosted PandaStack-compatible runtime
 - [ ] Docker Compose one-command self-host
 - [ ] Helm chart for Kubernetes deployment
 
@@ -163,4 +163,4 @@ Before contributing, please read [CONTRIBUTING.md](./CONTRIBUTING.md) _(coming s
 
 ---
 
-_Last updated: May 2026 · Maintained by [PandastackIO Inc.](https://pandastack.io)_
+_Last updated: May 2026 · Maintained by [PandastackIO Inc.](https://pandastack.ai)_

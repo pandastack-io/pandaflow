@@ -93,10 +93,10 @@ function getNodeSubtitle(type: string, config: Record<string, any>): string | nu
       return getPreviewString(config.responseType) ?? 'Response';
     case NodeType.OUTPUT_LOG:
       return getPreviewString(config.level);
-    case NodeType.SANDFLARE_SCRAPE:
+    case NodeType.PANDASTACK_SCRAPE:
       return getPreviewString(config.url) ? truncatePreview(getPreviewString(config.url)!, 35) : null;
-    case NodeType.SANDFLARE_PYTHON:
-    case NodeType.SANDFLARE_NODEJS:
+    case NodeType.PANDASTACK_PYTHON:
+    case NodeType.PANDASTACK_NODEJS:
       return 'Code executor';
     case NodeType.MEMORY_AGENT_READ:
     case NodeType.MEMORY_AGENT_WRITE:

@@ -68,8 +68,8 @@ secret "nextauth_secret" {
   description = "NextAuth.js secret for session encryption"
 }
 
-secret "sandflare_api_key" {
-  description = "Sandflare.io API key"
+secret "pandastack_api_key" {
+  description = "PandaStack API key"
 }
 
 secret "encryption_key" {

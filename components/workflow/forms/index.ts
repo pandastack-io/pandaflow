@@ -10,7 +10,7 @@ import { NodeFormProps } from './types';
 import { aiForms } from './ai-forms';
 import { agentForms } from './agent-forms';
 import { memoryForms } from './memory-forms';
-import { sandflareforms } from './sandflare-forms';
+import { pandastackforms } from './pandastack-forms';
 import { transformForms } from './transform-forms';
 import { controlForms } from './control-forms';
 import { utilityForms } from './utility-forms';
@@ -28,7 +28,7 @@ import { ragForms } from './rag-forms';
 
 export const nodeFormRegistry: Partial<Record<NodeType, ComponentType<NodeFormProps>>> = {
   ...triggerForms,
-  ...sandflareforms,
+  ...pandastackforms,
   ...agentForms,
   ...memoryForms,
   ...aiForms,

@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'PandaFlow | Open Source AI Agent Workflow Builder',
   description:
-    'Build, deploy, and orchestrate AI agents visually. Powered by Sandflare isolated microVM execution. Open source by PandastackIO Inc.',
+    'Build, deploy, and orchestrate AI agents visually. Powered by PandaStack isolated microVM execution. Open source by PandastackIO Inc.',
   icons: {
     icon: '/pandaflow-logo.png',
     apple: '/pandaflow-logo.png',

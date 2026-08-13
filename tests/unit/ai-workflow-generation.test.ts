@@ -16,7 +16,7 @@ describe('AI workflow generation', () => {
   it('includes a Python node when the description asks for Python analysis', () => {
     const workflow = buildFallbackWorkflow('Run Python data analysis on CSV files');
 
-    expect(workflow.nodes.some((node) => node.nodeType === NodeType.SANDFLARE_PYTHON)).toBe(true);
+    expect(workflow.nodes.some((node) => node.nodeType === NodeType.PANDASTACK_PYTHON)).toBe(true);
     expect(workflow.nodes.at(-1)?.nodeType).toBe(NodeType.OUTPUT_EMAIL);
   });
 

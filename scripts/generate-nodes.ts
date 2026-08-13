@@ -16,19 +16,19 @@ const allNodes = [
   { type: NodeType.TRIGGER_KAFKA, category: NodeCategory.TRIGGER, name: 'Kafka', description: 'Kafka messages', icon: 'MessageSquareMore' },
   { type: NodeType.TRIGGER_EVENT, category: NodeCategory.TRIGGER, name: 'Event', description: 'Generic event', icon: 'Zap' },
 
-  // Sandflare (12)
-  { type: NodeType.SANDFLARE_PYTHON, category: NodeCategory.SANDFLARE, name: 'Python', description: 'Execute Python code', icon: 'Code' },
-  { type: NodeType.SANDFLARE_NODEJS, category: NodeCategory.SANDFLARE, name: 'Node.js', description: 'Execute Node.js code', icon: 'Code' },
-  { type: NodeType.SANDFLARE_GO, category: NodeCategory.SANDFLARE, name: 'Go', description: 'Execute Go code', icon: 'Code' },
-  { type: NodeType.SANDFLARE_RUST, category: NodeCategory.SANDFLARE, name: 'Rust', description: 'Execute Rust code', icon: 'Code' },
-  { type: NodeType.SANDFLARE_BASH, category: NodeCategory.SANDFLARE, name: 'Bash', description: 'Execute Bash scripts', icon: 'Terminal' },
-  { type: NodeType.SANDFLARE_RUBY, category: NodeCategory.SANDFLARE, name: 'Ruby', description: 'Execute Ruby code', icon: 'Code' },
-  { type: NodeType.SANDFLARE_PHP, category: NodeCategory.SANDFLARE, name: 'PHP', description: 'Execute PHP code', icon: 'Code' },
-  { type: NodeType.SANDFLARE_JAVA, category: NodeCategory.SANDFLARE, name: 'Java', description: 'Execute Java code', icon: 'Code' },
-  { type: NodeType.SANDFLARE_DOCKER, category: NodeCategory.SANDFLARE, name: 'Docker', description: 'Run Docker container', icon: 'Container' },
-  { type: NodeType.SANDFLARE_JUPYTER, category: NodeCategory.SANDFLARE, name: 'Jupyter', description: 'Jupyter notebook', icon: 'BookOpen' },
-  { type: NodeType.SANDFLARE_EXECUTE, category: NodeCategory.SANDFLARE, name: 'Code Execute', description: 'Generic code execution', icon: 'Code2' },
-  { type: NodeType.SANDFLARE_SCRAPE, category: NodeCategory.SANDFLARE, name: 'Web Scraper', description: 'Scrape websites', icon: 'Globe' },
+  // PandaStack (12)
+  { type: NodeType.PANDASTACK_PYTHON, category: NodeCategory.PANDASTACK, name: 'Python', description: 'Execute Python code', icon: 'Code' },
+  { type: NodeType.PANDASTACK_NODEJS, category: NodeCategory.PANDASTACK, name: 'Node.js', description: 'Execute Node.js code', icon: 'Code' },
+  { type: NodeType.PANDASTACK_GO, category: NodeCategory.PANDASTACK, name: 'Go', description: 'Execute Go code', icon: 'Code' },
+  { type: NodeType.PANDASTACK_RUST, category: NodeCategory.PANDASTACK, name: 'Rust', description: 'Execute Rust code', icon: 'Code' },
+  { type: NodeType.PANDASTACK_BASH, category: NodeCategory.PANDASTACK, name: 'Bash', description: 'Execute Bash scripts', icon: 'Terminal' },
+  { type: NodeType.PANDASTACK_RUBY, category: NodeCategory.PANDASTACK, name: 'Ruby', description: 'Execute Ruby code', icon: 'Code' },
+  { type: NodeType.PANDASTACK_PHP, category: NodeCategory.PANDASTACK, name: 'PHP', description: 'Execute PHP code', icon: 'Code' },
+  { type: NodeType.PANDASTACK_JAVA, category: NodeCategory.PANDASTACK, name: 'Java', description: 'Execute Java code', icon: 'Code' },
+  { type: NodeType.PANDASTACK_DOCKER, category: NodeCategory.PANDASTACK, name: 'Docker', description: 'Run Docker container', icon: 'Container' },
+  { type: NodeType.PANDASTACK_JUPYTER, category: NodeCategory.PANDASTACK, name: 'Jupyter', description: 'Jupyter notebook', icon: 'BookOpen' },
+  { type: NodeType.PANDASTACK_EXECUTE, category: NodeCategory.PANDASTACK, name: 'Code Execute', description: 'Generic code execution', icon: 'Code2' },
+  { type: NodeType.PANDASTACK_SCRAPE, category: NodeCategory.PANDASTACK, name: 'Web Scraper', description: 'Scrape websites', icon: 'Globe' },
 
   // AI/LLM (15)
   { type: NodeType.AI_LLM, category: NodeCategory.AI, name: 'LLM', description: 'Language model processing', icon: 'Brain' },
@@ -218,7 +218,7 @@ const allNodes = [
 function generateRegistry() {
   const colors = {
     [NodeCategory.TRIGGER]: '#10b981',
-    [NodeCategory.SANDFLARE]: '#0ea5e9',
+    [NodeCategory.PANDASTACK]: '#0ea5e9',
     [NodeCategory.AGENT]: '#8b5cf6',
     [NodeCategory.MEMORY]: '#14b8a6',
     [NodeCategory.AI]: '#8b5cf6',

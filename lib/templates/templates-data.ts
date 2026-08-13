@@ -107,7 +107,7 @@ const richWorkflowTemplates: WorkflowTemplate[] = [
             selectors: 'object',
           },
         }),
-        createNode('node-scrape', NodeType.SANDFLARE_SCRAPE, 360, 220, {
+        createNode('node-scrape', NodeType.PANDASTACK_SCRAPE, 360, 220, {
           label: 'Scrape Target Page',
           url: '{{input.url}}',
           javascript: true,
@@ -695,7 +695,7 @@ const richWorkflowTemplates: WorkflowTemplate[] = [
   {
     id: 'data-analysis-agent',
     name: 'Data Analysis Agent',
-    description: 'Interpret a business question with an agent, run Python analysis in Sandflare, and return polished insights for analysts or operators.',
+    description: 'Interpret a business question with an agent, run Python analysis in PandaStack, and return polished insights for analysts or operators.',
     category: 'Agents',
     tags: ['agent', 'python', 'analysis', 'pandas'],
     difficulty: 'advanced',
@@ -720,7 +720,7 @@ const richWorkflowTemplates: WorkflowTemplate[] = [
           systemPrompt: 'You are a data analyst. Translate the question into an analysis plan and specify the calculations needed.',
           temperature: 0.2,
         }),
-        createNode('node-python', NodeType.SANDFLARE_PYTHON, 640, 220, {
+        createNode('node-python', NodeType.PANDASTACK_PYTHON, 640, 220, {
           label: 'Run Pandas Analysis',
           code: 'import pandas as pd\n# Load input dataset and compute requested metrics\n',
           packages: ['pandas', 'numpy'],
@@ -1926,7 +1926,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
             },
           },
         }),
-        createNode('node-scrape', NodeType.SANDFLARE_SCRAPE, 380, 220, {
+        createNode('node-scrape', NodeType.PANDASTACK_SCRAPE, 380, 220, {
           label: 'Scrape Target Page',
           url: '{{input.url}}',
           waitFor: 'networkidle',
@@ -1986,7 +1986,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           delayMs: 3000,
           backoff: 'exponential',
         }),
-        createNode('node-playwright', NodeType.SANDFLARE_PLAYWRIGHT, 660, 220, {
+        createNode('node-playwright', NodeType.PANDASTACK_PLAYWRIGHT, 660, 220, {
           label: 'Login and Scrape Products',
           url: 'https://shop.example.com/login',
           actions: [
@@ -2065,7 +2065,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           label: 'Iterate News Sources',
           items: ['https://news.ycombinator.com/', 'https://www.theverge.com/tech', 'https://techcrunch.com/'],
         }),
-        createNode('node-scrape', NodeType.SANDFLARE_SCRAPE, 660, 220, {
+        createNode('node-scrape', NodeType.PANDASTACK_SCRAPE, 660, 220, {
           label: 'Scrape Headlines',
           url: '{{item}}',
           extractionRules: {
@@ -2135,7 +2135,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           delayMs: 5000,
           backoff: 'linear',
         }),
-        createNode('node-playwright', NodeType.SANDFLARE_PLAYWRIGHT, 660, 220, {
+        createNode('node-playwright', NodeType.PANDASTACK_PLAYWRIGHT, 660, 220, {
           label: 'Scrape Social Mentions',
           url: 'https://social.example.com/search?q=%23acme',
           extractionRules: {
@@ -2205,7 +2205,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           maxAttempts: 3,
           delayMs: 2500,
         }),
-        createNode('node-scrape', NodeType.SANDFLARE_SCRAPE, 660, 220, {
+        createNode('node-scrape', NodeType.PANDASTACK_SCRAPE, 660, 220, {
           label: 'Scrape Job Boards',
           url: 'https://jobs.example.com/engineering',
           extractionRules: {
@@ -2286,7 +2286,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           delayMs: 2000,
           backoff: 'exponential',
         }),
-        createNode('node-scrape', NodeType.SANDFLARE_SCRAPE, 940, 220, {
+        createNode('node-scrape', NodeType.PANDASTACK_SCRAPE, 940, 220, {
           label: 'Scrape Retailer Prices',
           url: 'https://prices.example.com/{{item}}',
           extractionRules: {
@@ -2348,7 +2348,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           maxAttempts: 3,
           delayMs: 4000,
         }),
-        createNode('node-playwright', NodeType.SANDFLARE_PLAYWRIGHT, 660, 220, {
+        createNode('node-playwright', NodeType.PANDASTACK_PLAYWRIGHT, 660, 220, {
           label: 'Scrape Listing Details',
           url: 'https://homes.example.com/search?city=austin&status=for-sale',
           extractionRules: {
@@ -2410,7 +2410,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           timezone: 'UTC',
           enabled: true,
         }),
-        createNode('node-scrape', NodeType.SANDFLARE_SCRAPE, 380, 220, {
+        createNode('node-scrape', NodeType.PANDASTACK_SCRAPE, 380, 220, {
           label: 'Scrape Review Sources',
           url: 'https://reviews.example.com/acme-widget',
           extractionRules: {
@@ -2601,7 +2601,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
             galleryUrl: 'https://example.com/gallery',
           },
         }),
-        createNode('node-playwright', NodeType.SANDFLARE_PLAYWRIGHT, 380, 220, {
+        createNode('node-playwright', NodeType.PANDASTACK_PLAYWRIGHT, 380, 220, {
           label: 'Scrape Gallery Images',
           url: '{{input.galleryUrl}}',
           extractionRules: {
@@ -2614,7 +2614,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           label: 'Iterate Images',
           items: '{{node-playwright.imageUrl}}',
         }),
-        createNode('node-python', NodeType.SANDFLARE_PYTHON, 940, 220, {
+        createNode('node-python', NodeType.PANDASTACK_PYTHON, 940, 220, {
           label: 'Download and Resize',
           script:
             'import requests\nfrom PIL import Image\nfrom io import BytesIO\nurl = item\nimg = Image.open(BytesIO(requests.get(url, timeout=30).content))\nimg.thumbnail((1600, 1600))\nprint({"source": url, "status": "processed"})',
@@ -2657,7 +2657,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
             sitemapUrl: 'https://example.com/sitemap.xml',
           },
         }),
-        createNode('node-python', NodeType.SANDFLARE_PYTHON, 380, 220, {
+        createNode('node-python', NodeType.PANDASTACK_PYTHON, 380, 220, {
           label: 'Fetch Sitemap XML',
           script:
             'import requests\nresponse = requests.get(inputs["sitemapUrl"], timeout=30)\nresponse.raise_for_status()\nprint(response.text)',
@@ -2674,7 +2674,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           label: 'Iterate Sitemap Entries',
           items: '{{node-xml.url}}',
         }),
-        createNode('node-scrape', NodeType.SANDFLARE_SCRAPE, 1220, 220, {
+        createNode('node-scrape', NodeType.PANDASTACK_SCRAPE, 1220, 220, {
           label: 'Scrape Page Metadata',
           url: '{{item}}',
           extractionRules: {
@@ -2721,7 +2721,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
             pdfUrl: 'https://example.com/reports/q1-report.pdf',
           },
         }),
-        createNode('node-python', NodeType.SANDFLARE_PYTHON, 380, 220, {
+        createNode('node-python', NodeType.PANDASTACK_PYTHON, 380, 220, {
           label: 'Extract PDF Text',
           script:
             'import io\nimport requests\nfrom pypdf import PdfReader\ncontent = requests.get(inputs["pdfUrl"], timeout=30).content\nreader = PdfReader(io.BytesIO(content))\ntext = "\n".join(page.extract_text() or "" for page in reader.pages)\nprint(text)',
@@ -2769,7 +2769,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
             appUrl: 'https://app.example.com',
           },
         }),
-        createNode('node-playwright', NodeType.SANDFLARE_PLAYWRIGHT, 380, 220, {
+        createNode('node-playwright', NodeType.PANDASTACK_PLAYWRIGHT, 380, 220, {
           label: 'Crawl Application',
           url: '{{input.appUrl}}',
           recordNetwork: true,
@@ -2822,7 +2822,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
             targetUrl: 'https://example.com',
           },
         }),
-        createNode('node-playwright', NodeType.SANDFLARE_PLAYWRIGHT, 380, 220, {
+        createNode('node-playwright', NodeType.PANDASTACK_PLAYWRIGHT, 380, 220, {
           label: 'Capture Screenshot',
           url: '{{input.targetUrl}}',
           screenshot: {
@@ -3569,7 +3569,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           path: 'data/metrics.csv',
           hasHeaders: true,
         }),
-        createNode('detect', NodeType.SANDFLARE_PYTHON, 660, 220, {
+        createNode('detect', NodeType.PANDASTACK_PYTHON, 660, 220, {
           code:
             'import json\nrows = input_data.get("rows", [])\nfor row in rows:\n    value = float(row.get("value", 0))\n    row["is_anomaly"] = value > 3.5\noutput = {"rows": rows}',
           runtime: 'python3.11',
@@ -3809,7 +3809,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
       [
         createNode('t', NodeType.TRIGGER_SCHEDULE, 100, 220, { cron: '0 2 * * *', timezone: 'UTC' }),
         createNode('db', NodeType.INTEGRATION_POSTGRES, 380, 220, { queryType: 'select', query: 'SELECT * FROM critical_data' }),
-        createNode('compress', NodeType.SANDFLARE_PYTHON, 660, 220, { entrypoint: 'main.py', code: 'import json, gzip\noutput = {"compressed": True, "size": len(json.dumps(input_data))}' }),
+        createNode('compress', NodeType.PANDASTACK_PYTHON, 660, 220, { entrypoint: 'main.py', code: 'import json, gzip\noutput = {"compressed": True, "size": len(json.dumps(input_data))}' }),
         createNode('s3', NodeType.INTEGRATION_AWS_S3, 940, 220, { bucket: '{{env.BACKUP_BUCKET}}', key: 'backups/{{date}}/data.json.gz', operation: 'put' }),
         createNode('cond', NodeType.CONTROL_CONDITION, 1220, 220, { condition: 'input.success === true', evaluationType: 'expression' }),
         createNode('ok', NodeType.INTEGRATION_SLACK, 1500, 80, { channel: '#ops', message: '✅ Backup complete: {{input.key}}' }),
@@ -3839,10 +3839,10 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
       'Watch an S3 prefix for new uploads, classify each file by MIME type using Python, and move it to the correct folder.',
       [
         createNode('t', NodeType.TRIGGER_SCHEDULE, 100, 220, { cron: '*/15 * * * *' }),
-        createNode('list', NodeType.SANDFLARE_FILE_LIST, 380, 220, { path: '/uploads/inbox', recursive: false }),
+        createNode('list', NodeType.PANDASTACK_FILE_LIST, 380, 220, { path: '/uploads/inbox', recursive: false }),
         createNode('loop', NodeType.CONTROL_FOREACH, 660, 220, { iterateOver: 'files' }),
-        createNode('classify', NodeType.SANDFLARE_PYTHON, 940, 220, { entrypoint: 'main.py', code: 'ext = input_data.get("name","").split(".")[-1].lower()\noutput = {"file": input_data, "folder": {"jpg":"images","png":"images","pdf":"documents","csv":"data"}.get(ext,"misc")}' }),
-        createNode('move', NodeType.SANDFLARE_BASH, 1220, 220, { command: 'mv /uploads/inbox/{{item.name}} /uploads/{{folder}}/{{item.name}}' }),
+        createNode('classify', NodeType.PANDASTACK_PYTHON, 940, 220, { entrypoint: 'main.py', code: 'ext = input_data.get("name","").split(".")[-1].lower()\noutput = {"file": input_data, "folder": {"jpg":"images","png":"images","pdf":"documents","csv":"data"}.get(ext,"misc")}' }),
+        createNode('move', NodeType.PANDASTACK_BASH, 1220, 220, { command: 'mv /uploads/inbox/{{item.name}} /uploads/{{folder}}/{{item.name}}' }),
         createNode('log', NodeType.OUTPUT_LOG, 1500, 220, { level: 'info', message: 'File organised: {{item.name}}' }),
       ],
       [
@@ -4167,7 +4167,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           queryType: 'select',
           query: 'select id, customer_id, status, last_reviewed_at, country_code from compliance_records where archived = false',
         }),
-        createNode('compliance-python', NodeType.SANDFLARE_PYTHON, 660, 220, {
+        createNode('compliance-python', NodeType.PANDASTACK_PYTHON, 660, 220, {
           label: 'Run Compliance Rules',
           code:
             "from datetime import datetime, timezone\nrecords = input.get('rows', [])\nviolations = [r for r in records if r.get('status') != 'approved' or not r.get('last_reviewed_at')]\nresult = {'passed': len(violations) == 0, 'violations': violations, 'checkedAt': datetime.now(timezone.utc).isoformat()}\n",
@@ -4222,17 +4222,17 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           authType: 'hmac',
           path: '/webhooks/deploy',
         }),
-        createNode('deploy-clone', NodeType.SANDFLARE_GIT_CLONE, 380, 220, {
+        createNode('deploy-clone', NodeType.PANDASTACK_GIT_CLONE, 380, 220, {
           label: 'Clone Repository',
           repository: '{{input.repository.clone_url}}',
           branch: '{{input.ref || "refs/heads/main"}}',
         }),
-        createNode('deploy-install', NodeType.SANDFLARE_INSTALL, 660, 220, {
+        createNode('deploy-install', NodeType.PANDASTACK_INSTALL, 660, 220, {
           label: 'Install Dependencies',
           command: 'npm ci',
           workingDirectory: '/workspace/repo',
         }),
-        createNode('deploy-tests', NodeType.SANDFLARE_BASH, 940, 220, {
+        createNode('deploy-tests', NodeType.PANDASTACK_BASH, 940, 220, {
           label: 'Run Test Suite',
           command: 'cd /workspace/repo && npm test && npm run build',
           timeout: 900,
@@ -4242,7 +4242,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           evaluationType: 'expression',
           condition: 'input.exitCode === 0',
         }),
-        createNode('deploy-docker', NodeType.SANDFLARE_DOCKER, 1500, 60, {
+        createNode('deploy-docker', NodeType.PANDASTACK_DOCKER, 1500, 60, {
           label: 'Build and Deploy Image',
           image: '{{env.DEPLOY_IMAGE}}',
           dockerfile: 'Dockerfile',
@@ -4297,7 +4297,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           queryType: 'select',
           query: "select table_name, column_name, data_type from information_schema.columns where table_schema = 'public' order by table_name, ordinal_position",
         }),
-        createNode('migration-generate', NodeType.SANDFLARE_PYTHON, 660, 220, {
+        createNode('migration-generate', NodeType.PANDASTACK_PYTHON, 660, 220, {
           label: 'Generate Migration SQL',
           code:
             "change_request = input.get('changeRequest', '')\nresult = {'migrationSql': f'-- Generated migration for: {change_request}\\n-- Review before applying\\n'}\n",
@@ -4539,7 +4539,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
             { field: 'email', operator: 'neq', value: '' },
           ],
         }),
-        createNode('sheets-python', NodeType.SANDFLARE_PYTHON, 940, 220, {
+        createNode('sheets-python', NodeType.PANDASTACK_PYTHON, 940, 220, {
           label: 'Process Rows',
           code:
             "rows = input.get('items', [])\nprocessed = [{'email': row.get('email', '').lower(), 'score': row.get('score', 0), 'owner': row.get('owner', 'unassigned')} for row in rows]\nresult = {'rows': processed}\n",
@@ -4634,7 +4634,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           path: '/data/incoming',
           pattern: '*.csv',
         }),
-        createNode('s3-python', NodeType.SANDFLARE_PYTHON, 380, 220, {
+        createNode('s3-python', NodeType.PANDASTACK_PYTHON, 380, 220, {
           label: 'Process File',
           code:
             "file_path = input.get('path')\nresult = {'sourcePath': file_path, 'targetKey': f\"processed/{file_path.split('/')[-1]}\"}\n",
@@ -5450,7 +5450,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           metrics: ['sessions', 'conversions', 'activeUsers'],
           includeTotals: true,
         }),
-        createNode('node-python', NodeType.SANDFLARE_PYTHON, 940, 220, {
+        createNode('node-python', NodeType.PANDASTACK_PYTHON, 940, 220, {
           label: 'Render Dashboard Chart',
           entrypoint: 'main.py',
           code: [
@@ -5570,7 +5570,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           url: '{{env.PERFORMANCE_API_URL}}',
           timeout: 8000,
         }),
-        createNode('node-python', NodeType.SANDFLARE_PYTHON, 660, 380, {
+        createNode('node-python', NodeType.PANDASTACK_PYTHON, 660, 380, {
           label: 'Collect CPU & Memory',
           entrypoint: 'main.py',
           code: ['output = {"cpuPct": 68, "memoryPct": 74, "host": "app-server-1"}'].join('\n'),
@@ -5789,7 +5789,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           queryType: 'select',
           query: "select stage_name, user_count, completed_at from funnel_stage_daily where completed_at >= current_date - interval '7 days'", 
         }),
-        createNode('node-python', NodeType.SANDFLARE_PYTHON, 660, 220, {
+        createNode('node-python', NodeType.PANDASTACK_PYTHON, 660, 220, {
           label: 'Calculate Funnel Rates',
           entrypoint: 'main.py',
           code: [
@@ -5846,7 +5846,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           condition: 'input.isEligible === true',
           evaluationType: 'expression',
         }),
-        createNode('node-python', NodeType.SANDFLARE_PYTHON, 940, 60, {
+        createNode('node-python', NodeType.PANDASTACK_PYTHON, 940, 60, {
           label: 'Assign Variant',
           entrypoint: 'main.py',
           code: [
@@ -5897,7 +5897,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           cron: '0 8 * * 1',
           timezone: 'UTC',
         }),
-        createNode('node-scrape', NodeType.SANDFLARE_SCRAPE, 380, 220, {
+        createNode('node-scrape', NodeType.PANDASTACK_SCRAPE, 380, 220, {
           label: 'Scrape Target Page',
           url: '{{env.SEO_TARGET_URL}}',
           javascript: true,
@@ -5960,7 +5960,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           label: 'Run Metric Sources',
           branches: ['computed-metrics', 'database-kpis'],
         }),
-        createNode('node-python', NodeType.SANDFLARE_PYTHON, 660, 60, {
+        createNode('node-python', NodeType.PANDASTACK_PYTHON, 660, 60, {
           label: 'Calculate Service Metrics',
           entrypoint: 'main.py',
           code: ['output = {"errorRate": 0.012, "p95Latency": 420, "queueDepth": 7}'].join('\n'),
@@ -6027,7 +6027,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           label: 'Iterate Competitors',
           itemVariable: 'competitorUrl',
         }),
-        createNode('node-scrape', NodeType.SANDFLARE_SCRAPE, 830, 220, {
+        createNode('node-scrape', NodeType.PANDASTACK_SCRAPE, 830, 220, {
           label: 'Scrape Competitor Page',
           url: '{{item.competitorUrl}}',
           javascript: true,
@@ -6460,21 +6460,21 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           label: 'Search Sources in Parallel',
           branches: ['source-1', 'source-2', 'source-3'],
         }),
-        createNode('node-source-1', NodeType.SANDFLARE_SCRAPE, 830, 60, {
+        createNode('node-source-1', NodeType.PANDASTACK_SCRAPE, 830, 60, {
           label: 'Scrape Source 1',
           url: '{{input.queries[0].url || env.RESEARCH_SOURCE_1}}',
           javascript: true,
           waitFor: 'networkidle',
           timeout: 45000,
         }),
-        createNode('node-source-2', NodeType.SANDFLARE_SCRAPE, 830, 220, {
+        createNode('node-source-2', NodeType.PANDASTACK_SCRAPE, 830, 220, {
           label: 'Scrape Source 2',
           url: '{{input.queries[1].url || env.RESEARCH_SOURCE_2}}',
           javascript: true,
           waitFor: 'networkidle',
           timeout: 45000,
         }),
-        createNode('node-source-3', NodeType.SANDFLARE_SCRAPE, 830, 380, {
+        createNode('node-source-3', NodeType.PANDASTACK_SCRAPE, 830, 380, {
           label: 'Scrape Source 3',
           url: '{{input.queries[2].url || env.RESEARCH_SOURCE_3}}',
           javascript: true,
@@ -7510,7 +7510,7 @@ const legacyWorkflowTemplates: WorkflowTemplate[] = [
           label: 'Calculator',
           expression: '{{input.calculation}}',
         }),
-        createNode('node-code', NodeType.SANDFLARE_EXECUTE, 1330, 380, {
+        createNode('node-code', NodeType.PANDASTACK_EXECUTE, 1330, 380, {
           label: 'Code Runner',
           language: 'python',
           parseJsonOutput: true,
