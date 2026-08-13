@@ -9,7 +9,7 @@ import { aiExecutors } from './ai';
 import { agentExecutors } from './agents';
 import { agentBusExecutors } from './agent-bus';
 import { memoryExecutors } from './memory';
-import { sandflareExecutors } from './sandflare';
+import { pandastackExecutors } from './pandastack';
 import { transformExecutors } from './transform';
 import { controlExecutors } from './control';
 import { utilityExecutors } from './utility';
@@ -31,7 +31,7 @@ import { multiAgentExecutors } from './multi-agent';
 
 export const nodeExecutorRegistry: Partial<Record<NodeType, NodeExecutorFn>> = {
   ...triggerExecutors,
-  ...sandflareExecutors,
+  ...pandastackExecutors,
   ...agentExecutors,
   ...agentBusExecutors,
   // Multi-agent executors come after agentBusExecutors so they override

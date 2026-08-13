@@ -49,7 +49,7 @@ export async function GET(
       db
         .select({
           llmCost: sql<string>`coalesce(sum(case when (${executionCosts.tokensInput} > 0 or ${executionCosts.tokensOutput} > 0) then ${executionCosts.costUsd} else 0 end), 0)`,
-          sandboxCost: sql<string>`coalesce(sum(case when ${executionCosts.sandflareMs} > 0 then ${executionCosts.costUsd} else 0 end), 0)`,
+          sandboxCost: sql<string>`coalesce(sum(case when ${executionCosts.pandastackMs} > 0 then ${executionCosts.costUsd} else 0 end), 0)`,
           totalTokensInput: sql<number>`coalesce(sum(${executionCosts.tokensInput}), 0)`,
           totalTokensOutput: sql<number>`coalesce(sum(${executionCosts.tokensOutput}), 0)`,
         })

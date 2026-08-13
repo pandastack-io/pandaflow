@@ -48,19 +48,19 @@ export const credentialCategories: CredentialCategory[] = [
 
 export const credentialProviders: CredentialProvider[] = [
   {
-    id: 'sandflare',
-    name: 'Sandflare',
+    id: 'pandastack',
+    name: 'PandaStack',
     category: 'Cloud',
     icon: '⚡',
     description: 'Required for executing code in isolated microVMs.',
-    docsUrl: 'https://sandflare.io',
+    docsUrl: 'https://pandastack.ai',
     fields: [
       {
-        key: 'SANDFLARE_API_KEY',
-        label: 'Sandflare API Key',
+        key: 'PANDASTACK_API_KEY',
+        label: 'PandaStack API Key',
         type: 'password',
         placeholder: 'sf_...',
-        helpText: 'Required for executing code in isolated microVMs. Get your key at sandflare.io',
+        helpText: 'Required for executing code in isolated microVMs. Get your key at pandastack.ai',
       },
     ],
   },
@@ -627,4 +627,4 @@ export const credentialProviderMap: Record<string, CredentialProvider> = Object.
   credentialProviders.map((provider) => [provider.id, provider])
 );
 
-export const sandflareProvider = credentialProviderMap.sandflare;
+export const pandastackProvider = credentialProviderMap.pandastack;

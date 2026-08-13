@@ -130,10 +130,10 @@ function ToggleField({ label, checked, onChange, helper }: { label: string; chec
   );
 }
 
-function SandflareCredentialFields({ config, onChange }: NodeFormProps) {
+function PandaStackCredentialFields({ config, onChange }: NodeFormProps) {
   return (
     <CredentialPicker
-      providerId="sandflare"
+      providerId="pandastack"
       config={config}
       onChange={(updates) => onChange({ ...config, ...updates })}
       label="Credentials"
@@ -154,18 +154,18 @@ function RuntimeFields({
 }) {
   return (
     <>
-      <SandflareCredentialFields config={config} onChange={(nextConfig) => update('apiKey', nextConfig.apiKey)} />
-      <Field label="Provider" helper="Auto uses Sandflare when configured and falls back to the mock provider when allowed.">
+      <PandaStackCredentialFields config={config} onChange={(nextConfig) => update('apiKey', nextConfig.apiKey)} />
+      <Field label="Provider" helper="Auto uses PandaStack when configured and falls back to the mock provider when allowed.">
         <Select value={config.provider || 'auto'} onValueChange={(value) => update('provider', value)}>
           <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="auto">Auto</SelectItem>
-            <SelectItem value="sandflare">Sandflare</SelectItem>
+            <SelectItem value="pandastack">PandaStack</SelectItem>
             <SelectItem value="mock">Mock</SelectItem>
           </SelectContent>
         </Select>
       </Field>
-      <TextField label="Sandflare API Key" type="password" value={config.apiKey || ''} onChange={(value) => update('apiKey', value)} helper="Optional override. The executor falls back to SANDFLARE_API_KEY when omitted." />
+      <TextField label="PandaStack API Key" type="password" value={config.apiKey || ''} onChange={(value) => update('apiKey', value)} helper="Optional override. The executor falls back to PANDASTACK_API_KEY when omitted." />
       <TextField label="Input Variable" value={config.inputVariable || ''} onChange={(value) => update('inputVariable', value)} placeholder="upstreamVariableName" />
       <Field label="Code / Script" helper="This source code is interpolated at runtime, so you can reference workflow variables like {{variableName}}.">
         <MonacoCodeEditor value={config.code || ''} onChange={(value) => update('code', value)} language={codeLanguage} />
@@ -179,7 +179,7 @@ function RuntimeFields({
       ) : null}
       <TextAreaField label="STDIN" value={config.stdin || ''} onChange={(value) => update('stdin', value)} rows={3} helper="Optional standard input passed to the runtime." />
       <JsonField label="Environment Variables" value={config.environment || {}} onChange={(value) => update('environment', value)} helper="Provide a JSON object of environment variables." />
-      <TextField label="Template" value={config.template || ''} onChange={(value) => update('template', value)} placeholder="code-interpreter" helper="Optional Sandflare template or preset." />
+      <TextField label="Template" value={config.template || ''} onChange={(value) => update('template', value)} placeholder="code-interpreter" helper="Optional PandaStack template or preset." />
       <Field label="Sandbox Size">
         <Select value={config.size || 'nano'} onValueChange={(value) => update('size', value)}>
           <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
@@ -196,7 +196,7 @@ function RuntimeFields({
       <NumberField label="Memory Limit (MB)" value={config.memoryLimit} onChange={(value) => update('memoryLimit', value)} min={64} max={32768} step={64} />
       <ToggleField label="Fail On Non-Zero Exit" checked={config.failOnNonZeroExit ?? true} onChange={(value) => update('failOnNonZeroExit', value)} />
       <ToggleField label="Expose Input As Env" checked={config.exposeInputAsEnv ?? true} onChange={(value) => update('exposeInputAsEnv', value)} helper="Adds WORKFLOW_INPUT and WORKFLOW_INPUT_JSON to the sandbox environment." />
-      <ToggleField label="Fallback To Mock" checked={config.fallbackToMock ?? true} onChange={(value) => update('fallbackToMock', value)} helper="Useful for local development or when the Sandflare API is unavailable." />
+      <ToggleField label="Fallback To Mock" checked={config.fallbackToMock ?? true} onChange={(value) => update('fallbackToMock', value)} helper="Useful for local development or when the PandaStack API is unavailable." />
       <ToggleField label="Parse JSON Output" checked={config.parseJsonOutput ?? true} onChange={(value) => update('parseJsonOutput', value)} helper="If enabled, stdout will be JSON-parsed when possible." />
     </>
   );
@@ -261,24 +261,24 @@ function ScrapeForm({ config, onChange }: NodeFormProps) {
   const update = useUpdater(config, onChange);
   return (
     <div className="space-y-3">
-      <SandflareCredentialFields config={config} onChange={onChange} />
+      <PandaStackCredentialFields config={config} onChange={onChange} />
       <Field label="Provider">
         <Select value={config.provider || 'auto'} onValueChange={(value) => update('provider', value)}>
           <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="auto">Auto</SelectItem>
-            <SelectItem value="sandflare">Sandflare</SelectItem>
+            <SelectItem value="pandastack">PandaStack</SelectItem>
             <SelectItem value="mock">Mock</SelectItem>
           </SelectContent>
         </Select>
       </Field>
-      <TextField label="Sandflare API Key" type="password" value={config.apiKey || ''} onChange={(value) => update('apiKey', value)} helper="Optional override. Falls back to SANDFLARE_API_KEY." />
+      <TextField label="PandaStack API Key" type="password" value={config.apiKey || ''} onChange={(value) => update('apiKey', value)} helper="Optional override. Falls back to PANDASTACK_API_KEY." />
       <TextField label="Input Variable" value={config.inputVariable || ''} onChange={(value) => update('inputVariable', value)} placeholder="input" />
       <TextField label="URL" value={config.url || ''} onChange={(value) => update('url', value)} placeholder="https://example.com" />
       <TextField label="Wait For Selector" value={config.waitFor || ''} onChange={(value) => update('waitFor', value)} placeholder="#app, article" />
       <NumberField label="Timeout (ms)" value={config.timeout || 30000} onChange={(value) => update('timeout', value)} min={1000} max={300000} step={1000} />
       <ToggleField label="Execute JavaScript" checked={config.javascript ?? true} onChange={(value) => update('javascript', value)} helper="Enable for client-rendered pages." />
-      <ToggleField label="Fallback To Mock" checked={config.fallbackToMock ?? true} onChange={(value) => update('fallbackToMock', value)} helper="Useful for local development when Sandflare is not available." />
+      <ToggleField label="Fallback To Mock" checked={config.fallbackToMock ?? true} onChange={(value) => update('fallbackToMock', value)} helper="Useful for local development when PandaStack is not available." />
     </div>
   );
 }
@@ -349,9 +349,9 @@ function FileWriteForm({ config, onChange }: NodeFormProps) {
   const update = useUpdater(config, onChange);
   return (
     <div className="space-y-3">
-      <SandflareCredentialFields config={config} onChange={onChange} />
+      <PandaStackCredentialFields config={config} onChange={onChange} />
       <div className="rounded-md bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 p-3 text-xs text-purple-700 dark:text-purple-300">
-        Writes a file into the <strong>shared sandbox</strong>. Place this node after a Sandflare code node so the sandbox exists.
+        Writes a file into the <strong>shared sandbox</strong>. Place this node after a PandaStack code node so the sandbox exists.
       </div>
       <Field label="File Path" required>
         <Input
@@ -375,7 +375,7 @@ function FileReadForm({ config, onChange }: NodeFormProps) {
   const update = useUpdater(config, onChange);
   return (
     <div className="space-y-3">
-      <SandflareCredentialFields config={config} onChange={onChange} />
+      <PandaStackCredentialFields config={config} onChange={onChange} />
       <div className="rounded-md bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 p-3 text-xs text-purple-700 dark:text-purple-300">
         Reads a file from the <strong>shared sandbox</strong> filesystem.
       </div>
@@ -403,7 +403,7 @@ function FileListForm({ config, onChange }: NodeFormProps) {
   const update = useUpdater(config, onChange);
   return (
     <div className="space-y-3">
-      <SandflareCredentialFields config={config} onChange={onChange} />
+      <PandaStackCredentialFields config={config} onChange={onChange} />
       <div className="rounded-md bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 p-3 text-xs text-purple-700 dark:text-purple-300">
         Lists files and directories inside the <strong>shared sandbox</strong>.
       </div>
@@ -422,7 +422,7 @@ function InstallForm({ config, onChange }: NodeFormProps) {
   const update = useUpdater(config, onChange);
   return (
     <div className="space-y-3">
-      <SandflareCredentialFields config={config} onChange={onChange} />
+      <PandaStackCredentialFields config={config} onChange={onChange} />
       <div className="rounded-md bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 p-3 text-xs text-purple-700 dark:text-purple-300">
         Installs packages into the <strong>shared sandbox</strong>. Installed packages are available to all subsequent nodes in this workflow.
       </div>
@@ -458,7 +458,7 @@ function SnapshotForm({ config, onChange }: NodeFormProps) {
   const update = useUpdater(config, onChange);
   return (
     <div className="space-y-3">
-      <SandflareCredentialFields config={config} onChange={onChange} />
+      <PandaStackCredentialFields config={config} onChange={onChange} />
       <div className="rounded-md bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 p-3 text-xs text-purple-700 dark:text-purple-300">
         Saves the current shared sandbox state as a snapshot. Use the snapshot ID to boot future sandboxes with a pre-built environment.
       </div>
@@ -484,7 +484,7 @@ function ForkForm({ config, onChange }: NodeFormProps) {
   const update = useUpdater(config, onChange);
   return (
     <div className="space-y-3">
-      <SandflareCredentialFields config={config} onChange={onChange} />
+      <PandaStackCredentialFields config={config} onChange={onChange} />
       <div className="rounded-md bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 p-3 text-xs text-purple-700 dark:text-purple-300">
         Forks the shared sandbox into N independent copies. Each fork gets a full copy of the current filesystem and state — ideal for parallel exploration (tree-of-thought, A/B testing).
       </div>
@@ -496,7 +496,7 @@ function ForkForm({ config, onChange }: NodeFormProps) {
           value={config.count || 2}
           onChange={(e) => update('count', parseInt(e.target.value, 10))}
         />
-        <p className="text-xs text-muted-foreground mt-1">Maximum 8 forks per call (Sandflare API limit).</p>
+        <p className="text-xs text-muted-foreground mt-1">Maximum 8 forks per call (PandaStack API limit).</p>
       </Field>
     </div>
   );
@@ -506,7 +506,7 @@ function GitCloneForm({ config, onChange }: NodeFormProps) {
   const update = useUpdater(config, onChange);
   return (
     <div className="space-y-3">
-      <SandflareCredentialFields config={config} onChange={onChange} />
+      <PandaStackCredentialFields config={config} onChange={onChange} />
       <div className="rounded-md bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 p-3 text-xs text-purple-700 dark:text-purple-300">
         Clones a git repository into the shared sandbox. Subsequent code nodes can then run tests, builds, or analysis on the cloned code.
       </div>
@@ -557,7 +557,7 @@ function PlaywrightForm({ config, onChange }: NodeFormProps) {
   const update = useUpdater(config, onChange);
   return (
     <div className="space-y-3">
-      <SandflareCredentialFields config={config} onChange={onChange} />
+      <PandaStackCredentialFields config={config} onChange={onChange} />
       <div className="rounded-md bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 p-3 text-xs text-purple-700 dark:text-purple-300">
         Runs headless Chromium (Playwright) inside the shared sandbox. Playwright is auto-installed if not present.
       </div>
@@ -593,9 +593,9 @@ function MemoryAddForm({ config, onChange }: NodeFormProps) {
   const update = useUpdater(config, onChange);
   return (
     <div className="space-y-3">
-      <SandflareCredentialFields config={config} onChange={onChange} />
+      <PandaStackCredentialFields config={config} onChange={onChange} />
       <div className="rounded-md bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 p-3 text-xs text-purple-700 dark:text-purple-300">
-        Stores a memory using Sandflare&apos;s cross-session memory API. Memories persist across workflow runs and can be retrieved by semantic search.
+        Stores a memory using PandaStack&apos;s cross-session memory API. Memories persist across workflow runs and can be retrieved by semantic search.
       </div>
       <TextAreaField
         label="Content"
@@ -619,9 +619,9 @@ function MemorySearchForm({ config, onChange }: NodeFormProps) {
   const update = useUpdater(config, onChange);
   return (
     <div className="space-y-3">
-      <SandflareCredentialFields config={config} onChange={onChange} />
+      <PandaStackCredentialFields config={config} onChange={onChange} />
       <div className="rounded-md bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 p-3 text-xs text-purple-700 dark:text-purple-300">
-        Searches Sandflare memories by semantic similarity. Returns ranked results with relevance scores.
+        Searches PandaStack memories by semantic similarity. Returns ranked results with relevance scores.
       </div>
       <Field label="Query" required>
         <Input
@@ -653,7 +653,7 @@ function MemorySearchForm({ config, onChange }: NodeFormProps) {
 function MetricsForm(props: NodeFormProps) {
   return (
     <div className="space-y-3">
-      <SandflareCredentialFields config={props.config} onChange={props.onChange} />
+      <PandaStackCredentialFields config={props.config} onChange={props.onChange} />
       <div className="rounded-md bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 p-3 text-xs text-purple-700 dark:text-purple-300">
         Fetches CPU, memory usage, and running process list from the shared sandbox. Useful for monitoring long-running tasks or debugging resource usage.
       </div>
@@ -662,28 +662,28 @@ function MetricsForm(props: NodeFormProps) {
   );
 }
 
-export const sandflareforms: Partial<Record<NodeType, ComponentType<NodeFormProps>>> = {
-  [NodeType.SANDFLARE_EXECUTE]: ExecuteForm,
-  [NodeType.SANDFLARE_SCRAPE]: ScrapeForm,
-  [NodeType.SANDFLARE_PYTHON]: PythonForm,
-  [NodeType.SANDFLARE_NODEJS]: NodeJsForm,
-  [NodeType.SANDFLARE_GO]: GoForm,
-  [NodeType.SANDFLARE_RUST]: RustForm,
-  [NodeType.SANDFLARE_BASH]: BashForm,
-  [NodeType.SANDFLARE_RUBY]: RubyForm,
-  [NodeType.SANDFLARE_PHP]: PhpForm,
-  [NodeType.SANDFLARE_JAVA]: JavaForm,
-  [NodeType.SANDFLARE_DOCKER]: DockerForm,
-  [NodeType.SANDFLARE_JUPYTER]: JupyterForm,
-  [NodeType.SANDFLARE_FILE_WRITE]: FileWriteForm,
-  [NodeType.SANDFLARE_FILE_READ]: FileReadForm,
-  [NodeType.SANDFLARE_FILE_LIST]: FileListForm,
-  [NodeType.SANDFLARE_INSTALL]: InstallForm,
-  [NodeType.SANDFLARE_SNAPSHOT]: SnapshotForm,
-  [NodeType.SANDFLARE_FORK]: ForkForm,
-  [NodeType.SANDFLARE_GIT_CLONE]: GitCloneForm,
-  [NodeType.SANDFLARE_PLAYWRIGHT]: PlaywrightForm,
-  [NodeType.SANDFLARE_MEMORY_ADD]: MemoryAddForm,
-  [NodeType.SANDFLARE_MEMORY_SEARCH]: MemorySearchForm,
-  [NodeType.SANDFLARE_METRICS]: MetricsForm,
+export const pandastackforms: Partial<Record<NodeType, ComponentType<NodeFormProps>>> = {
+  [NodeType.PANDASTACK_EXECUTE]: ExecuteForm,
+  [NodeType.PANDASTACK_SCRAPE]: ScrapeForm,
+  [NodeType.PANDASTACK_PYTHON]: PythonForm,
+  [NodeType.PANDASTACK_NODEJS]: NodeJsForm,
+  [NodeType.PANDASTACK_GO]: GoForm,
+  [NodeType.PANDASTACK_RUST]: RustForm,
+  [NodeType.PANDASTACK_BASH]: BashForm,
+  [NodeType.PANDASTACK_RUBY]: RubyForm,
+  [NodeType.PANDASTACK_PHP]: PhpForm,
+  [NodeType.PANDASTACK_JAVA]: JavaForm,
+  [NodeType.PANDASTACK_DOCKER]: DockerForm,
+  [NodeType.PANDASTACK_JUPYTER]: JupyterForm,
+  [NodeType.PANDASTACK_FILE_WRITE]: FileWriteForm,
+  [NodeType.PANDASTACK_FILE_READ]: FileReadForm,
+  [NodeType.PANDASTACK_FILE_LIST]: FileListForm,
+  [NodeType.PANDASTACK_INSTALL]: InstallForm,
+  [NodeType.PANDASTACK_SNAPSHOT]: SnapshotForm,
+  [NodeType.PANDASTACK_FORK]: ForkForm,
+  [NodeType.PANDASTACK_GIT_CLONE]: GitCloneForm,
+  [NodeType.PANDASTACK_PLAYWRIGHT]: PlaywrightForm,
+  [NodeType.PANDASTACK_MEMORY_ADD]: MemoryAddForm,
+  [NodeType.PANDASTACK_MEMORY_SEARCH]: MemorySearchForm,
+  [NodeType.PANDASTACK_METRICS]: MetricsForm,
 };

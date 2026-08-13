@@ -1,7 +1,7 @@
 /**
  * Workflow Python Runtime
  *
- * This is the complete Python script that gets injected into a Sandflare microVM
+ * This is the complete Python script that gets injected into a PandaStack microVM
  * to execute a workflow. It handles all 160+ node types defined in NodeType enum.
  *
  * The script reads workflow data from base64-encoded environment variables:
@@ -19,7 +19,7 @@
  *   {"type": "execution:error", "error": "...", "timestamp": 0}
  */
 export const WORKFLOW_PYTHON_RUNTIME = String.raw`#!/usr/bin/env python3
-"""AI Agent Builder — Workflow Execution Runtime (Sandflare microVM)"""
+"""AI Agent Builder — Workflow Execution Runtime (PandaStack microVM)"""
 
 import sys, json, os, time, re, traceback, base64, subprocess
 from typing import Any, Dict, List, Optional, Tuple
@@ -740,8 +740,8 @@ def handle_rag_reranker(node, ctx, node_input):
     docs = node_input.get("documents", []) if isinstance(node_input, dict) else [node_input]; query = node_input.get("query", "") if isinstance(node_input, dict) else ""
     return {"documents": docs, "query": query, "reranked": True}
 
-# ─── Sandflare code execution ──────────────────────────────────────────────────
-def handle_sandflare_python(node, ctx, node_input):
+# ─── PandaStack code execution ──────────────────────────────────────────────────
+def handle_pandastack_python(node, ctx, node_input):
     cfg = node.get("data", {}).get("config", {}); code = cfg.get("code", "")
     if not code: return {"output": None, "note": "No code to execute"}
     local_vars = {"input": node_input}; local_vars.update(ctx.variables)
@@ -749,52 +749,52 @@ def handle_sandflare_python(node, ctx, node_input):
     exec_locals = dict(local_vars); exec(code, exec_globals, exec_locals)
     return {"output": exec_locals.get("output", exec_locals.get("result", exec_locals.get("return_value", None))), "exitCode": 0}
 
-def handle_sandflare_bash(node, ctx, node_input):
+def handle_pandastack_bash(node, ctx, node_input):
     cfg = node.get("data", {}).get("config", {}); cmd = ctx.resolve(cfg.get("command", cfg.get("code", "")))
     if not cmd: return {"stdout": "", "stderr": "", "exitCode": 0}
     r = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=60)
     return {"stdout": r.stdout, "stderr": r.stderr, "exitCode": r.returncode, "output": r.stdout}
 
-def handle_sandflare_nodejs(node, ctx, node_input):
+def handle_pandastack_nodejs(node, ctx, node_input):
     cfg = node.get("data", {}).get("config", {}); code = cfg.get("code", "")
     if not code: return {"stdout": "", "exitCode": 0}
     r = subprocess.run(["node", "-e", code], capture_output=True, text=True, timeout=60, env={**os.environ, "INPUT": json.dumps(node_input, default=str)})
     return {"stdout": r.stdout, "stderr": r.stderr, "exitCode": r.returncode, "output": r.stdout}
 
-def handle_sandflare_go(node, ctx, node_input):
+def handle_pandastack_go(node, ctx, node_input):
     cfg = node.get("data", {}).get("config", {}); code = cfg.get("code", "")
     with open("/tmp/main.go", "w") as f: f.write(code)
     r = subprocess.run(["go", "run", "/tmp/main.go"], capture_output=True, text=True, timeout=60)
     return {"stdout": r.stdout, "stderr": r.stderr, "exitCode": r.returncode}
 
-def handle_sandflare_rust(node, ctx, node_input):
+def handle_pandastack_rust(node, ctx, node_input):
     cfg = node.get("data", {}).get("config", {}); code = cfg.get("code", ""); os.makedirs("/tmp/rust_prog", exist_ok=True)
     with open("/tmp/rust_prog/main.rs", "w") as f: f.write(code)
     subprocess.run(["rustc", "/tmp/rust_prog/main.rs", "-o", "/tmp/rust_prog/prog"], capture_output=True, timeout=60)
     r = subprocess.run(["/tmp/rust_prog/prog"], capture_output=True, text=True, timeout=30)
     return {"stdout": r.stdout, "stderr": r.stderr, "exitCode": r.returncode}
 
-def handle_sandflare_ruby(node, ctx, node_input):
+def handle_pandastack_ruby(node, ctx, node_input):
     cfg = node.get("data", {}).get("config", {}); code = cfg.get("code", ""); r = subprocess.run(["ruby", "-e", code], capture_output=True, text=True, timeout=60)
     return {"stdout": r.stdout, "stderr": r.stderr, "exitCode": r.returncode}
 
-def handle_sandflare_php(node, ctx, node_input):
+def handle_pandastack_php(node, ctx, node_input):
     cfg = node.get("data", {}).get("config", {}); code = cfg.get("code", ""); r = subprocess.run(["php", "-r", code], capture_output=True, text=True, timeout=60)
     return {"stdout": r.stdout, "stderr": r.stderr, "exitCode": r.returncode}
 
-def handle_sandflare_java(node, ctx, node_input):
+def handle_pandastack_java(node, ctx, node_input):
     cfg = node.get("data", {}).get("config", {}); code = cfg.get("code", "")
     with open("/tmp/Main.java", "w") as f: f.write(code)
     subprocess.run(["javac", "/tmp/Main.java"], capture_output=True, timeout=30)
     r = subprocess.run(["java", "-cp", "/tmp", "Main"], capture_output=True, text=True, timeout=30)
     return {"stdout": r.stdout, "stderr": r.stderr, "exitCode": r.returncode}
 
-def handle_sandflare_docker(node, ctx, node_input):
+def handle_pandastack_docker(node, ctx, node_input):
     cfg = ctx.resolve_config(node.get("data", {}).get("config", {})); image = cfg.get("image", "ubuntu:latest"); cmd = cfg.get("command", "echo hello")
     r = subprocess.run(["docker", "run", "--rm", image] + cmd.split(), capture_output=True, text=True, timeout=60)
     return {"stdout": r.stdout, "stderr": r.stderr, "exitCode": r.returncode}
 
-def handle_sandflare_scrape(node, ctx, node_input):
+def handle_pandastack_scrape(node, ctx, node_input):
     import urllib.request
     cfg = ctx.resolve_config(node.get("data", {}).get("config", {})); url = cfg.get("url", "")
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
@@ -807,7 +807,7 @@ def handle_sandflare_scrape(node, ctx, node_input):
     except ImportError: text = re.sub(r"<[^>]+>", "", html); title = ""; links = []; headings = []
     return {"html": html, "text": text[:10000], "title": title, "links": links, "headings": headings, "url": url}
 
-def handle_sandflare_playwright(node, ctx, node_input):
+def handle_pandastack_playwright(node, ctx, node_input):
     cfg = ctx.resolve_config(node.get("data", {}).get("config", {})); url = cfg.get("url", ""); actions = cfg.get("actions", [])
     from playwright.sync_api import sync_playwright
     with sync_playwright() as p:
@@ -821,42 +821,42 @@ def handle_sandflare_playwright(node, ctx, node_input):
         results["html"] = page.content()[:5000]; browser.close()
     return results
 
-def handle_sandflare_file_write(node, ctx, node_input):
+def handle_pandastack_file_write(node, ctx, node_input):
     cfg = ctx.resolve_config(node.get("data", {}).get("config", {})); path = cfg.get("path", "/tmp/output.txt"); content = ctx.resolve(cfg.get("content", str(node_input)))
     with open(path, "w") as f: f.write(content)
     return {"written": True, "path": path, "size": len(content)}
 
-def handle_sandflare_file_read(node, ctx, node_input):
+def handle_pandastack_file_read(node, ctx, node_input):
     cfg = ctx.resolve_config(node.get("data", {}).get("config", {})); path = cfg.get("path", "")
     with open(path, "r") as f: content = f.read()
     return {"content": content, "path": path, "size": len(content)}
 
-def handle_sandflare_file_list(node, ctx, node_input):
+def handle_pandastack_file_list(node, ctx, node_input):
     import glob as _g
     cfg = ctx.resolve_config(node.get("data", {}).get("config", {})); directory = cfg.get("directory", "/tmp"); pattern = cfg.get("pattern", "*")
     files = _g.glob(os.path.join(directory, pattern))
     return {"files": files, "count": len(files), "directory": directory}
 
-def handle_sandflare_install(node, ctx, node_input):
+def handle_pandastack_install(node, ctx, node_input):
     cfg = node.get("data", {}).get("config", {}); pkgs = cfg.get("packages", [])
     if isinstance(pkgs, str): pkgs = [p.strip() for p in pkgs.split(",") if p.strip()]
     if not pkgs: return {"installed": [], "note": "No packages specified"}
     r = subprocess.run([sys.executable, "-m", "pip", "install", "--quiet"] + pkgs, capture_output=True, text=True, timeout=120)
     return {"installed": pkgs, "exitCode": r.returncode, "stderr": r.stderr[:500] if r.returncode != 0 else ""}
 
-def handle_sandflare_git_clone(node, ctx, node_input):
+def handle_pandastack_git_clone(node, ctx, node_input):
     cfg = ctx.resolve_config(node.get("data", {}).get("config", {})); repo_url = cfg.get("url", cfg.get("repoUrl", "")); target = cfg.get("directory", "/tmp/repo"); branch = cfg.get("branch", "main")
     r = subprocess.run(["git", "clone", "--depth", "1", "--branch", branch, repo_url, target], capture_output=True, text=True, timeout=120)
     return {"cloned": r.returncode == 0, "directory": target, "url": repo_url, "branch": branch}
 
-def handle_sandflare_jupyter(node, ctx, node_input): return handle_sandflare_python(node, ctx, node_input)
-def handle_sandflare_execute(node, ctx, node_input): return handle_sandflare_bash(node, ctx, node_input)
-def handle_sandflare_snapshot(node, ctx, node_input): return {"snapshotId": f"snap-{int(time.time())}", "created": True, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
-def handle_sandflare_fork(node, ctx, node_input): return {"forked": True, "forkId": f"fork-{int(time.time())}", "input": node_input}
-def handle_sandflare_metrics(node, ctx, node_input): return {"cpu": 0.2, "memory": 256, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
-def handle_sandflare_memory_add(node, ctx, node_input): _MEMORY_STORE.setdefault("sandflare", []).append({"content": str(node_input), "timestamp": time.time()}); return {"added": True, "count": len(_MEMORY_STORE["sandflare"])}
-def handle_sandflare_memory_search(node, ctx, node_input):
-    cfg = node.get("data", {}).get("config", {}); query = ctx.resolve(cfg.get("query", str(node_input))); items = _MEMORY_STORE.get("sandflare", [])
+def handle_pandastack_jupyter(node, ctx, node_input): return handle_pandastack_python(node, ctx, node_input)
+def handle_pandastack_execute(node, ctx, node_input): return handle_pandastack_bash(node, ctx, node_input)
+def handle_pandastack_snapshot(node, ctx, node_input): return {"snapshotId": f"snap-{int(time.time())}", "created": True, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+def handle_pandastack_fork(node, ctx, node_input): return {"forked": True, "forkId": f"fork-{int(time.time())}", "input": node_input}
+def handle_pandastack_metrics(node, ctx, node_input): return {"cpu": 0.2, "memory": 256, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+def handle_pandastack_memory_add(node, ctx, node_input): _MEMORY_STORE.setdefault("pandastack", []).append({"content": str(node_input), "timestamp": time.time()}); return {"added": True, "count": len(_MEMORY_STORE["pandastack"])}
+def handle_pandastack_memory_search(node, ctx, node_input):
+    cfg = node.get("data", {}).get("config", {}); query = ctx.resolve(cfg.get("query", str(node_input))); items = _MEMORY_STORE.get("pandastack", [])
     return {"results": [i for i in items if query.lower() in str(i.get("content", "")).lower()], "query": query}
 
 # ─── Utility handlers ──────────────────────────────────────────────────────────
@@ -873,7 +873,7 @@ def handle_utility_variable(node, ctx, node_input):
     cfg = node.get("data", {}).get("config", {}); name = cfg.get("name", cfg.get("variableName", "result")); value = ctx.resolve(cfg.get("value", str(node_input)))
     ctx.variables[name] = value; return {"name": name, "value": value, "set": True}
 
-def handle_utility_code(node, ctx, node_input): return handle_sandflare_python(node, ctx, node_input)
+def handle_utility_code(node, ctx, node_input): return handle_pandastack_python(node, ctx, node_input)
 
 # ─── Output handlers ───────────────────────────────────────────────────────────
 def handle_output_response(node, ctx, node_input):
@@ -974,18 +974,18 @@ HANDLERS = {
     "transform.html": handle_transform_html, "transform.template": handle_transform_template,
     "transform.split": handle_transform_split, "transform.merge": handle_transform_merge,
     "transform.xml": handle_transform_xml, "transform.yaml": handle_transform_yaml,
-    "sandflare.python": handle_sandflare_python, "sandflare.bash": handle_sandflare_bash,
-    "sandflare.nodejs": handle_sandflare_nodejs, "sandflare.go": handle_sandflare_go,
-    "sandflare.rust": handle_sandflare_rust, "sandflare.ruby": handle_sandflare_ruby,
-    "sandflare.php": handle_sandflare_php, "sandflare.java": handle_sandflare_java,
-    "sandflare.docker": handle_sandflare_docker, "sandflare.jupyter": handle_sandflare_jupyter,
-    "sandflare.execute": handle_sandflare_execute, "sandflare.scrape": handle_sandflare_scrape,
-    "sandflare.playwright": handle_sandflare_playwright, "sandflare.file_write": handle_sandflare_file_write,
-    "sandflare.file_read": handle_sandflare_file_read, "sandflare.file_list": handle_sandflare_file_list,
-    "sandflare.install": handle_sandflare_install, "sandflare.git_clone": handle_sandflare_git_clone,
-    "sandflare.snapshot": handle_sandflare_snapshot, "sandflare.fork": handle_sandflare_fork,
-    "sandflare.metrics": handle_sandflare_metrics, "sandflare.memory_add": handle_sandflare_memory_add,
-    "sandflare.memory_search": handle_sandflare_memory_search,
+    "pandastack.python": handle_pandastack_python, "pandastack.bash": handle_pandastack_bash,
+    "pandastack.nodejs": handle_pandastack_nodejs, "pandastack.go": handle_pandastack_go,
+    "pandastack.rust": handle_pandastack_rust, "pandastack.ruby": handle_pandastack_ruby,
+    "pandastack.php": handle_pandastack_php, "pandastack.java": handle_pandastack_java,
+    "pandastack.docker": handle_pandastack_docker, "pandastack.jupyter": handle_pandastack_jupyter,
+    "pandastack.execute": handle_pandastack_execute, "pandastack.scrape": handle_pandastack_scrape,
+    "pandastack.playwright": handle_pandastack_playwright, "pandastack.file_write": handle_pandastack_file_write,
+    "pandastack.file_read": handle_pandastack_file_read, "pandastack.file_list": handle_pandastack_file_list,
+    "pandastack.install": handle_pandastack_install, "pandastack.git_clone": handle_pandastack_git_clone,
+    "pandastack.snapshot": handle_pandastack_snapshot, "pandastack.fork": handle_pandastack_fork,
+    "pandastack.metrics": handle_pandastack_metrics, "pandastack.memory_add": handle_pandastack_memory_add,
+    "pandastack.memory_search": handle_pandastack_memory_search,
     "utility.delay": handle_utility_delay, "utility.log": handle_utility_log,
     "utility.variable": handle_utility_variable, "utility.code": handle_utility_code,
     "output.response": handle_output_response, "output.json": handle_output_json,

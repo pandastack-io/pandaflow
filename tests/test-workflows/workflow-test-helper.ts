@@ -348,7 +348,7 @@ export const TEST_CASES: Record<string, WorkflowTestCase> = {
       {
         type: 'custom',
         message: 'Should have a scraper node',
-        validate: (w) => w.nodes.some((n: WorkflowNode) => n.data.type === 'sandflare.scrape'),
+        validate: (w) => w.nodes.some((n: WorkflowNode) => n.data.type === 'pandastack.scrape'),
       },
       {
         type: 'custom',
@@ -376,8 +376,8 @@ export const TEST_CASES: Record<string, WorkflowTestCase> = {
       },
       {
         type: 'custom',
-        message: 'Should have a Sandflare execute node',
-        validate: (w) => w.nodes.some((n: WorkflowNode) => n.data.type === 'sandflare.execute'),
+        message: 'Should have a PandaStack execute node',
+        validate: (w) => w.nodes.some((n: WorkflowNode) => n.data.type === 'pandastack.execute'),
       },
     ],
   },

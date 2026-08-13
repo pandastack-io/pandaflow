@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Node, Edge } from 'reactflow';
 import { NodeCategory, NodeType, WorkflowNodeData } from '@/types/nodes';
-import { SandboxManager } from '@/lib/sandflare/manager';
-import type { ExecutionOptions } from '@/lib/sandflare/types';
+import { SandboxManager } from '@/lib/pandastack/manager';
+import type { ExecutionOptions } from '@/lib/pandastack/types';
 import { NodeExecutorFn, ExecutorContext, ExecutorDeps } from './types';
 import {
   interpolate,
@@ -315,7 +315,7 @@ async function executeToolByName(name: string, args: Record<string, any>, contex
 
   const manager = new SandboxManager({
     provider: 'auto',
-    sandflareApiKey: resolveCredential(toolDefinition as GenericConfig, context, ['apiKey'], ['SANDFLARE_API_KEY']),
+    pandastackApiKey: resolveCredential(toolDefinition as GenericConfig, context, ['apiKey'], ['PANDASTACK_API_KEY']),
     fallbackToMock: true,
   });
 

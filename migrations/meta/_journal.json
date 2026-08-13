@@ -43,6 +43,13 @@
       "when": 1778497714570,
       "tag": "0005_peaceful_frog_thor",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1778497715570,
+      "tag": "0006_rebrand_metric_columns",
+      "breakpoints": true
     }
   ]
 }

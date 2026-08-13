@@ -23,7 +23,7 @@ const VIEWPORT_MARGIN = 16;
 
 const suggestedNodeTypes: NodeType[] = [
   NodeType.AI_LLM,
-  NodeType.SANDFLARE_PYTHON,
+  NodeType.PANDASTACK_PYTHON,
   NodeType.INTEGRATION_HTTP,
   NodeType.CONTROL_CONDITION,
   NodeType.UTILITY_DELAY,
@@ -32,7 +32,7 @@ const suggestedNodeTypes: NodeType[] = [
 
 const categoryLabels: Record<NodeCategory, string> = {
   [NodeCategory.TRIGGER]: 'Triggers',
-  [NodeCategory.SANDFLARE]: 'Sandflare',
+  [NodeCategory.PANDASTACK]: 'PandaStack',
   [NodeCategory.AGENT]: 'Agents',
   [NodeCategory.MEMORY]: 'Memory',
   [NodeCategory.AI]: 'AI & ML',

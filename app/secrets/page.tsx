@@ -182,7 +182,7 @@ export default function SecretsPage() {
     () =>
       credentialProviders.filter(
         (provider) =>
-          provider.id !== 'sandflare' &&
+          provider.id !== 'pandastack' &&
           matchesSearch(provider, searchQuery) &&
           (activeCategory === 'All' || provider.category === activeCategory)
       ),
@@ -200,7 +200,7 @@ export default function SecretsPage() {
     [filteredProviders]
   );
 
-  const sandflareProvider = credentialProviderMap.sandflare;
+  const pandastackProvider = credentialProviderMap.pandastack;
   const totalConnected = useMemo(
     () => credentialProviders.filter((provider) => isProviderConnected(provider)).length,
     [isProviderConnected]
@@ -437,7 +437,7 @@ export default function SecretsPage() {
               <div className="flex h-6 items-center text-foreground">
                 {brandIcon ? (
                   <BrandIcon icon={brandIcon} hex={brandHex} size={24} branded={true} className="opacity-90" />
-                ) : provider.id === 'sandflare' ? (
+                ) : provider.id === 'pandastack' ? (
                   <Zap className="h-6 w-6 text-amber-400" />
                 ) : (
                   <span className="text-2xl leading-none">{provider.icon}</span>
@@ -524,7 +524,7 @@ export default function SecretsPage() {
               <CheckCircle2 className="h-4 w-4 text-emerald-400" />
               {totalConnected}/{credentialProviders.length} connected
             </div>
-            <Button onClick={() => openProviderDialog(sandflareProvider, getProviderSecrets(sandflareProvider).length > 0 ? 'edit' : 'create')}>
+            <Button onClick={() => openProviderDialog(pandastackProvider, getProviderSecrets(pandastackProvider).length > 0 ? 'edit' : 'create')}>
               <Plus className="h-4 w-4" />
               Add Credential
             </Button>
@@ -536,28 +536,28 @@ export default function SecretsPage() {
             <div className="flex flex-col gap-5 p-6 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex items-start gap-4">
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-3xl shadow-inner shadow-white/5 backdrop-blur">
-                  {sandflareProvider.icon}
+                  {pandastackProvider.icon}
                 </div>
                 <div>
                   <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <h2 className="text-xl font-semibold text-white">Sandflare</h2>
+                    <h2 className="text-xl font-semibold text-white">PandaStack</h2>
                     <Badge className="border border-white/15 bg-white/10 text-white/90 hover:bg-white/10">
-                      Required for Sandflare.io execution
+                      Required for PandaStack execution
                     </Badge>
                     <Badge
                       className={cn(
                         'border',
-                        isProviderConnected(sandflareProvider)
+                        isProviderConnected(pandastackProvider)
                           ? 'border-emerald-400/30 bg-emerald-400/15 text-emerald-100'
                           : 'border-white/15 bg-white/10 text-white/75'
                       )}
                     >
-                      {isProviderConnected(sandflareProvider) ? 'Connected ✓' : 'Not connected'}
+                      {isProviderConnected(pandastackProvider) ? 'Connected ✓' : 'Not connected'}
                     </Badge>
                   </div>
-                  <p className="max-w-3xl text-sm leading-6 text-blue-50/85">{sandflareProvider.description}</p>
-                  {sandflareProvider.fields[0]?.helpText ? (
-                    <p className="mt-3 text-sm text-blue-100/80">{sandflareProvider.fields[0].helpText}</p>
+                  <p className="max-w-3xl text-sm leading-6 text-blue-50/85">{pandastackProvider.description}</p>
+                  {pandastackProvider.fields[0]?.helpText ? (
+                    <p className="mt-3 text-sm text-blue-100/80">{pandastackProvider.fields[0].helpText}</p>
                   ) : null}
                 </div>
               </div>
@@ -568,19 +568,19 @@ export default function SecretsPage() {
                   className="border border-white/10 bg-white/10 text-white hover:bg-white/15"
                   onClick={() =>
                     openProviderDialog(
-                      sandflareProvider,
-                      getProviderSecrets(sandflareProvider).length > 0 ? 'edit' : 'create'
+                      pandastackProvider,
+                      getProviderSecrets(pandastackProvider).length > 0 ? 'edit' : 'create'
                     )
                   }
                 >
-                  {getProviderSecrets(sandflareProvider).length > 0 ? <Pencil className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                  {getProviderSecrets(sandflareProvider).length > 0 ? 'Edit' : 'Connect'}
+                  {getProviderSecrets(pandastackProvider).length > 0 ? <Pencil className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                  {getProviderSecrets(pandastackProvider).length > 0 ? 'Edit' : 'Connect'}
                 </Button>
-                {getProviderSecrets(sandflareProvider).length > 0 ? (
+                {getProviderSecrets(pandastackProvider).length > 0 ? (
                   <Button
                     variant="ghost"
                     className="text-white hover:bg-white/10 hover:text-white"
-                    onClick={() => setDeleteProviderId(sandflareProvider.id)}
+                    onClick={() => setDeleteProviderId(pandastackProvider.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                     Remove

@@ -12,7 +12,7 @@ import {
 /**
  * Mock Sandbox Provider for Development & Testing
  *
- * This provider simulates Sandflare.io behavior without making actual API calls.
+ * This provider simulates PandaStack behavior without making actual API calls.
  * Useful for:
  * - Local development without API keys
  * - Testing workflow logic

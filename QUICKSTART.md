@@ -118,7 +118,7 @@ ai-agent-builder/
 │   ├── auth/              # Authentication
 │   ├── redis/             # Redis client
 │   ├── temporal/          # Workflow definitions
-│   └── sandflare/         # Sandflare client
+│   └── pandastack/         # PandaStack client
 │
 ├── specific.hcl           # Infrastructure as code
 └── plan.md                # Full architecture documentation
@@ -135,8 +135,8 @@ ai-agent-builder/
    - Transform nodes (filter, map, aggregate)
    - Control flow nodes (if/else, loop, parallel)
 
-2. **Sandflare Integration**
-   - Build Sandflare API client
+2. **PandaStack Integration**
+   - Build PandaStack API client
    - Create code execution node
    - Add web scraping capabilities
 
@@ -175,7 +175,7 @@ TEMPORAL_ADDRESS=localhost:7233
 
 # Optional (for features)
 NEXTAUTH_SECRET=your-secret
-SANDFLARE_API_KEY=your-key
+PANDASTACK_API_KEY=your-key
 OPENAI_API_KEY=your-key
 ```
 
@@ -197,7 +197,7 @@ The `specific.hcl` file defines:
 - Quota management
 
 ### Performance Built-In
-- Sub-300ms execution with Sandflare microVMs
+- Sub-300ms execution with PandaStack microVMs
 - Redis caching layer
 - Virtual rendering for large workflows
 - Optimistic UI updates
@@ -237,7 +237,7 @@ redis-cli ping
 - **Database Schema**: See [lib/db/schema.ts](./lib/db/schema.ts)
 - **Specific Docs**: Run `specific docs`
 - **React Flow Docs**: https://reactflow.dev
-- **Sandflare.io**: https://sandflare.io
+- **PandaStack**: https://pandastack.ai
 
 ## Support
 

@@ -41,12 +41,12 @@ describe('Node Registry', () => {
       });
     });
 
-    it('should return nodes for SANDFLARE category', () => {
-      const sandflareNodes = getNodesByCategory(NodeCategory.SANDFLARE);
+    it('should return nodes for PANDASTACK category', () => {
+      const pandastackNodes = getNodesByCategory(NodeCategory.PANDASTACK);
 
-      expect(sandflareNodes.length).toBeGreaterThan(0);
-      sandflareNodes.forEach((node) => {
-        expect(node.category).toBe(NodeCategory.SANDFLARE);
+      expect(pandastackNodes.length).toBeGreaterThan(0);
+      pandastackNodes.forEach((node) => {
+        expect(node.category).toBe(NodeCategory.PANDASTACK);
       });
     });
 
@@ -83,12 +83,12 @@ describe('Node Registry', () => {
       expect(node?.category).toBe(NodeCategory.TRIGGER);
     });
 
-    it('should return node for SANDFLARE_EXECUTE type', () => {
-      const node = getNodeByType(NodeType.SANDFLARE_EXECUTE);
+    it('should return node for PANDASTACK_EXECUTE type', () => {
+      const node = getNodeByType(NodeType.PANDASTACK_EXECUTE);
 
       expect(node).toBeDefined();
-      expect(node?.type).toBe(NodeType.SANDFLARE_EXECUTE);
-      expect(node?.category).toBe(NodeCategory.SANDFLARE);
+      expect(node?.type).toBe(NodeType.PANDASTACK_EXECUTE);
+      expect(node?.category).toBe(NodeCategory.PANDASTACK);
     });
 
     it('should return node for AI_LLM type', () => {
@@ -130,8 +130,8 @@ describe('Node Registry', () => {
       expect(() => node?.configSchema.parse(validConfig)).not.toThrow();
     });
 
-    it('should validate Sandflare Execute config', () => {
-      const node = getNodeByType(NodeType.SANDFLARE_EXECUTE);
+    it('should validate PandaStack Execute config', () => {
+      const node = getNodeByType(NodeType.PANDASTACK_EXECUTE);
       const validConfig = {
         language: 'python',
         code: 'print("hello")',
@@ -140,8 +140,8 @@ describe('Node Registry', () => {
       expect(() => node?.configSchema.parse(validConfig)).not.toThrow();
     });
 
-    it('should reject invalid Sandflare Execute config', () => {
-      const node = getNodeByType(NodeType.SANDFLARE_EXECUTE);
+    it('should reject invalid PandaStack Execute config', () => {
+      const node = getNodeByType(NodeType.PANDASTACK_EXECUTE);
       const invalidConfig = {
         language: 'invalid',
         code: '',
@@ -185,8 +185,8 @@ describe('Node Registry', () => {
   });
 
   describe('Default Configurations', () => {
-    it('should have valid default config for Sandflare Execute', () => {
-      const node = getNodeByType(NodeType.SANDFLARE_EXECUTE);
+    it('should have valid default config for PandaStack Execute', () => {
+      const node = getNodeByType(NodeType.PANDASTACK_EXECUTE);
 
       expect(node?.defaultConfig.language).toBe('python');
       expect(node?.defaultConfig.code).toBeDefined();

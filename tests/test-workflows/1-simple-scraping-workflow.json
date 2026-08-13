@@ -31,8 +31,8 @@
         "y": 100
       },
       "data": {
-        "type": "sandflare.scrape",
-        "category": "sandflare",
+        "type": "pandastack.scrape",
+        "category": "pandastack",
         "config": {
           "label": "Scrape Example.com",
           "description": "Scrape the example.com website",

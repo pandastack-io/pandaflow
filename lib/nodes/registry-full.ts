@@ -195,10 +195,10 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     outputs: [{ name: 'event', type: 'object' }],
   },
 
-  // ============ SANDFLARE/CODE EXECUTION (12 nodes) ============
-  [NodeType.SANDFLARE_PYTHON]: {
-    type: NodeType.SANDFLARE_PYTHON,
-    category: NodeCategory.SANDFLARE,
+  // ============ PANDASTACK/CODE EXECUTION (12 nodes) ============
+  [NodeType.PANDASTACK_PYTHON]: {
+    type: NodeType.PANDASTACK_PYTHON,
+    category: NodeCategory.PANDASTACK,
     name: 'Python Code',
     description: 'Execute Python code in sandbox',
     icon: 'Code',
@@ -212,9 +212,9 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     outputs: [{ name: 'output', type: 'any' }, { name: 'stdout', type: 'string' }],
   },
 
-  [NodeType.SANDFLARE_NODEJS]: {
-    type: NodeType.SANDFLARE_NODEJS,
-    category: NodeCategory.SANDFLARE,
+  [NodeType.PANDASTACK_NODEJS]: {
+    type: NodeType.PANDASTACK_NODEJS,
+    category: NodeCategory.PANDASTACK,
     name: 'Node.js Code',
     description: 'Execute Node.js code in sandbox',
     icon: 'Code',
@@ -228,9 +228,9 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     outputs: [{ name: 'output', type: 'any' }, { name: 'stdout', type: 'string' }],
   },
 
-  [NodeType.SANDFLARE_GO]: {
-    type: NodeType.SANDFLARE_GO,
-    category: NodeCategory.SANDFLARE,
+  [NodeType.PANDASTACK_GO]: {
+    type: NodeType.PANDASTACK_GO,
+    category: NodeCategory.PANDASTACK,
     name: 'Go Code',
     description: 'Execute Go code in sandbox',
     icon: 'Code',
@@ -241,9 +241,9 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  [NodeType.SANDFLARE_RUST]: {
-    type: NodeType.SANDFLARE_RUST,
-    category: NodeCategory.SANDFLARE,
+  [NodeType.PANDASTACK_RUST]: {
+    type: NodeType.PANDASTACK_RUST,
+    category: NodeCategory.PANDASTACK,
     name: 'Rust Code',
     description: 'Execute Rust code in sandbox',
     icon: 'Code',
@@ -254,9 +254,9 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  [NodeType.SANDFLARE_BASH]: {
-    type: NodeType.SANDFLARE_BASH,
-    category: NodeCategory.SANDFLARE,
+  [NodeType.PANDASTACK_BASH]: {
+    type: NodeType.PANDASTACK_BASH,
+    category: NodeCategory.PANDASTACK,
     name: 'Bash Script',
     description: 'Execute Bash scripts in sandbox',
     icon: 'Terminal',
@@ -267,9 +267,9 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     outputs: [{ name: 'stdout', type: 'string' }, { name: 'exitCode', type: 'number' }],
   },
 
-  [NodeType.SANDFLARE_RUBY]: {
-    type: NodeType.SANDFLARE_RUBY,
-    category: NodeCategory.SANDFLARE,
+  [NodeType.PANDASTACK_RUBY]: {
+    type: NodeType.PANDASTACK_RUBY,
+    category: NodeCategory.PANDASTACK,
     name: 'Ruby Code',
     description: 'Execute Ruby code in sandbox',
     icon: 'Code',
@@ -280,9 +280,9 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  [NodeType.SANDFLARE_PHP]: {
-    type: NodeType.SANDFLARE_PHP,
-    category: NodeCategory.SANDFLARE,
+  [NodeType.PANDASTACK_PHP]: {
+    type: NodeType.PANDASTACK_PHP,
+    category: NodeCategory.PANDASTACK,
     name: 'PHP Code',
     description: 'Execute PHP code in sandbox',
     icon: 'Code',
@@ -293,9 +293,9 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     outputs: [{ name: 'output', type: 'string' }],
   },
 
-  [NodeType.SANDFLARE_JAVA]: {
-    type: NodeType.SANDFLARE_JAVA,
-    category: NodeCategory.SANDFLARE,
+  [NodeType.PANDASTACK_JAVA]: {
+    type: NodeType.PANDASTACK_JAVA,
+    category: NodeCategory.PANDASTACK,
     name: 'Java Code',
     description: 'Execute Java code in sandbox',
     icon: 'Code',
@@ -306,9 +306,9 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  [NodeType.SANDFLARE_DOCKER]: {
-    type: NodeType.SANDFLARE_DOCKER,
-    category: NodeCategory.SANDFLARE,
+  [NodeType.PANDASTACK_DOCKER]: {
+    type: NodeType.PANDASTACK_DOCKER,
+    category: NodeCategory.PANDASTACK,
     name: 'Docker Container',
     description: 'Run code in Docker container',
     icon: 'Container',
@@ -324,9 +324,9 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     outputs: [{ name: 'output', type: 'string' }],
   },
 
-  [NodeType.SANDFLARE_JUPYTER]: {
-    type: NodeType.SANDFLARE_JUPYTER,
-    category: NodeCategory.SANDFLARE,
+  [NodeType.PANDASTACK_JUPYTER]: {
+    type: NodeType.PANDASTACK_JUPYTER,
+    category: NodeCategory.PANDASTACK,
     name: 'Jupyter Notebook',
     description: 'Execute Jupyter notebook cells',
     icon: 'BookOpen',
@@ -340,9 +340,9 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     outputs: [{ name: 'results', type: 'array' }],
   },
 
-  [NodeType.SANDFLARE_EXECUTE]: {
-    type: NodeType.SANDFLARE_EXECUTE,
-    category: NodeCategory.SANDFLARE,
+  [NodeType.PANDASTACK_EXECUTE]: {
+    type: NodeType.PANDASTACK_EXECUTE,
+    category: NodeCategory.PANDASTACK,
     name: 'Generic Code Execution',
     description: 'Execute code in any language',
     icon: 'Code2',
@@ -356,9 +356,9 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     outputs: [{ name: 'output', type: 'any' }],
   },
 
-  [NodeType.SANDFLARE_SCRAPE]: {
-    type: NodeType.SANDFLARE_SCRAPE,
-    category: NodeCategory.SANDFLARE,
+  [NodeType.PANDASTACK_SCRAPE]: {
+    type: NodeType.PANDASTACK_SCRAPE,
+    category: NodeCategory.PANDASTACK,
     name: 'Web Scraper',
     description: 'Scrape websites with headless browser',
     icon: 'Globe',

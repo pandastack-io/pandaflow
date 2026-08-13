@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { MockSandboxProvider } from '@/lib/sandflare/providers/mock';
-import { SandboxManager } from '@/lib/sandflare/manager';
+import { MockSandboxProvider } from '@/lib/pandastack/providers/mock';
+import { SandboxManager } from '@/lib/pandastack/manager';
 
-describe('Sandflare Mock Provider', () => {
+describe('PandaStack Mock Provider', () => {
   let provider: MockSandboxProvider;
 
   beforeEach(() => {

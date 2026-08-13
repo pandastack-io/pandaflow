@@ -6,7 +6,7 @@ This directory contains complete workflow JSON definitions for end-to-end testin
 
 These test workflows cover the core functionality of the workflow engine, including:
 - Web scraping and HTTP integrations
-- Code execution in Sandflare microVMs
+- Code execution in PandaStack microVMs
 - Conditional branching and control flow
 - Loop iteration and result aggregation
 
@@ -18,7 +18,7 @@ These test workflows cover the core functionality of the workflow engine, includ
 
 **Flow**:
 1. **Manual Trigger** - Starts the workflow manually
-2. **Web Scraper** - Scrapes https://example.com using Sandflare
+2. **Web Scraper** - Scrapes https://example.com using PandaStack
    - Extracts title (h1) and content (p) elements
    - No JavaScript rendering required
 3. **HTTP Request** - Sends scraped results to webhook.site
@@ -43,11 +43,11 @@ These test workflows cover the core functionality of the workflow engine, includ
 
 ### 2. Code Execution Workflow (`2-code-execution-workflow.json`)
 
-**Purpose**: Test Sandflare code execution with Python data analysis
+**Purpose**: Test PandaStack code execution with Python data analysis
 
 **Flow**:
 1. **Manual Trigger** - Accepts input data array
-2. **Sandflare Execute** - Runs Python statistical analysis
+2. **PandaStack Execute** - Runs Python statistical analysis
    - Calculates mean, median, standard deviation
    - Computes quartiles, min, max, range
    - Uses Python's statistics module
@@ -56,7 +56,7 @@ These test workflows cover the core functionality of the workflow engine, includ
 
 **Test Scenarios**:
 - [ ] Manual trigger passes input data to executor
-- [ ] Python code executes in Sandflare microVM
+- [ ] Python code executes in PandaStack microVM
 - [ ] Statistical calculations are accurate
 - [ ] Results are properly formatted as JSON
 - [ ] Log node captures execution output
@@ -132,7 +132,7 @@ These test workflows cover the core functionality of the workflow engine, includ
 2. **Prepare Array** - Sets default array if not provided
 3. **Loop Node** - Iterates over each number (forEach)
 4. **For Each Iteration**:
-   - Sandflare Execute - Processes each item with Python
+   - PandaStack Execute - Processes each item with Python
      - Calculates squared, cubed, sqrt values
      - Determines if even, prime
      - Computes factorial (if applicable)

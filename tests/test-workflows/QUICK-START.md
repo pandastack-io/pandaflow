@@ -18,7 +18,7 @@ const workflow = testWorkflows.scraping;
 | File | Purpose | Use When |
 |------|---------|----------|
 | `1-simple-scraping-workflow.json` | Web scraping + HTTP | Testing basic integrations |
-| `2-code-execution-workflow.json` | Python code execution | Testing Sandflare executor |
+| `2-code-execution-workflow.json` | Python code execution | Testing PandaStack executor |
 | `3-conditional-workflow.json` | Conditional branching | Testing control flow |
 | `4-loop-workflow.json` | Array iteration | Testing loops & aggregation |
 | `workflow-test-helper.ts` | Testing utilities | Writing automated tests |
@@ -127,12 +127,12 @@ import { testWorkflows } from '@/tests/test-workflows';
 
 const workflow = testWorkflows.loop;
 
-// Find all Sandflare nodes
-const sandflareNodes = workflow.nodes.filter(
-  node => node.data.category === 'sandflare'
+// Find all PandaStack nodes
+const pandastackNodes = workflow.nodes.filter(
+  node => node.data.category === 'pandastack'
 );
 
-console.log('Sandflare nodes:', sandflareNodes.length);
+console.log('PandaStack nodes:', pandastackNodes.length);
 ```
 
 ### Example 3: Test workflow metadata

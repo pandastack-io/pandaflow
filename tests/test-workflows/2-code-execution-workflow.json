@@ -30,15 +30,15 @@
       }
     },
     {
-      "id": "sandflare-execute-1",
+      "id": "pandastack-execute-1",
       "type": "custom",
       "position": {
         "x": 400,
         "y": 100
       },
       "data": {
-        "type": "sandflare.execute",
-        "category": "sandflare",
+        "type": "pandastack.execute",
+        "category": "pandastack",
         "config": {
           "label": "Python Data Analysis",
           "description": "Analyze data using Python with pandas and numpy",
@@ -93,14 +93,14 @@
     {
       "id": "edge-trigger-execute",
       "source": "trigger-manual-1",
-      "target": "sandflare-execute-1",
+      "target": "pandastack-execute-1",
       "sourceHandle": null,
       "targetHandle": null,
       "type": "default"
     },
     {
       "id": "edge-execute-log",
-      "source": "sandflare-execute-1",
+      "source": "pandastack-execute-1",
       "target": "log-1",
       "sourceHandle": null,
       "targetHandle": null,

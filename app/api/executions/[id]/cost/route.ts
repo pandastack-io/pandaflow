@@ -37,7 +37,7 @@ export async function GET(
           nodeType: node.nodeType,
           tokensInput: node.tokensInput ?? 0,
           tokensOutput: node.tokensOutput ?? 0,
-          sandflareMs: node.sandflareMs ?? 0,
+          pandastackMs: node.pandastackMs ?? 0,
           costUsd: toNumber(node.costUsd),
           model: node.model,
         })),

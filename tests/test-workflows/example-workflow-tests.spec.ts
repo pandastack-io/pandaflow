@@ -64,7 +64,7 @@ describe('Test Workflow Definitions', () => {
       expect(stats.totalEdges).toBe(2);
       expect(stats.hasTrigger).toBe(true);
       expect(stats.nodesByCategory.trigger).toBe(1);
-      expect(stats.nodesByCategory.sandflare).toBe(1);
+      expect(stats.nodesByCategory.pandastack).toBe(1);
       expect(stats.nodesByCategory.integration).toBe(1);
     });
 
@@ -76,7 +76,7 @@ describe('Test Workflow Definitions', () => {
       expect(stats.totalEdges).toBe(3);
       expect(stats.hasTrigger).toBe(true);
       expect(stats.hasOutput).toBe(true);
-      expect(stats.nodesByCategory.sandflare).toBe(1);
+      expect(stats.nodesByCategory.pandastack).toBe(1);
       expect(stats.nodesByCategory.utility).toBe(1);
     });
 
@@ -160,7 +160,7 @@ describe('Test Workflow Definitions', () => {
   describe('Node Configuration Validation', () => {
     it('should have valid scraper configuration', () => {
       const workflow = workflowTestHelper.loadWorkflow('1-simple-scraping-workflow.json');
-      const scraperNode = workflow.nodes.find((n) => n.data.type === 'sandflare.scrape');
+      const scraperNode = workflow.nodes.find((n) => n.data.type === 'pandastack.scrape');
 
       expect(scraperNode).toBeDefined();
       expect(scraperNode!.data.config.url).toBe('https://example.com');
@@ -170,7 +170,7 @@ describe('Test Workflow Definitions', () => {
 
     it('should have valid Python code in execution workflow', () => {
       const workflow = workflowTestHelper.loadWorkflow('2-code-execution-workflow.json');
-      const executeNode = workflow.nodes.find((n) => n.data.type === 'sandflare.execute');
+      const executeNode = workflow.nodes.find((n) => n.data.type === 'pandastack.execute');
 
       expect(executeNode).toBeDefined();
       expect(executeNode!.data.config.language).toBe('python');

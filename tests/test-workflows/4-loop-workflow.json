@@ -71,15 +71,15 @@
       }
     },
     {
-      "id": "sandflare-execute-1",
+      "id": "pandastack-execute-1",
       "type": "custom",
       "position": {
         "x": 1000,
         "y": 200
       },
       "data": {
-        "type": "sandflare.execute",
-        "category": "sandflare",
+        "type": "pandastack.execute",
+        "category": "pandastack",
         "config": {
           "label": "Process Each Item",
           "description": "Execute Python code to process each array item",
@@ -219,7 +219,7 @@
     {
       "id": "edge-loop-execute",
       "source": "loop-1",
-      "target": "sandflare-execute-1",
+      "target": "pandastack-execute-1",
       "sourceHandle": "item",
       "targetHandle": null,
       "type": "default",
@@ -227,7 +227,7 @@
     },
     {
       "id": "edge-execute-log",
-      "source": "sandflare-execute-1",
+      "source": "pandastack-execute-1",
       "target": "log-iteration-1",
       "sourceHandle": null,
       "targetHandle": null,

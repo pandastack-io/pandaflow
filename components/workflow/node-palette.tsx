@@ -17,7 +17,7 @@ const MAX_PINNED_NODES = 8;
 
 const categoryLabels: Record<NodeCategory, string> = {
   [NodeCategory.TRIGGER]: 'Triggers',
-  [NodeCategory.SANDFLARE]: 'Sandflare',
+  [NodeCategory.PANDASTACK]: 'PandaStack',
   [NodeCategory.AGENT]: 'Agents',
   [NodeCategory.MEMORY]: 'Memory',
   [NodeCategory.AI]: 'AI & ML',
@@ -39,7 +39,7 @@ const categoryLabels: Record<NodeCategory, string> = {
 
 const categoryIcons: Record<NodeCategory, keyof typeof LucideIcons> = {
   [NodeCategory.TRIGGER]: 'Zap',
-  [NodeCategory.SANDFLARE]: 'Code',
+  [NodeCategory.PANDASTACK]: 'Code',
   [NodeCategory.AGENT]: 'Bot',
   [NodeCategory.MEMORY]: 'BrainCircuit',
   [NodeCategory.AI]: 'Brain',

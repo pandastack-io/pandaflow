@@ -33,14 +33,14 @@ npx playwright test tests/e2e/workflows-page.spec.ts
 
 ## Architecture
 
-This is an **AI agent visual workflow builder** — a Next.js 16 app where users build workflows by connecting nodes in a React Flow canvas. Workflows execute via Temporal (durable orchestration) on Sandflare.io microVMs (isolated code execution).
+This is an **AI agent visual workflow builder** — a Next.js 16 app where users build workflows by connecting nodes in a React Flow canvas. Workflows execute via Temporal (durable orchestration) on PandaStack microVMs (isolated code execution).
 
 ### Request Flow
 
 1. **UI canvas** (`components/workflow/`) — React Flow canvas backed by Zustand store (`lib/stores/workflow-store.ts`). Users drag nodes from a panel, connect them, configure via side panel.
 2. **Workflow definition** — Serialized as `{ nodes: Node[], edges: Edge[] }` JSON stored in `workflows.definition` (PostgreSQL via Drizzle ORM).
 3. **Execution** — `POST /api/executions` → `WorkflowExecutor` (`lib/execution/workflow-executor.ts`) traverses the DAG, runs each node, resolves data between nodes.
-4. **Code execution nodes** (`sandflare.*`) — Routed through `SandboxManager` (`lib/sandflare/manager.ts`) → either real Sandflare.io API or a local mock provider.
+4. **Code execution nodes** (`pandastack.*`) — Routed through `SandboxManager` (`lib/pandastack/manager.ts`) → either real PandaStack API or a local mock provider.
 5. **Real-time status** — Execution progress streamed via SSE (Server-Sent Events).
 
 ### Key Layers
@@ -52,7 +52,7 @@ This is an **AI agent visual workflow builder** — a Next.js 16 app where users
 | Node registry (metadata + Zod schemas) | `lib/nodes/registry.ts` |
 | Workflow canvas state | `lib/stores/workflow-store.ts` |
 | Workflow execution engine | `lib/execution/workflow-executor.ts` |
-| Sandflare sandbox abstraction | `lib/sandflare/` |
+| PandaStack sandbox abstraction | `lib/pandastack/` |
 | API routes | `app/api/` |
 | Auth | `lib/auth/config.ts` (NextAuth v5 beta) |
 
@@ -60,7 +60,7 @@ This is an **AI agent visual workflow builder** — a Next.js 16 app where users
 
 ### Node Type System
 
-Node types use dot-notation strings: `<category>.<name>` (e.g. `trigger.manual`, `sandflare.python`, `ai.llm`). The enum `NodeType` in `types/nodes.ts` is the source of truth. The `nodeRegistry` in `lib/nodes/registry.ts` maps each type to its metadata and Zod config schema.
+Node types use dot-notation strings: `<category>.<name>` (e.g. `trigger.manual`, `pandastack.python`, `ai.llm`). The enum `NodeType` in `types/nodes.ts` is the source of truth. The `nodeRegistry` in `lib/nodes/registry.ts` maps each type to its metadata and Zod config schema.
 
 When adding a new node type:
 1. Add the enum value to `NodeType` in `types/nodes.ts`
@@ -71,9 +71,9 @@ When adding a new node type:
 
 All API routes return `{ success: boolean, data?: T, error?: string }`. Use `NextResponse.json()` with this shape.
 
-### Sandflare Provider Selection
+### PandaStack Provider Selection
 
-`SandboxManager` auto-selects: if `SANDFLARE_API_KEY` is set and not prefixed with `mock-`, it uses the real Sandflare API. Otherwise it falls back to the local `MockSandboxProvider`. Set `SANDFLARE_API_KEY=mock-api-key` in `.env.local` for local dev.
+`SandboxManager` auto-selects: if `PANDASTACK_API_KEY` is set and not prefixed with `mock-`, it uses the real PandaStack API. Otherwise it falls back to the local `MockSandboxProvider`. Set `PANDASTACK_API_KEY=mock-api-key` in `.env.local` for local dev.
 
 ### Database
 
@@ -94,4 +94,4 @@ Zustand is used only for the workflow canvas state (`useWorkflowStore`). Server 
 
 ### Environment Variables
 
-Copy `.env.example` to `.env.local`. Required: `DATABASE_URL`, `REDIS_URL`, `NEXTAUTH_SECRET`, `ENCRYPTION_KEY`. Sandflare and LLM keys are optional — the app uses mock providers when absent.
+Copy `.env.example` to `.env.local`. Required: `DATABASE_URL`, `REDIS_URL`, `NEXTAUTH_SECRET`, `ENCRYPTION_KEY`. PandaStack and LLM keys are optional — the app uses mock providers when absent.

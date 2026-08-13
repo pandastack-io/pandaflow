@@ -161,7 +161,7 @@ function getStatusSymbol(status: StepStatus) {
 function getNodeIcon(nodeType?: string | null): LucideIcon {
   if (!nodeType) return Workflow;
   if (nodeType.startsWith('ai.') || nodeType.startsWith('agent.')) return Brain;
-  if (nodeType.startsWith('sandflare.') || nodeType.startsWith('code.')) return Code;
+  if (nodeType.startsWith('pandastack.') || nodeType.startsWith('code.')) return Code;
   if (nodeType.startsWith('integration.http') || nodeType.startsWith('trigger.webhook')) return Globe;
   if (nodeType.startsWith('trigger.')) return Play;
   if (nodeType.startsWith('control.')) return GitBranch;

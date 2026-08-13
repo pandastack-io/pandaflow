@@ -1,7 +1,7 @@
 import { Node, Edge } from 'reactflow';
 import { eq } from 'drizzle-orm';
 import { WorkflowDefinition, WorkflowEnvVar, WorkflowNodeData, WorkflowVariable, NodeCategory, NodeType } from '@/types/nodes';
-import { SandboxManager } from '@/lib/sandflare/manager';
+import { SandboxManager } from '@/lib/pandastack/manager';
 import { db } from '@/lib/db';
 import { credentials, executionLogs, vectorDocuments } from '@/lib/db/schema';
 import { decrypt } from '@/lib/secrets/crypto';
@@ -17,7 +17,7 @@ import { debugExecutionController } from './debug-controller';
 import { withRetry } from './retry';
 import {
   calculateLLMCost,
-  calculateSandflareCost,
+  calculatePandaStackCost,
   recordNodeCost,
 } from './cost-tracker';
 
@@ -57,36 +57,36 @@ class DebugAbortError extends Error {
 }
 
 /** Node types that execute code inside a sandbox and benefit from sharing one. */
-const SANDFLARE_CODE_TYPES = new Set<string>([
-  NodeType.SANDFLARE_PYTHON,
-  NodeType.SANDFLARE_NODEJS,
-  NodeType.SANDFLARE_GO,
-  NodeType.SANDFLARE_RUST,
-  NodeType.SANDFLARE_BASH,
-  NodeType.SANDFLARE_RUBY,
-  NodeType.SANDFLARE_PHP,
-  NodeType.SANDFLARE_JAVA,
-  NodeType.SANDFLARE_DOCKER,
-  NodeType.SANDFLARE_JUPYTER,
-  NodeType.SANDFLARE_EXECUTE,
-  NodeType.SANDFLARE_FILE_WRITE,
-  NodeType.SANDFLARE_FILE_READ,
-  NodeType.SANDFLARE_FILE_LIST,
-  NodeType.SANDFLARE_INSTALL,
-  NodeType.SANDFLARE_SNAPSHOT,
-  NodeType.SANDFLARE_FORK,
-  NodeType.SANDFLARE_GIT_CLONE,
-  NodeType.SANDFLARE_PLAYWRIGHT,
-  NodeType.SANDFLARE_METRICS,
+const PANDASTACK_CODE_TYPES = new Set<string>([
+  NodeType.PANDASTACK_PYTHON,
+  NodeType.PANDASTACK_NODEJS,
+  NodeType.PANDASTACK_GO,
+  NodeType.PANDASTACK_RUST,
+  NodeType.PANDASTACK_BASH,
+  NodeType.PANDASTACK_RUBY,
+  NodeType.PANDASTACK_PHP,
+  NodeType.PANDASTACK_JAVA,
+  NodeType.PANDASTACK_DOCKER,
+  NodeType.PANDASTACK_JUPYTER,
+  NodeType.PANDASTACK_EXECUTE,
+  NodeType.PANDASTACK_FILE_WRITE,
+  NodeType.PANDASTACK_FILE_READ,
+  NodeType.PANDASTACK_FILE_LIST,
+  NodeType.PANDASTACK_INSTALL,
+  NodeType.PANDASTACK_SNAPSHOT,
+  NodeType.PANDASTACK_FORK,
+  NodeType.PANDASTACK_GIT_CLONE,
+  NodeType.PANDASTACK_PLAYWRIGHT,
+  NodeType.PANDASTACK_METRICS,
 ]);
 
-/** Pick the best Sandflare template for the node types used in this workflow. */
+/** Pick the best PandaStack template for the node types used in this workflow. */
 function pickTemplate(nodeTypes: string[]): string {
-  const hasJupyter = nodeTypes.includes(NodeType.SANDFLARE_JUPYTER);
-  const hasPlaywright = nodeTypes.includes(NodeType.SANDFLARE_PLAYWRIGHT);
-  const hasNode = nodeTypes.includes(NodeType.SANDFLARE_NODEJS);
+  const hasJupyter = nodeTypes.includes(NodeType.PANDASTACK_JUPYTER);
+  const hasPlaywright = nodeTypes.includes(NodeType.PANDASTACK_PLAYWRIGHT);
+  const hasNode = nodeTypes.includes(NodeType.PANDASTACK_NODEJS);
   const hasPython = nodeTypes.some((t) =>
-    [NodeType.SANDFLARE_PYTHON, NodeType.SANDFLARE_GIT_CLONE, NodeType.SANDFLARE_INSTALL].includes(t as NodeType)
+    [NodeType.PANDASTACK_PYTHON, NodeType.PANDASTACK_GIT_CLONE, NodeType.PANDASTACK_INSTALL].includes(t as NodeType)
   );
 
   if (hasJupyter || hasPlaywright) return 'browser-agent'; // Has chromium + Playwright
@@ -185,14 +185,14 @@ function scheduleNodeCostRecording(
 
   const { tokensInput, tokensOutput } = extractTokenCounts(result);
   const model = extractModel(result, typeof node.data.config?.model === 'string' ? String(node.data.config.model) : undefined) ?? 'default';
-  const sandflareMs = node.data.type.startsWith('sandflare.')
+  const pandastackMs = node.data.type.startsWith('pandastack.')
     ? Math.max(0, Math.round(getFirstNumber(result?.executionTime, result?.durationMs) ?? 0))
     : 0;
 
   const llmCost = (tokensInput > 0 || tokensOutput > 0)
     ? calculateLLMCost(model, tokensInput, tokensOutput)
     : 0;
-  const sandboxCost = sandflareMs > 0 ? calculateSandflareCost(sandflareMs) : 0;
+  const sandboxCost = pandastackMs > 0 ? calculatePandaStackCost(pandastackMs) : 0;
   const costUsd = llmCost + sandboxCost;
 
   if (costUsd <= 0) return;
@@ -204,7 +204,7 @@ function scheduleNodeCostRecording(
     nodeType: node.data.type,
     tokensInput,
     tokensOutput,
-    sandflareMs,
+    pandastackMs,
     model,
     costUsd,
   });
@@ -263,8 +263,8 @@ export class WorkflowExecutor {
   private sandboxManager: SandboxManager;
 
   constructor() {
-    // Use 'auto' to automatically select Sandflare if API key is available, otherwise mock
-    // Disable fallback to mock - fail if Sandflare API fails
+    // Use 'auto' to automatically select PandaStack if API key is available, otherwise mock
+    // Disable fallback to mock - fail if PandaStack API fails
     this.sandboxManager = new SandboxManager({ provider: 'auto', fallbackToMock: false });
   }
 
@@ -996,21 +996,21 @@ export class WorkflowExecutor {
     }
 
     // ── Shared sandbox lifecycle ────────────────────────────────────────────
-    // If the workflow contains any Sandflare code/file/install nodes, create
+    // If the workflow contains any PandaStack code/file/install nodes, create
     // ONE shared sandbox before the DAG runs so all nodes share state.
-    const sandflareNodeTypes = definition.nodes
+    const pandastackNodeTypes = definition.nodes
       .map((n) => n.data.type)
-      .filter((t) => SANDFLARE_CODE_TYPES.has(t));
+      .filter((t) => PANDASTACK_CODE_TYPES.has(t));
 
     let ownedSandboxId: string | undefined;
     const persistentAgentSandbox = options.workflowType === 'agent' && Boolean(options.workflowId);
     const sandboxRegistry = persistentAgentSandbox
       ? await import('@/lib/agents/sandbox-registry')
       : null;
-    if (sandflareNodeTypes.length > 0) {
+    if (pandastackNodeTypes.length > 0) {
       try {
         const provider = this.sandboxManager.getProvider();
-        const template = pickTemplate(sandflareNodeTypes);
+        const template = pickTemplate(pandastackNodeTypes);
 
         if (persistentAgentSandbox && options.workflowId && sandboxRegistry) {
           const existingSandboxId = await sandboxRegistry.getAgentSandboxId(options.workflowId);
@@ -1042,7 +1042,7 @@ export class WorkflowExecutor {
             language: 'python', // template overrides the language
             template,
             size: 'small',
-            timeout: 3600000, // 1 hour max per Sandflare free plan
+            timeout: 3600000, // 1 hour max per PandaStack free plan
           } as any);
           ownedSandboxId = sandbox.id;
           context.sandbox = { id: sandbox.id, provider, language: 'python' };
@@ -1253,12 +1253,12 @@ export class WorkflowExecutor {
         result = await this.executeTriggerWebhook(node, context);
         break;
 
-      case NodeType.SANDFLARE_EXECUTE:
-        result = await this.executeSandflareCode(node, context);
+      case NodeType.PANDASTACK_EXECUTE:
+        result = await this.executePandaStackCode(node, context);
         break;
 
-      case NodeType.SANDFLARE_SCRAPE:
-        result = await this.executeSandflareScrape(node, context);
+      case NodeType.PANDASTACK_SCRAPE:
+        result = await this.executePandaStackScrape(node, context);
         break;
 
       case NodeType.PRISM_LLM:
@@ -1655,14 +1655,14 @@ export class WorkflowExecutor {
     };
   }
 
-  private async executeSandflareCode(
+  private async executePandaStackCode(
     node: Node<WorkflowNodeData>,
     context: ExecutionContext
   ): Promise<any> {
     const config = node.data.config;
 
     if (!config.code) {
-      throw new Error('No code provided for Sandflare execution');
+      throw new Error('No code provided for PandaStack execution');
     }
 
     // Replace variables in code
@@ -1704,7 +1704,7 @@ export class WorkflowExecutor {
     };
   }
 
-  private async executeSandflareScrape(
+  private async executePandaStackScrape(
     node: Node<WorkflowNodeData>,
     context: ExecutionContext
   ): Promise<any> {

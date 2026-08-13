@@ -18,7 +18,7 @@
 
 2. **2-code-execution-workflow.json** (3.6 KB)
    - Name: Code Execution Workflow
-   - Nodes: 4 (Manual Trigger → Sandflare Execute → Log → Output)
+   - Nodes: 4 (Manual Trigger → PandaStack Execute → Log → Output)
    - Edges: 3
    - Purpose: Test Python code execution with data analysis
    - Complexity: ⭐ Simple
@@ -113,8 +113,8 @@ QUICK-START.md:                      [markdown ✓]
 | Node Type | Count Across Workflows | Workflows Used In |
 |-----------|------------------------|-------------------|
 | trigger.manual | 4 | All |
-| sandflare.execute | 2 | 2, 4 |
-| sandflare.scrape | 1 | 1 |
+| pandastack.execute | 2 | 2, 4 |
+| pandastack.scrape | 1 | 1 |
 | integration.http | 1 | 1 |
 | control.condition | 1 | 3 |
 | control.loop | 1 | 4 |
@@ -128,7 +128,7 @@ QUICK-START.md:                      [markdown ✓]
 | Category | Coverage | Types Covered |
 |----------|----------|---------------|
 | Trigger | 25% (1/4) | manual |
-| Sandflare | 100% (2/2) | execute, scrape |
+| PandaStack | 100% (2/2) | execute, scrape |
 | AI | 0% (0/3) | none |
 | Transform | 75% (3/4) | data, aggregate |
 | Control | 50% (2/4) | condition, loop |
@@ -185,7 +185,7 @@ QUICK-START.md:                      [markdown ✓]
 
 ### Integration Points
 - ✅ External HTTP APIs
-- ✅ Sandflare microVM
+- ✅ PandaStack microVM
 - ⚠️ Database (not covered)
 - ⚠️ Email (not covered)
 - ⚠️ AI/LLM (not covered)

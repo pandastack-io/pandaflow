@@ -1078,10 +1078,10 @@ export function NodeConfigForm({ nodeType, config, onChange, nodeId }: NodeConfi
   }
 
   switch (nodeType) {
-    case NodeType.SANDFLARE_EXECUTE:
-      return <SandflareExecuteForm config={config} updateConfig={updateBasicConfig} />;
-    case NodeType.SANDFLARE_SCRAPE:
-      return <SandflareScrapeForm config={config} updateConfig={updateBasicConfig} />;
+    case NodeType.PANDASTACK_EXECUTE:
+      return <PandaStackExecuteForm config={config} updateConfig={updateBasicConfig} />;
+    case NodeType.PANDASTACK_SCRAPE:
+      return <PandaStackScrapeForm config={config} updateConfig={updateBasicConfig} />;
     case NodeType.TRANSFORM_DATA:
       return <DataTransformForm config={config} updateConfig={updateBasicConfig} />;
     case NodeType.CONTROL_CONDITION:
@@ -1093,7 +1093,7 @@ export function NodeConfigForm({ nodeType, config, onChange, nodeId }: NodeConfi
   }
 }
 
-function SandflareExecuteForm({ config, updateConfig }: any) {
+function PandaStackExecuteForm({ config, updateConfig }: any) {
   return (
     <div className="space-y-3">
       <div>
@@ -1118,7 +1118,7 @@ function SandflareExecuteForm({ config, updateConfig }: any) {
           id="code"
           value={config.code || ''}
           onChange={(e) => updateConfig('code', e.target.value)}
-          placeholder="# Write your code here&#10;print('Hello from Sandflare!')"
+          placeholder="# Write your code here&#10;print('Hello from PandaStack!')"
           className="min-h-[200px] font-mono text-xs"
         />
         <p className="mt-1 text-xs text-muted-foreground">Use {`{{variableName}}`} to reference workflow variables</p>
@@ -1153,7 +1153,7 @@ function SandflareExecuteForm({ config, updateConfig }: any) {
   );
 }
 
-function SandflareScrapeForm({ config, updateConfig }: any) {
+function PandaStackScrapeForm({ config, updateConfig }: any) {
   return (
     <div className="space-y-3">
       <div>

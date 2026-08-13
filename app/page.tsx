@@ -106,12 +106,12 @@ const isolationBullets: Feature[] = [
   {
     icon: ShieldCheck,
     title: 'Zero cross-contamination',
-    description: 'Each run gets an isolated Sandflare microVM with its own process, memory, and execution context.',
+    description: 'Each run gets an isolated PandaStack microVM with its own process, memory, and execution context.',
   },
   {
     icon: Zap,
     title: 'Fast cold starts',
-    description: 'Sandflare microVMs start quickly so workflows can move from trigger to execution without long waits.',
+    description: 'PandaStack microVMs start quickly so workflows can move from trigger to execution without long waits.',
   },
   {
     icon: RefreshCcw,
@@ -147,8 +147,8 @@ const features: Feature[] = [
     icon: RefreshCcw,
   },
   {
-    title: 'Sandflare execution',
-    description: 'Run every workflow in an isolated Sandflare microVM so code execution stays clean and predictable.',
+    title: 'PandaStack execution',
+    description: 'Run every workflow in an isolated PandaStack microVM so code execution stays clean and predictable.',
     icon: Cloud,
   },
   {
@@ -453,7 +453,7 @@ function WorkflowPreview() {
               <CanvasNode x={0} y={0} label="Slack Notify" category="output" colorClass="bg-emerald-500/15" iconColorClass="text-emerald-400" IconComp={MessageSquare} />
             </foreignObject>
             <foreignObject x={nodes.python.x} y={nodes.python.y} width="192" height="56">
-              <CanvasNode x={0} y={0} label="Python Sandbox" category="sandflare" colorClass="bg-sky-500/15" iconColorClass="text-sky-400" IconComp={TerminalSquare} />
+              <CanvasNode x={0} y={0} label="Python Sandbox" category="pandastack" colorClass="bg-sky-500/15" iconColorClass="text-sky-400" IconComp={TerminalSquare} />
             </foreignObject>
             <foreignObject x={nodes.store.x} y={nodes.store.y} width="192" height="56">
               <CanvasNode x={0} y={0} label="Store Result" category="memory" colorClass="bg-amber-500/15" iconColorClass="text-amber-400" IconComp={HardDrive} />
@@ -750,7 +750,7 @@ export default function HomePage() {
               <FadeUp delay={0.12}>
                 <p className="mt-6 max-w-md text-[15px] leading-7 text-zinc-400">
                   Compose multi-agent systems with a drag-and-drop canvas. 165+ prebuilt nodes,
-                  durable Temporal execution, and per-run Sandflare microVM isolation.
+                  durable Temporal execution, and per-run PandaStack microVM isolation.
                 </p>
               </FadeUp>
 
@@ -932,7 +932,7 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-sm font-semibold text-white">microVM isolation</h3>
                 <p className="mt-2 text-[13px] leading-6 text-zinc-500">
-                  Each run gets its own Sandflare microVM. Clean state, wiped on exit.
+                  Each run gets its own PandaStack microVM. Clean state, wiped on exit.
                 </p>
                 <div className="mt-5 space-y-2">
                   {['microVM booted', 'secrets mounted', 'memory wiped'].map((s) => (
@@ -1098,7 +1098,7 @@ export default function HomePage() {
                   n: '02',
                   icon: Cpu,
                   title: 'Run with isolation',
-                  body: 'Hit play. Each execution spawns a fresh Sandflare microVM. Secrets mounted, code runs, VM wiped on exit.',
+                  body: 'Hit play. Each execution spawns a fresh PandaStack microVM. Secrets mounted, code runs, VM wiped on exit.',
                 },
                 {
                   n: '03',
@@ -1149,7 +1149,7 @@ export default function HomePage() {
 
           <div className="relative mx-auto max-w-7xl">
             <FadeUp className="mb-14">
-              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-600">Sandflare isolation</p>
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-600">PandaStack isolation</p>
               <h2 className="text-4xl font-bold tracking-[-0.03em] text-white sm:text-5xl">
                 Every execution<br />starts clean.
               </h2>
@@ -1327,7 +1327,7 @@ export default function HomePage() {
                   </div>
                   <h3 className="text-lg font-semibold text-white">Cloud</h3>
                   <p className="mt-2 text-sm leading-7 text-zinc-400">
-                    We run it for you. Enterprise isolation via Sandflare microVMs, automatic scaling, and a managed control plane by PandastackIO Inc.
+                    We run it for you. Enterprise isolation via PandaStack microVMs, automatic scaling, and a managed control plane by PandastackIO Inc.
                   </p>
                   <p className="mt-6 text-[12px] text-zinc-600">Self-host today · Cloud managed version in progress</p>
                 </div>
