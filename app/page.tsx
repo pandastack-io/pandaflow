@@ -649,7 +649,7 @@ export default function HomePage() {
       <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#000]/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
           <Link href="/" className="flex items-center gap-2.5">
-            <img src="/pandaflow-logo.png" alt="PandaFlow" className="h-7 w-7" />
+            <img src="/pandastack-logo.svg" alt="PandaFlow" className="h-7 w-7" />
             <span className="text-sm font-semibold tracking-tight">PandaFlow</span>
           </Link>
 
@@ -1416,7 +1416,7 @@ export default function HomePage() {
           <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
             <div className="max-w-xs">
               <div className="flex items-center gap-2.5">
-                <img src="/pandaflow-logo.png" alt="PandaFlow" className="h-7 w-7" />
+                <img src="/pandastack-logo.svg" alt="PandaFlow" className="h-7 w-7" />
                 <span className="text-sm font-semibold text-white">PandaFlow</span>
               </div>
               <p className="mt-3 text-sm leading-7 text-zinc-600">

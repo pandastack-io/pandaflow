@@ -20,8 +20,8 @@ export const metadata: Metadata = {
   description:
     'Build, deploy, and orchestrate AI agents visually. Powered by PandaStack isolated microVM execution. Open source by PandastackIO Inc.',
   icons: {
-    icon: '/pandaflow-logo.png',
-    apple: '/pandaflow-logo.png',
+    icon: '/pandastack-logo.svg',
+    apple: '/pandastack-logo.svg',
   },
 };
 

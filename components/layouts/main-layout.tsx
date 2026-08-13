@@ -76,7 +76,7 @@ export function MainLayout({ children }: { children: ReactNode }) {
             )}
           >
             <div className="flex items-center">
-              <img src="/pandaflow-logo.png" alt="PandaFlow" className="h-8 w-8 rounded-lg object-cover" />
+              <img src="/pandastack-logo.svg" alt="PandaFlow" className="h-8 w-8 rounded-lg object-cover" />
               {!collapsed && <span className="ml-3 text-xl font-bold">PandaFlow</span>}
             </div>
           </div>
