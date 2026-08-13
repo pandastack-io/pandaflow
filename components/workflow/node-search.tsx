@@ -89,11 +89,11 @@ export function NodeSearch({ open, nodes, onClose, onSelect }: NodeSearchProps) 
   return (
     <div className="absolute inset-0 z-[45] flex justify-center bg-background/10 pt-[18vh] backdrop-blur-sm" onClick={onClose}>
       <div
-        className="w-full max-w-md rounded-2xl border border-zinc-700 bg-zinc-900/95 shadow-2xl"
+        className="w-full max-w-md rounded-2xl border border-border bg-popover/95 shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center gap-3 border-b border-zinc-800 px-4 py-3">
-          <Search className="h-4 w-4 text-zinc-400" />
+        <div className="flex items-center gap-3 border-b border-border px-4 py-3">
+          <Search className="h-4 w-4 text-muted-foreground" />
           <input
             ref={inputRef}
             value={query}
@@ -133,12 +133,12 @@ export function NodeSearch({ open, nodes, onClose, onSelect }: NodeSearchProps) 
               }
             }}
             placeholder="Search nodes by label or name..."
-            className="w-full bg-transparent text-sm text-zinc-100 outline-none placeholder:text-zinc-500"
+            className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
           />
         </div>
         <div className="max-h-80 overflow-y-auto p-2">
           {results.length === 0 ? (
-            <div className="rounded-xl px-4 py-6 text-center text-sm text-zinc-400">
+            <div className="rounded-xl px-4 py-6 text-center text-sm text-muted-foreground">
               No matching nodes found.
             </div>
           ) : (
@@ -151,13 +151,13 @@ export function NodeSearch({ open, nodes, onClose, onSelect }: NodeSearchProps) 
                   onMouseEnter={() => setActiveIndex(index)}
                   className={cn(
                     'flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors',
-                    activeIndex === index ? 'bg-zinc-800 text-zinc-50' : 'text-zinc-300 hover:bg-zinc-800/70'
+                    activeIndex === index ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-accent/70'
                   )}
                 >
                   <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: result.color }} />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium">{result.name}</div>
-                    <div className="truncate text-xs text-zinc-500">{result.type}</div>
+                    <div className="truncate text-xs text-muted-foreground">{result.type}</div>
                   </div>
                 </button>
               ))}

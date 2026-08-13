@@ -60,15 +60,15 @@ export function ApprovalBanner({ approval, onDecisionSubmitted }: ApprovalBanner
     <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-3">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-amber-700">{approval.title}</p>
-          <p className="text-sm text-amber-900/80">{approval.message}</p>
+          <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">{approval.title}</p>
+          <p className="text-sm text-amber-900/80 dark:text-amber-100/80">{approval.message}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
             type="button"
             size="sm"
             variant="outline"
-            className="border-amber-600/40 bg-white/60 text-amber-800 hover:bg-white"
+            className="border-amber-600/40 bg-background/60 text-amber-800 hover:bg-background dark:text-amber-200"
             onClick={() => void submitDecision('approved')}
             disabled={isSubmitting}
           >
@@ -79,7 +79,7 @@ export function ApprovalBanner({ approval, onDecisionSubmitted }: ApprovalBanner
             type="button"
             size="sm"
             variant="outline"
-            className="border-amber-600/40 bg-white/60 text-amber-800 hover:bg-white"
+            className="border-amber-600/40 bg-background/60 text-amber-800 hover:bg-background dark:text-amber-200"
             onClick={() => void submitDecision('rejected')}
             disabled={isSubmitting}
           >

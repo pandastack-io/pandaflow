@@ -131,17 +131,17 @@ function isAiNode(nodeType?: string | null) {
 function getStatusBadgeClass(status: ExecutionStatus | StepStatus) {
   switch (status) {
     case 'completed':
-      return 'border-green-500/25 bg-green-500/10 text-green-300';
+      return 'border-green-500/25 bg-green-500/10 text-green-700 dark:text-green-300';
     case 'failed':
-      return 'border-red-500/25 bg-red-500/10 text-red-300';
+      return 'border-red-500/25 bg-red-500/10 text-red-700 dark:text-red-300';
     case 'running':
-      return 'border-yellow-500/25 bg-yellow-500/10 text-yellow-300';
+      return 'border-yellow-500/25 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300';
     case 'skipped':
     case 'pending':
     case 'cancelled':
-      return 'border-zinc-700 bg-zinc-800/80 text-zinc-300';
+      return 'border-border bg-muted text-muted-foreground';
     default:
-      return 'border-zinc-700 bg-zinc-800/80 text-zinc-300';
+      return 'border-border bg-muted text-muted-foreground';
   }
 }
 
@@ -180,7 +180,7 @@ function getPreferredStepId(steps: ExecutionStep[]) {
 
 function JsonViewer({ value, emptyMessage }: { value: unknown; emptyMessage?: string }) {
   return (
-    <pre className="max-h-[32rem] overflow-auto rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 font-mono text-xs text-zinc-200">
+    <pre className="max-h-[32rem] overflow-auto rounded-xl border border-border bg-muted/50 px-4 py-3 font-mono text-xs text-foreground">
       {stringifyValue(value, emptyMessage)}
     </pre>
   );
@@ -188,12 +188,12 @@ function JsonViewer({ value, emptyMessage }: { value: unknown; emptyMessage?: st
 
 function InspectorEmpty({ title, description }: { title: string; description: string }) {
   return (
-    <div className="flex min-h-[18rem] flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-800 bg-zinc-950/60 px-6 text-center">
-      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900">
-        <Workflow className="h-8 w-8 text-zinc-500" />
+    <div className="flex min-h-[18rem] flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/30 px-6 text-center">
+      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-border bg-muted">
+        <Workflow className="h-8 w-8 text-muted-foreground" />
       </div>
-      <h3 className="text-lg font-semibold text-zinc-100">{title}</h3>
-      <p className="mt-2 max-w-md text-sm text-zinc-400">{description}</p>
+      <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+      <p className="mt-2 max-w-md text-sm text-muted-foreground">{description}</p>
     </div>
   );
 }
@@ -250,12 +250,12 @@ export default function ExecutionDetailPage() {
   return (
     <MainLayout>
       <div className="flex min-h-[calc(100vh-4rem)] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-        <Card className="border-zinc-800 bg-zinc-950 text-zinc-100 shadow-none">
+        <Card className="border-border bg-card text-card-foreground shadow-none">
           <CardContent className="space-y-6 p-5">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
               <div className="space-y-4">
                 <div className="flex flex-wrap items-center gap-3">
-                  <Button asChild variant="ghost" size="sm" className="gap-2 text-zinc-300 hover:bg-zinc-900 hover:text-zinc-100">
+                  <Button asChild variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground">
                     <Link href="/executions">
                       <ArrowLeft className="h-4 w-4" />
                       Back to Executions
@@ -268,24 +268,24 @@ export default function ExecutionDetailPage() {
                   ) : null}
                 </div>
                 <div>
-                  <h1 className="text-3xl font-semibold tracking-tight text-zinc-50">
+                  <h1 className="text-3xl font-semibold tracking-tight text-foreground">
                     {execution?.workflowName || 'Execution Replay'}
                   </h1>
-                  <p className="mt-2 text-sm text-zinc-400">
+                  <p className="mt-2 text-sm text-muted-foreground">
                     Chrome DevTools-style step replay for every node transition, payload, prompt, and log line.
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/80 px-4 py-2 text-sm text-zinc-300">
+                <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/50 px-4 py-2 text-sm text-muted-foreground">
                   <div className="space-y-0.5">
-                    <div className="font-medium text-zinc-100">Auto-refresh</div>
-                    <div className="text-xs text-zinc-500">Poll every 3s while running</div>
+                    <div className="font-medium text-foreground">Auto-refresh</div>
+                    <div className="text-xs text-muted-foreground">Poll every 3s while running</div>
                   </div>
                   <Switch checked={autoRefresh} onCheckedChange={setAutoRefresh} aria-label="Toggle auto refresh" />
                 </div>
-                <Button variant="outline" className="gap-2 border-zinc-800 bg-zinc-900 text-zinc-100 hover:bg-zinc-800" onClick={downloadJson} disabled={!executionQuery.data}>
+                <Button variant="outline" className="gap-2 border-border bg-secondary text-secondary-foreground hover:bg-secondary/80" onClick={downloadJson} disabled={!executionQuery.data}>
                   <Download className="h-4 w-4" />
                   Export JSON
                 </Button>
@@ -300,9 +300,9 @@ export default function ExecutionDetailPage() {
                 { label: 'Duration', value: formatDuration(execution?.durationMs) },
                 { label: 'Steps', value: steps.length ? String(steps.length) : '0' },
               ].map((item) => (
-                <div key={item.label} className="rounded-xl border border-zinc-800 bg-zinc-900/70 px-4 py-3">
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">{item.label}</div>
-                  <div className="mt-2 text-sm font-medium text-zinc-100">{item.value}</div>
+                <div key={item.label} className="rounded-xl border border-border bg-muted/50 px-4 py-3">
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{item.label}</div>
+                  <div className="mt-2 text-sm font-medium text-foreground">{item.value}</div>
                 </div>
               ))}
             </div>
@@ -310,31 +310,31 @@ export default function ExecutionDetailPage() {
         </Card>
 
         {executionQuery.isLoading ? (
-          <Card className="flex min-h-[34rem] items-center justify-center border-zinc-800 bg-zinc-950 shadow-none">
-            <CardContent className="flex items-center gap-3 p-6 text-zinc-400">
+          <Card className="flex min-h-[34rem] items-center justify-center border-border bg-card shadow-none">
+            <CardContent className="flex items-center gap-3 p-6 text-muted-foreground">
               <Loader2 className="h-5 w-5 animate-spin" />
               Loading execution replay…
             </CardContent>
           </Card>
         ) : executionQuery.isError ? (
-          <Card className="border-red-500/20 bg-zinc-950 shadow-none">
+          <Card className="border-red-500/20 bg-card shadow-none">
             <CardContent className="flex min-h-[20rem] flex-col items-center justify-center gap-3 p-6 text-center">
               <AlertTriangle className="h-10 w-10 text-red-400" />
-              <div className="text-lg font-semibold text-zinc-100">Failed to load execution replay</div>
-              <p className="max-w-md text-sm text-zinc-400">{executionQuery.error.message}</p>
-              <Button variant="outline" className="border-zinc-800 bg-zinc-900 text-zinc-100 hover:bg-zinc-800" onClick={() => void executionQuery.refetch()}>
+              <div className="text-lg font-semibold text-foreground">Failed to load execution replay</div>
+              <p className="max-w-md text-sm text-muted-foreground">{executionQuery.error.message}</p>
+              <Button variant="outline" className="border-border bg-secondary text-secondary-foreground hover:bg-secondary/80" onClick={() => void executionQuery.refetch()}>
                 Retry
               </Button>
             </CardContent>
           </Card>
         ) : (
           <div className="grid min-h-[40rem] flex-1 gap-6 xl:grid-cols-[minmax(280px,30%)_minmax(0,1fr)]">
-            <Card className="border-zinc-800 bg-zinc-950 shadow-none">
+            <Card className="border-border bg-card shadow-none">
               <CardContent className="flex h-full flex-col p-0">
-                <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
+                <div className="flex items-center justify-between border-b border-border px-4 py-3">
                   <div>
-                    <div className="text-sm font-semibold text-zinc-100">Step timeline</div>
-                    <div className="text-xs text-zinc-500">Select a node to inspect its replay data</div>
+                    <div className="text-sm font-semibold text-foreground">Step timeline</div>
+                    <div className="text-xs text-muted-foreground">Select a node to inspect its replay data</div>
                   </div>
                   {execution && (execution.status === 'running' || execution.status === 'pending') ? (
                     <Badge variant="outline" className={cn('gap-1 capitalize', getStatusBadgeClass('running'))}>
@@ -361,7 +361,7 @@ export default function ExecutionDetailPage() {
                             ? 'border-red-500/20 bg-red-500/10 hover:border-red-500/40'
                             : step.status === 'running'
                               ? 'border-yellow-500/20 bg-yellow-500/10 hover:border-yellow-500/40'
-                              : 'border-zinc-800 bg-zinc-900/80 hover:border-zinc-700';
+                              : 'border-border bg-muted/50 hover:border-muted-foreground/40';
 
                         return (
                           <button
@@ -377,12 +377,12 @@ export default function ExecutionDetailPage() {
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0 space-y-3">
                                 <div className="flex items-center gap-3">
-                                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950">
-                                    <Icon className="h-4 w-4 text-zinc-200" />
+                                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background">
+                                    <Icon className="h-4 w-4 text-foreground" />
                                   </div>
                                   <div className="min-w-0">
-                                    <div className="truncate text-sm font-medium text-zinc-100">{step.nodeName || step.nodeId || 'Unnamed node'}</div>
-                                    <div className="truncate text-xs text-zinc-500">{step.nodeType || step.nodeId || 'Unknown node'}</div>
+                                    <div className="truncate text-sm font-medium text-foreground">{step.nodeName || step.nodeId || 'Unnamed node'}</div>
+                                    <div className="truncate text-xs text-muted-foreground">{step.nodeType || step.nodeId || 'Unknown node'}</div>
                                   </div>
                                 </div>
                                 <div className="flex flex-wrap items-center gap-2">
@@ -390,12 +390,12 @@ export default function ExecutionDetailPage() {
                                     <span>{getStatusSymbol(step.status)}</span>
                                     <span className="capitalize">{step.status}</span>
                                   </Badge>
-                                  <Badge variant="outline" className="border-zinc-700 bg-zinc-950 text-zinc-300">
+                                  <Badge variant="outline" className="border-border bg-background text-muted-foreground">
                                     {formatDuration(step.durationMs)}
                                   </Badge>
                                 </div>
                               </div>
-                              <div className="text-right text-[11px] text-zinc-500">
+                              <div className="text-right text-[11px] text-muted-foreground">
                                 <div>{formatTimestamp(step.startedAt, 'Waiting')}</div>
                                 <div className="mt-2">{step.rawLogs.length} logs</div>
                               </div>
@@ -409,39 +409,39 @@ export default function ExecutionDetailPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-zinc-800 bg-zinc-950 shadow-none">
+            <Card className="border-border bg-card shadow-none">
               <CardContent className="flex h-full flex-col p-0">
-                <div className="border-b border-zinc-800 px-5 py-4">
+                <div className="border-b border-border px-5 py-4">
                   {selectedStep ? (
                     <div className="space-y-4">
                       <div className="flex flex-wrap items-start justify-between gap-4">
                         <div>
                           <div className="flex flex-wrap items-center gap-3">
-                            <h2 className="text-xl font-semibold text-zinc-50">{selectedStep.nodeName || selectedStep.nodeId || 'Step inspector'}</h2>
+                            <h2 className="text-xl font-semibold text-foreground">{selectedStep.nodeName || selectedStep.nodeId || 'Step inspector'}</h2>
                             <Badge variant="outline" className={cn('capitalize', getStatusBadgeClass(selectedStep.status))}>
                               {selectedStep.status}
                             </Badge>
                           </div>
-                          <div className="mt-2 text-sm text-zinc-500">{selectedStep.nodeType || selectedStep.nodeId || 'Unknown node'}</div>
+                          <div className="mt-2 text-sm text-muted-foreground">{selectedStep.nodeType || selectedStep.nodeId || 'Unknown node'}</div>
                         </div>
-                        <div className="grid gap-2 text-sm text-zinc-400 sm:grid-cols-3">
+                        <div className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-3">
                           <div>
-                            <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Started</div>
-                            <div className="mt-1 text-zinc-200">{formatTimestamp(selectedStep.startedAt)}</div>
+                            <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Started</div>
+                            <div className="mt-1 text-foreground">{formatTimestamp(selectedStep.startedAt)}</div>
                           </div>
                           <div>
-                            <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Completed</div>
-                            <div className="mt-1 text-zinc-200">{formatTimestamp(selectedStep.completedAt)}</div>
+                            <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Completed</div>
+                            <div className="mt-1 text-foreground">{formatTimestamp(selectedStep.completedAt)}</div>
                           </div>
                           <div>
-                            <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Duration</div>
-                            <div className="mt-1 text-zinc-200">{formatDuration(selectedStep.durationMs)}</div>
+                            <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Duration</div>
+                            <div className="mt-1 text-foreground">{formatDuration(selectedStep.durationMs)}</div>
                           </div>
                         </div>
                       </div>
 
                       {selectedStep.error ? (
-                        <div className="rounded-2xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                        <div className="rounded-2xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-800 dark:text-red-200">
                           <div className="flex items-start gap-2">
                             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                             <pre className="overflow-auto whitespace-pre-wrap font-mono text-xs">{selectedStep.error}</pre>
@@ -451,8 +451,8 @@ export default function ExecutionDetailPage() {
                     </div>
                   ) : (
                     <div>
-                      <h2 className="text-xl font-semibold text-zinc-50">Step inspector</h2>
-                      <p className="mt-1 text-sm text-zinc-500">Choose a step from the timeline to inspect its input, output, and logs.</p>
+                      <h2 className="text-xl font-semibold text-foreground">Step inspector</h2>
+                      <p className="mt-1 text-sm text-muted-foreground">Choose a step from the timeline to inspect its input, output, and logs.</p>
                     </div>
                   )}
                 </div>
@@ -462,12 +462,12 @@ export default function ExecutionDetailPage() {
                     <InspectorEmpty title="No step selected" description="Pick a step on the left to inspect payloads, prompts, and raw logs." />
                   ) : (
                     <Tabs key={selectedStep.id} defaultValue="input" className="space-y-4">
-                      <TabsList className="h-auto flex-wrap justify-start gap-2 rounded-xl bg-zinc-900 p-1 text-zinc-400">
-                        <TabsTrigger value="input" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-50">Input</TabsTrigger>
-                        <TabsTrigger value="output" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-50">Output</TabsTrigger>
-                        <TabsTrigger value="logs" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-50">Logs</TabsTrigger>
+                      <TabsList className="h-auto flex-wrap justify-start gap-2 rounded-xl bg-muted p-1 text-muted-foreground">
+                        <TabsTrigger value="input" className="data-[state=active]:bg-background data-[state=active]:text-foreground">Input</TabsTrigger>
+                        <TabsTrigger value="output" className="data-[state=active]:bg-background data-[state=active]:text-foreground">Output</TabsTrigger>
+                        <TabsTrigger value="logs" className="data-[state=active]:bg-background data-[state=active]:text-foreground">Logs</TabsTrigger>
                         {isAiNode(selectedStep.nodeType) ? (
-                          <TabsTrigger value="prompt" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-50">Prompt</TabsTrigger>
+                          <TabsTrigger value="prompt" className="data-[state=active]:bg-background data-[state=active]:text-foreground">Prompt</TabsTrigger>
                         ) : null}
                       </TabsList>
 
@@ -483,7 +483,7 @@ export default function ExecutionDetailPage() {
                         {selectedStep.logs.length === 0 ? (
                           <InspectorEmpty title="No logs captured" description="This step did not persist any raw log lines." />
                         ) : (
-                          <pre className="max-h-[32rem] overflow-auto rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 font-mono text-xs leading-6 text-zinc-200">
+                          <pre className="max-h-[32rem] overflow-auto rounded-xl border border-border bg-muted/50 px-4 py-3 font-mono text-xs leading-6 text-foreground">
                             {selectedStep.logs.join('\n')}
                           </pre>
                         )}
@@ -494,15 +494,15 @@ export default function ExecutionDetailPage() {
                           {selectedStep.prompt ? (
                             <div className="grid gap-4 xl:grid-cols-2">
                               <div className="space-y-2">
-                                <div className="flex items-center gap-2 text-sm font-medium text-zinc-100">
-                                  <PauseCircle className="h-4 w-4 text-zinc-400" />
+                                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                                  <PauseCircle className="h-4 w-4 text-muted-foreground" />
                                   Prompt request
                                 </div>
                                 <JsonViewer value={selectedStep.prompt.messages ?? selectedStep.prompt.request} emptyMessage="No prompt request was captured for this AI step." />
                               </div>
                               <div className="space-y-2">
-                                <div className="flex items-center gap-2 text-sm font-medium text-zinc-100">
-                                  <FastForward className="h-4 w-4 text-zinc-400" />
+                                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                                  <FastForward className="h-4 w-4 text-muted-foreground" />
                                   Model response
                                 </div>
                                 <JsonViewer value={selectedStep.prompt.response} emptyMessage="No model response was captured for this AI step." />
@@ -522,13 +522,13 @@ export default function ExecutionDetailPage() {
         )}
 
         {executionError ? (
-          <Card className="border-red-500/20 bg-zinc-950 shadow-none">
+          <Card className="border-red-500/20 bg-card shadow-none">
             <CardContent className="space-y-3 p-5">
-              <div className="flex items-center gap-2 text-sm font-semibold text-red-300">
+              <div className="flex items-center gap-2 text-sm font-semibold text-red-700 dark:text-red-300">
                 <AlertTriangle className="h-4 w-4" />
                 Execution error
               </div>
-              <pre className="overflow-auto rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 font-mono text-xs text-red-100">
+              <pre className="overflow-auto rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 font-mono text-xs text-red-900 dark:text-red-100">
                 {executionError}
               </pre>
             </CardContent>

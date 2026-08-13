@@ -8,7 +8,7 @@
 
 #### 1. **Infrastructure Setup**
 - ✅ Next.js 16 with TypeScript and Turbopack
-- ✅ Specific configuration for PostgreSQL, Redis, Temporal, and S3 storage
+- ✅ Specific configuration for PostgreSQL and Redis
 - ✅ Database schema with Drizzle ORM (15+ tables)
 - ✅ Redis client with pub/sub support
 - ✅ NextAuth.js v5 authentication setup
@@ -52,9 +52,7 @@ specific dev
 This will automatically start:
 - PostgreSQL database
 - Redis cache
-- Temporal workflow engine
 - Next.js dev server
-- S3-compatible storage
 
 ### Option 2: Manual Setup
 
@@ -87,9 +85,6 @@ npm run db:migrate       # Run migrations
 npm run db:push          # Push schema directly (dev only)
 npm run db:studio        # Open Drizzle Studio
 
-# Workers
-npm run build:worker     # Build Temporal worker
-npm run worker           # Run worker
 
 # Infrastructure (with Specific)
 specific dev             # Start all services
@@ -117,7 +112,6 @@ ai-agent-builder/
 │   ├── db/                # Database & schema
 │   ├── auth/              # Authentication
 │   ├── redis/             # Redis client
-│   ├── temporal/          # Workflow definitions
 │   └── pandastack/         # PandaStack client
 │
 ├── specific.hcl           # Infrastructure as code
@@ -171,21 +165,19 @@ Copy `.env.example` to `.env` and configure:
 # Required
 DATABASE_URL=postgresql://...
 REDIS_URL=redis://localhost:6379
-TEMPORAL_ADDRESS=localhost:7233
+ENCRYPTION_KEY=64-char-hex   # openssl rand -hex 32
 
 # Optional (for features)
 NEXTAUTH_SECRET=your-secret
-PANDASTACK_API_KEY=your-key
+PANDASTACK_API_KEY=pds_...    # required — app refuses to start without it
 OPENAI_API_KEY=your-key
 ```
 
 ### Specific Infrastructure
 
 The `specific.hcl` file defines:
-- **Services**: frontend, temporal-worker
+- **Services**: frontend
 - **Databases**: PostgreSQL 16, Redis 7
-- **Workflows**: Temporal 1.22
-- **Storage**: S3-compatible artifacts storage
 - **Secrets**: API keys and encryption keys
 
 ## Architecture Highlights

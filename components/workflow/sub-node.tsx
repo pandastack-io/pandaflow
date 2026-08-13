@@ -17,19 +17,19 @@ const roleStyles = {
   model: {
     border: 'border-violet-500/60',
     background: 'bg-violet-500/10',
-    text: 'text-violet-300',
+    text: 'text-violet-600 dark:text-violet-300',
     handle: '!bg-violet-500',
   },
   memory: {
     border: 'border-emerald-500/60',
     background: 'bg-emerald-500/10',
-    text: 'text-emerald-300',
+    text: 'text-emerald-600 dark:text-emerald-300',
     handle: '!bg-emerald-500',
   },
   tool: {
     border: 'border-amber-500/60',
     background: 'bg-amber-500/10',
-    text: 'text-amber-300',
+    text: 'text-amber-600 dark:text-amber-300',
     handle: '!bg-amber-500',
   },
 } as const;

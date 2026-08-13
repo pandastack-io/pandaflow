@@ -10,7 +10,6 @@ import {
   Workflow,
   Play,
   FileText,
-  Users,
   Code,
   Settings,
   KeyRound,
@@ -19,6 +18,7 @@ import {
   Radio,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 const SIDEBAR_STORAGE_KEY = 'main-layout-sidebar-collapsed';
 
@@ -30,7 +30,6 @@ const navigation = [
   { name: 'Executions', href: '/executions', icon: Play },
   { name: 'Templates', href: '/templates', icon: FileText },
   { name: 'Secrets', href: '/secrets', icon: KeyRound },
-  { name: 'Team', href: '/team', icon: Users },
   { name: 'API', href: '/api-keys', icon: Code },
   { name: 'Webhooks', href: '/webhooks', icon: Webhook },
   { name: 'Settings', href: '/settings', icon: Settings },
@@ -76,7 +75,7 @@ export function MainLayout({ children }: { children: ReactNode }) {
             )}
           >
             <div className="flex items-center">
-              <img src="/pandaflow-logo.png" alt="PandaFlow" className="h-8 w-8 rounded-lg object-cover" />
+              <img src="/pandastack-logo.svg" alt="PandaFlow" className="h-8 w-8 rounded-lg object-cover" />
               {!collapsed && <span className="ml-3 text-xl font-bold">PandaFlow</span>}
             </div>
           </div>
@@ -108,7 +107,11 @@ export function MainLayout({ children }: { children: ReactNode }) {
               })}
           </nav>
 
-          <div className="mt-4">
+          <div className={cn('mt-4', collapsed && 'flex justify-center')}>
+            <ThemeToggle collapsed={collapsed} />
+          </div>
+
+          <div className="mt-2">
             <button
               type="button"
               onClick={() => setCollapsed((current) => !current)}

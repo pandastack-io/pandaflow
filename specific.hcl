@@ -1,4 +1,4 @@
-# AI Agent Builder - Infrastructure Configuration
+# PandaFlow — Infrastructure Configuration
 
 # Frontend Next.js service
 service "frontend" {
@@ -12,10 +12,12 @@ service "frontend" {
   }
 
   env {
-    DATABASE_URL     = postgres.main.url
-    REDIS_URL        = redis.cache.url
-    TEMPORAL_ADDRESS = temporal.workflows.address
-    NODE_ENV         = "production"
+    DATABASE_URL       = postgres.main.url
+    REDIS_URL          = redis.cache.url
+    PANDASTACK_API_KEY = secret.pandastack_api_key
+    NEXTAUTH_SECRET    = secret.nextauth_secret
+    ENCRYPTION_KEY     = secret.encryption_key
+    NODE_ENV           = "production"
   }
 
   health_check {
@@ -25,42 +27,14 @@ service "frontend" {
   }
 }
 
-# Temporal worker service
-service "temporal-worker" {
-  build {
-    command = ["npm", "run", "build:worker"]
-  }
-
-  run {
-    command = ["node", "dist/worker.js"]
-  }
-
-  env {
-    DATABASE_URL     = postgres.main.url
-    REDIS_URL        = redis.cache.url
-    TEMPORAL_ADDRESS = temporal.workflows.address
-    NODE_ENV         = "production"
-  }
-}
-
 # PostgreSQL database
 postgres "main" {
   version = "16"
 }
 
-# Redis cache
+# Redis cache (agent bus, HITL approvals, agent memory)
 redis "cache" {
   version = "7"
-}
-
-# Temporal workflow engine
-temporal "workflows" {
-  version = "1.22"
-}
-
-# S3-compatible storage
-storage "artifacts" {
-  # For execution artifacts, exports, etc.
 }
 
 # Secrets
@@ -69,7 +43,7 @@ secret "nextauth_secret" {
 }
 
 secret "pandastack_api_key" {
-  description = "PandaStack API key"
+  description = "PandaStack API key (pds_... from pandastack.ai)"
 }
 
 secret "encryption_key" {

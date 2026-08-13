@@ -285,12 +285,12 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
           : 'min-w-[200px] max-w-[280px] rounded-xl px-3 py-2.5',
         status === 'idle' && hasIssues && 'border-amber-500/60',
         status === 'pending' && 'animate-pulse border-yellow-500/50',
-        status === 'running' && 'border-blue-500/60 ring-2 ring-blue-500 ring-offset-2 ring-offset-zinc-900',
+        status === 'running' && 'border-blue-500/60 ring-2 ring-blue-500 ring-offset-2 ring-offset-background',
         status === 'completed' && showCompletedBadge && 'border-green-500/50',
         status === 'failed' && 'border-red-500/50 bg-red-500/5',
         selected && 'outline outline-2 outline-offset-2',
-        isDebugPaused && 'animate-pulse ring-2 ring-blue-500 ring-offset-2 ring-offset-zinc-900',
-        isCompatibleTarget && 'ring-2 ring-emerald-500/60 ring-offset-2 ring-offset-zinc-900',
+        isDebugPaused && 'animate-pulse ring-2 ring-blue-500 ring-offset-2 ring-offset-background',
+        isCompatibleTarget && 'ring-2 ring-emerald-500/60 ring-offset-2 ring-offset-background',
         isIncompatibleTarget && 'opacity-70'
       )}
       style={{
@@ -301,13 +301,13 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
     >
       {isHovered && (
         <div
-          className="nowheel nodrag nopan animate-in fade-in-0 zoom-in-95 absolute left-1/2 top-[-40px] z-50 flex -translate-x-1/2 gap-1 rounded-lg border border-zinc-700 bg-zinc-900 p-1 shadow-xl duration-100"
+          className="nowheel nodrag nopan animate-in fade-in-0 zoom-in-95 absolute left-1/2 top-[-40px] z-50 flex -translate-x-1/2 gap-1 rounded-lg border border-border bg-popover p-1 shadow-xl duration-100"
           onMouseDown={(event) => event.stopPropagation()}
         >
           <button
             type="button"
             title="Copy"
-            className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-100 transition-colors hover:bg-zinc-800"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-popover-foreground transition-colors hover:bg-accent"
             onClick={(event) => {
               event.stopPropagation();
               void handleCopyConfig();
@@ -318,7 +318,7 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
           <button
             type="button"
             title="Duplicate"
-            className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-100 transition-colors hover:bg-zinc-800"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-popover-foreground transition-colors hover:bg-accent"
             onClick={(event) => {
               event.stopPropagation();
               duplicateNode(id);
@@ -329,7 +329,7 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
           <button
             type="button"
             title="Delete"
-            className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-100 transition-colors hover:bg-zinc-800"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-popover-foreground transition-colors hover:bg-accent"
             onClick={(event) => {
               event.stopPropagation();
               deleteNode(id);
@@ -340,7 +340,7 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
           <button
             type="button"
             title="Run"
-            className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-100 transition-colors hover:bg-zinc-800"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-popover-foreground transition-colors hover:bg-accent"
             onClick={(event) => {
               event.stopPropagation();
               handleRunSingleNode();
@@ -361,13 +361,13 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
             className={cn(
               '!h-3 !w-3 !border-2 !border-background !transition-all',
               isConnectionPreviewActive && isCompatibleTarget && 'compatible-port !bg-emerald-500 !shadow-[0_0_0_4px_rgba(16,185,129,0.18)]',
-              isConnectionPreviewActive && isIncompatibleTarget && '!bg-zinc-600/50 !opacity-40',
+              isConnectionPreviewActive && isIncompatibleTarget && '!bg-muted-foreground/50 !opacity-40',
               !isConnectionPreviewActive && '!bg-primary'
             )}
             style={collapsed ? { top: '50%' } : undefined}
           />
           {isConnectionPreviewActive && isCompatibleTarget && (
-            <div className="pointer-events-none absolute -left-2 top-1/2 -translate-x-full -translate-y-1/2 rounded-md border border-emerald-500/40 bg-zinc-900/95 px-2 py-1 text-[10px] font-medium text-emerald-300 shadow-lg">
+            <div className="pointer-events-none absolute -left-2 top-1/2 -translate-x-full -translate-y-1/2 rounded-md border border-emerald-500/40 bg-popover/95 px-2 py-1 text-[10px] font-medium text-emerald-700 dark:text-emerald-300 shadow-lg">
               Drop here to connect
             </div>
           )}
@@ -446,9 +446,9 @@ export const CustomNode = memo(({ id, data, selected }: NodeProps<WorkflowNodeDa
         <div className="mt-3 border-t border-dashed border-border/70 pt-3">
           <div className="grid grid-cols-3 items-start gap-2">
             {[
-              { id: 'model' as const, label: 'Chat Model*', color: 'text-violet-300', handle: '!bg-violet-500', ring: 'border-violet-500/40 bg-violet-500/10 text-violet-100' },
-              { id: 'memory' as const, label: 'Memory', color: 'text-emerald-300', handle: '!bg-emerald-500', ring: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-100' },
-              { id: 'tool' as const, label: connectedDependencyNodes.tool.length > 0 ? `Tool (${connectedDependencyNodes.tool.length})` : 'Tool', color: 'text-amber-300', handle: '!bg-amber-500', ring: 'border-amber-500/40 bg-amber-500/10 text-amber-100' },
+              { id: 'model' as const, label: 'Chat Model*', color: 'text-violet-600 dark:text-violet-300', handle: '!bg-violet-500', ring: 'border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-100' },
+              { id: 'memory' as const, label: 'Memory', color: 'text-emerald-600 dark:text-emerald-300', handle: '!bg-emerald-500', ring: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-100' },
+              { id: 'tool' as const, label: connectedDependencyNodes.tool.length > 0 ? `Tool (${connectedDependencyNodes.tool.length})` : 'Tool', color: 'text-amber-600 dark:text-amber-300', handle: '!bg-amber-500', ring: 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-100' },
             ].map((slot) => {
               const slotNodes = connectedDependencyNodes[slot.id];
               const hasConnections = slotNodes.length > 0;

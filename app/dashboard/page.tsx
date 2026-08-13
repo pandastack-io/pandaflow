@@ -137,23 +137,23 @@ function formatDuration(durationMs?: number | null) {
 function getStatusBadgeClass(status: ExecutionStatus) {
   switch (status) {
     case 'completed':
-      return 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300';
+      return 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300';
     case 'failed':
-      return 'border-red-500/20 bg-red-500/10 text-red-300';
+      return 'border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300';
     case 'running':
-      return 'border-blue-500/20 bg-blue-500/10 text-blue-300';
+      return 'border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-300';
     case 'pending':
-      return 'border-slate-500/20 bg-slate-500/10 text-slate-300';
+      return 'border-border bg-muted text-muted-foreground';
     case 'cancelled':
     default:
-      return 'border-zinc-500/20 bg-zinc-500/10 text-zinc-300';
+      return 'border-border bg-muted text-muted-foreground';
   }
 }
 
 function getSuccessTone(successRate: number) {
-  if (successRate >= 90) return 'text-emerald-400';
-  if (successRate >= 70) return 'text-amber-400';
-  return 'text-red-400';
+  if (successRate >= 90) return 'text-emerald-600 dark:text-emerald-400';
+  if (successRate >= 70) return 'text-amber-600 dark:text-amber-400';
+  return 'text-red-600 dark:text-red-400';
 }
 
 function safeDate(value?: string | null) {
@@ -310,7 +310,7 @@ export default function Home() {
                         <CardDescription>Executions Today</CardDescription>
                         <CardTitle className="mt-2 text-3xl">{stats.executionsToday.toLocaleString()}</CardTitle>
                       </div>
-                      <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 text-amber-400 p-3">
+                      <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400 p-3">
                         <Zap className="h-5 w-5" />
                       </div>
                     </CardHeader>
@@ -329,7 +329,7 @@ export default function Home() {
                           {stats.successRate.toFixed(1)}%
                         </CardTitle>
                       </div>
-                      <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-emerald-400">
+                      <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-emerald-600 dark:text-emerald-400">
                         <TrendingUp className="h-5 w-5" />
                       </div>
                     </CardHeader>
@@ -349,7 +349,7 @@ export default function Home() {
                           <span className="inline-flex h-3 w-3 rounded-full bg-emerald-400 animate-pulse" />
                         </CardTitle>
                       </div>
-                      <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 p-3 text-blue-400">
+                      <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 p-3 text-blue-600 dark:text-blue-400">
                         <Activity className="h-5 w-5" />
                       </div>
                     </CardHeader>

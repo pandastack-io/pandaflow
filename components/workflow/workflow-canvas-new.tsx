@@ -911,7 +911,7 @@ function WorkflowCanvasInner({
           title={paletteOpen ? 'Close node palette' : 'Open node palette'}
           aria-label={paletteOpen ? 'Close node palette' : 'Open node palette'}
           className={cn(
-            'absolute left-4 top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-700 bg-zinc-800 text-zinc-300 shadow-lg transition-all duration-300 hover:bg-zinc-700 hover:text-white',
+            'absolute left-4 top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-lg transition-all duration-300 hover:bg-accent hover:text-foreground',
             paletteOpen && 'border-primary/60 bg-primary text-primary-foreground hover:bg-primary/90'
           )}
         >
@@ -953,7 +953,7 @@ function WorkflowCanvasInner({
             type="button"
             onClick={() => setVariablesOpen((current) => !current)}
             className={cn(
-              'flex h-10 w-10 items-center justify-center rounded-full border border-zinc-700 bg-zinc-800 text-zinc-300 shadow-lg transition-colors hover:bg-zinc-700 hover:text-white',
+              'flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-lg transition-colors hover:bg-accent hover:text-foreground',
               variablesOpen && 'border-indigo-500/60 bg-indigo-500 text-white hover:bg-indigo-500/90'
             )}
             title="Variables"
@@ -969,7 +969,7 @@ function WorkflowCanvasInner({
                   <div className="text-sm font-semibold">Variables</div>
                   <div className="text-xs text-muted-foreground">Click to copy a variable reference</div>
                 </div>
-                <span className="text-[11px] text-zinc-500">{availableVariables.length} refs</span>
+                <span className="text-[11px] text-muted-foreground">{availableVariables.length} refs</span>
               </div>
               <div className="max-h-64 space-y-1 overflow-y-auto pr-1">
                 {availableVariables.length === 0 ? (

@@ -274,20 +274,20 @@ export default function TemplatesPage() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <Card className="min-w-[130px] border-primary/20 bg-primary/10 shadow-sm dark:border-primary/30 dark:bg-primary/20">
               <CardContent className="p-4">
-                <div className="text-2xl font-semibold text-zinc-950 dark:text-zinc-100">{workflowTemplates.length}</div>
-                <div className="text-xs text-zinc-600 dark:text-zinc-400">Total templates</div>
+                <div className="text-2xl font-semibold text-foreground">{workflowTemplates.length}</div>
+                <div className="text-xs text-muted-foreground">Total templates</div>
               </CardContent>
             </Card>
             <Card className="min-w-[130px] border-emerald-200 bg-emerald-50 shadow-sm dark:border-emerald-900 dark:bg-emerald-950/40">
               <CardContent className="p-4">
-                <div className="text-2xl font-semibold text-zinc-950 dark:text-zinc-100">{readyTemplatesCount}</div>
-                <div className="text-xs text-zinc-600 dark:text-zinc-400">Ready to use</div>
+                <div className="text-2xl font-semibold text-foreground">{readyTemplatesCount}</div>
+                <div className="text-xs text-muted-foreground">Ready to use</div>
               </CardContent>
             </Card>
             <Card className="col-span-2 min-w-[130px] border-amber-200 bg-amber-50 shadow-sm dark:border-amber-900 dark:bg-amber-950/40 sm:col-span-1">
               <CardContent className="p-4">
-                <div className="text-2xl font-semibold text-zinc-950 dark:text-zinc-100">{featuredTemplates.length}</div>
-                <div className="text-xs text-zinc-600 dark:text-zinc-400">Featured starters</div>
+                <div className="text-2xl font-semibold text-foreground">{featuredTemplates.length}</div>
+                <div className="text-xs text-muted-foreground">Featured starters</div>
               </CardContent>
             </Card>
           </div>

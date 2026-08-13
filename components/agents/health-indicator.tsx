@@ -51,7 +51,7 @@ export function HealthIndicator({ agentId, status, lastHeartbeatAt }: HealthIndi
     if (status === 'running') return 'bg-emerald-500';
     if (status === 'paused' || status === 'deployed' || status === 'deploying') return 'bg-amber-500';
     if (status === 'crashed' || status === 'error') return 'bg-red-500';
-    return 'bg-slate-400';
+    return 'bg-muted-foreground';
   })();
 
   const label = (() => {
@@ -70,10 +70,10 @@ export function HealthIndicator({ agentId, status, lastHeartbeatAt }: HealthIndi
         <Badge
           variant="outline"
           className={cn(
-            status === 'running' && 'border-emerald-200 text-emerald-700',
-            (status === 'paused' || status === 'deployed' || status === 'deploying') && 'border-amber-200 text-amber-700',
-            (status === 'crashed' || status === 'error') && 'border-red-200 text-red-700',
-            status === 'stopped' && 'border-slate-200 text-slate-600'
+            status === 'running' && 'border-emerald-200 text-emerald-700 dark:border-emerald-500/30 dark:text-emerald-300',
+            (status === 'paused' || status === 'deployed' || status === 'deploying') && 'border-amber-200 text-amber-700 dark:border-amber-500/30 dark:text-amber-300',
+            (status === 'crashed' || status === 'error') && 'border-red-200 text-red-700 dark:border-red-500/30 dark:text-red-300',
+            status === 'stopped' && 'border-border text-muted-foreground'
           )}
         >
           {label}

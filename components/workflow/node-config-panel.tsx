@@ -162,7 +162,7 @@ function ErrorHandlingSection({
           )}
 
           {errorHandling.onError === 'custom_branch' && (
-            <div className="rounded-md border border-indigo-500/30 bg-indigo-500/10 p-3 text-xs text-indigo-200">
+            <div className="rounded-md border border-indigo-500/30 bg-indigo-500/10 p-3 text-xs text-indigo-700 dark:text-indigo-200">
               Connect the error output port to handle failures.
             </div>
           )}
@@ -193,11 +193,11 @@ function LastRunSection({
 
   const status = summary?.status ?? (executionOutput?.error ? 'failed' : 'completed');
   const statusClassName = {
-    pending: 'border-zinc-700 bg-zinc-800 text-zinc-200',
-    running: 'border-blue-500/30 bg-blue-500/10 text-blue-300',
-    completed: 'border-green-500/30 bg-green-500/10 text-green-300',
-    failed: 'border-red-500/30 bg-red-500/10 text-red-300',
-    cancelled: 'border-zinc-700 bg-zinc-800 text-zinc-200',
+    pending: 'border-border bg-muted text-muted-foreground',
+    running: 'border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300',
+    completed: 'border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300',
+    failed: 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300',
+    cancelled: 'border-border bg-muted text-muted-foreground',
   }[status];
 
   const inputPreview = stringifyPreview(executionOutput?.input);

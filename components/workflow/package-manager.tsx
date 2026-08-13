@@ -44,13 +44,13 @@ export function PackageManager({ packages, onChange, runtime }: PackageManagerPr
           {packages.map((packageName) => (
             <span
               key={packageName}
-              className="flex items-center gap-1 rounded-full bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300"
+              className="flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground"
             >
               {packageName}
               <button
                 type="button"
                 onClick={() => removePackage(packageName)}
-                className="text-zinc-500 transition hover:text-zinc-200"
+                className="text-muted-foreground transition hover:text-foreground"
                 aria-label={`Remove ${packageName}`}
               >
                 ×

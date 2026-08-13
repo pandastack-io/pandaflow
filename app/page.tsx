@@ -649,7 +649,7 @@ export default function HomePage() {
       <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#000]/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
           <Link href="/" className="flex items-center gap-2.5">
-            <img src="/pandaflow-logo.png" alt="PandaFlow" className="h-7 w-7" />
+            <img src="/pandastack-logo.svg" alt="PandaFlow" className="h-7 w-7" />
             <span className="text-sm font-semibold tracking-tight">PandaFlow</span>
           </Link>
 
@@ -750,7 +750,7 @@ export default function HomePage() {
               <FadeUp delay={0.12}>
                 <p className="mt-6 max-w-md text-[15px] leading-7 text-zinc-400">
                   Compose multi-agent systems with a drag-and-drop canvas. 165+ prebuilt nodes,
-                  durable Temporal execution, and per-run PandaStack microVM isolation.
+                  durable checkpointed execution, and per-run PandaStack microVM isolation.
                 </p>
               </FadeUp>
 
@@ -1008,7 +1008,7 @@ export default function HomePage() {
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-white/[0.06]">
                   <RefreshCcw className="h-4 w-4 text-zinc-300" />
                 </div>
-                <h3 className="text-sm font-semibold text-white">Durable execution via Temporal</h3>
+                <h3 className="text-sm font-semibold text-white">Durable checkpointed execution</h3>
                 <p className="mt-2 text-[13px] leading-6 text-zinc-500">
                   Steps checkpointed before and after. Crashes replay from last known good state. No lost work, ever.
                 </p>
@@ -1416,7 +1416,7 @@ export default function HomePage() {
           <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
             <div className="max-w-xs">
               <div className="flex items-center gap-2.5">
-                <img src="/pandaflow-logo.png" alt="PandaFlow" className="h-7 w-7" />
+                <img src="/pandastack-logo.svg" alt="PandaFlow" className="h-7 w-7" />
                 <span className="text-sm font-semibold text-white">PandaFlow</span>
               </div>
               <p className="mt-3 text-sm leading-7 text-zinc-600">
@@ -1453,7 +1453,7 @@ export default function HomePage() {
                   heading: 'Company',
                   links: [
                     { label: 'PandastackIO Inc.', href: '#' },
-                    { label: 'pandastack.io', href: 'https://pandastack.io', external: true },
+                    { label: 'pandastack.ai', href: 'https://pandastack.ai', external: true },
                   ],
                 },
               ].map(({ heading, links }) => (

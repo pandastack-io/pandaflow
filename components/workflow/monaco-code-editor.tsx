@@ -20,7 +20,7 @@ export function MonacoCodeEditor({
   readOnly = false,
 }: MonacoCodeEditorProps) {
   return (
-    <div className="relative overflow-hidden rounded-lg border border-zinc-700">
+    <div className="relative overflow-hidden rounded-lg border border-border">
       <span className="absolute top-2 right-2 z-10 text-xs text-zinc-500">{language}</span>
       <MonacoEditor
         height={height}
