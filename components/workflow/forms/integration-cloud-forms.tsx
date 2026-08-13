@@ -274,7 +274,8 @@ function renderField(field: FieldDefinition, config: any, onChange: (config: any
         value={String(rawValue ?? '')}
         onChange={(event) => updateConfig(config, onChange, field.key, event.target.value)}
         placeholder={field.placeholder}
-      />
+            autoComplete="new-password"
+          />
     </Field>
   );
 }

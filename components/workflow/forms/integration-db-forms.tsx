@@ -130,7 +130,8 @@ function SqlQuerySection({ config, onChange, connectionLabel, providerId }: Node
           value={config?.connectionString || ''}
           onChange={(event) => updateConfig(config, onChange, 'connectionString', event.target.value)}
           placeholder="{{secrets.databaseUrl}}"
-        />
+            autoComplete="new-password"
+          />
       </Field>
 
       <Field label="Query" hint="Parameterized SQL is recommended for production use.">
@@ -191,7 +192,8 @@ function GenericDatabaseForm({ config, onChange }: NodeFormProps) {
           value={config?.connectionString || ''}
           onChange={(event) => updateConfig(config, onChange, 'connectionString', event.target.value)}
           placeholder="{{secrets.databaseUrl}}"
-        />
+            autoComplete="new-password"
+          />
       </Field>
 
       <Field label="Query / operation payload">
@@ -254,6 +256,7 @@ function MongoForm({ config, onChange }: NodeFormProps) {
             value={config?.apiKey || ''}
             onChange={(event) => updateConfig(config, onChange, 'apiKey', event.target.value)}
             placeholder="{{secrets.mongodbApiKey}}"
+            autoComplete="new-password"
           />
         </Field>
       </div>
@@ -327,7 +330,8 @@ function RedisForm({ config, onChange }: NodeFormProps) {
           value={config?.redisUrl || ''}
           onChange={(event) => updateConfig(config, onChange, 'redisUrl', event.target.value)}
           placeholder="{{secrets.redisUrl}}"
-        />
+            autoComplete="new-password"
+          />
       </Field>
 
       <div className="grid gap-3 md:grid-cols-2">
@@ -512,6 +516,7 @@ function DynamoForm({ config, onChange }: NodeFormProps) {
             value={config?.accessKeyId || ''}
             onChange={(event) => updateConfig(config, onChange, 'accessKeyId', event.target.value)}
             placeholder="{{secrets.awsAccessKeyId}}"
+            autoComplete="new-password"
           />
         </Field>
         <Field label="Secret access key">
@@ -520,6 +525,7 @@ function DynamoForm({ config, onChange }: NodeFormProps) {
             value={config?.secretAccessKey || ''}
             onChange={(event) => updateConfig(config, onChange, 'secretAccessKey', event.target.value)}
             placeholder="{{secrets.awsSecretAccessKey}}"
+            autoComplete="new-password"
           />
         </Field>
       </div>
@@ -571,6 +577,7 @@ function CassandraForm({ config, onChange }: NodeFormProps) {
             value={config?.token || ''}
             onChange={(event) => updateConfig(config, onChange, 'token', event.target.value)}
             placeholder="{{secrets.astraToken}}"
+            autoComplete="new-password"
           />
         </Field>
       </div>
@@ -665,6 +672,7 @@ function FirestoreForm({ config, onChange }: NodeFormProps) {
             value={config?.accessToken || ''}
             onChange={(event) => updateConfig(config, onChange, 'accessToken', event.target.value)}
             placeholder="{{secrets.firebaseAccessToken}}"
+            autoComplete="new-password"
           />
         </Field>
       </div>
@@ -717,6 +725,7 @@ function SupabaseForm({ config, onChange }: NodeFormProps) {
             value={config?.anonKey || ''}
             onChange={(event) => updateConfig(config, onChange, 'anonKey', event.target.value)}
             placeholder="{{secrets.supabaseAnonKey}}"
+            autoComplete="new-password"
           />
         </Field>
       </div>

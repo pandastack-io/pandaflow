@@ -274,7 +274,7 @@ export function NodePalette({
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             className="pl-9"
-          />
+           autoComplete="off" />
         </div>
       </div>
 

@@ -324,6 +324,7 @@ function VerdictConfigForm({
             }
             placeholder="sk-..."
             className="h-9 text-sm"
+            autoComplete="new-password"
           />
         </Field>
 
@@ -593,6 +594,7 @@ function PrismLLMConfigForm({
             }
             placeholder={`Set ${providerConfig.envKey} or paste a key`}
             className="h-9 text-sm"
+            autoComplete="new-password"
           />
         </Field>
 
@@ -854,7 +856,8 @@ function LoaderEnterpriseForm({
                 }
                 placeholder="secret_xxx"
                 className="h-9 text-sm"
-              />
+            autoComplete="new-password"
+          />
             </Field>
             <Field label="Database ID">
               <Input

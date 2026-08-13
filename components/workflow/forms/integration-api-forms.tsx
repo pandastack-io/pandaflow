@@ -151,6 +151,7 @@ function AuthSection({ config, onChange }: NodeFormProps) {
               )
             }
             placeholder="{{secrets.apiToken}}"
+            autoComplete="new-password"
           />
         </Field>
       )}
@@ -170,7 +171,8 @@ function AuthSection({ config, onChange }: NodeFormProps) {
               value={auth.password || ''}
               onChange={(event) => updateNestedConfig(config, onChange, 'auth', 'password', event.target.value)}
               placeholder="{{secrets.password}}"
-            />
+            autoComplete="new-password"
+          />
           </Field>
         </div>
       )}
@@ -190,7 +192,8 @@ function AuthSection({ config, onChange }: NodeFormProps) {
               value={auth.apiKey || ''}
               onChange={(event) => updateNestedConfig(config, onChange, 'auth', 'apiKey', event.target.value)}
               placeholder="{{secrets.apiKey}}"
-            />
+            autoComplete="new-password"
+          />
           </Field>
         </div>
       )}
@@ -842,6 +845,7 @@ function OAuthForm({ config, onChange }: NodeFormProps) {
             value={config?.clientSecret || ''}
             onChange={(event) => updateConfig(config, onChange, 'clientSecret', event.target.value)}
             placeholder="{{secrets.clientSecret}}"
+            autoComplete="new-password"
           />
         </Field>
       </div>
@@ -861,6 +865,7 @@ function OAuthForm({ config, onChange }: NodeFormProps) {
             value={config?.refreshToken || ''}
             onChange={(event) => updateConfig(config, onChange, 'refreshToken', event.target.value)}
             placeholder="{{oauth.refreshToken}}"
+            autoComplete="new-password"
           />
         </Field>
       )}
@@ -873,7 +878,8 @@ function OAuthForm({ config, onChange }: NodeFormProps) {
               value={config?.code || ''}
               onChange={(event) => updateConfig(config, onChange, 'code', event.target.value)}
               placeholder="{{oauth.code}}"
-            />
+            autoComplete="new-password"
+          />
           </Field>
           <Field label="Redirect URI">
             <Input
@@ -948,7 +954,8 @@ function ApiKeyForm({ config, onChange }: NodeFormProps) {
           value={config?.apiKey || ''}
           onChange={(event) => updateConfig(config, onChange, 'apiKey', event.target.value)}
           placeholder="{{secrets.thirdPartyApiKey}}"
-        />
+            autoComplete="new-password"
+          />
       </Field>
 
       <Field label="Output variable name" hint="Stores the raw key and generated header metadata in workflow variables.">

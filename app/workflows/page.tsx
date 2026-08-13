@@ -308,7 +308,7 @@ export default function WorkflowsPage() {
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               className="pl-10"
-            />
+             autoComplete="off" />
           </div>
         </div>
 

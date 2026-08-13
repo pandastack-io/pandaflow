@@ -212,7 +212,7 @@ export function QuickAddMenu({ x, y, onSelect, onClose }: QuickAddMenuProps) {
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             className="h-9 pl-9"
-          />
+           autoComplete="off" />
         </div>
       </div>
 

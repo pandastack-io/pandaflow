@@ -364,7 +364,7 @@ export default function TemplatesPage() {
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Search by template name, description, or tags..."
                 className="pl-9"
-              />
+               type="search" autoComplete="off" />
             </div>
             <select
               value={difficultyFilter}
