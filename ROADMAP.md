@@ -1,6 +1,6 @@
 # PandaFlow Roadmap
 
-> **PandaFlow** is an open source AI agent workflow builder by [PandastackIO Inc.](https://pandastack.io). This roadmap reflects what's been shipped, what's actively being worked on, and where the project is headed. It is public and community-driven.
+> **PandaFlow** is an open source AI agent workflow builder by [PandastackIO Inc.](https://pandastack.ai). This roadmap reflects what's been shipped, what's actively being worked on, and where the project is headed. It is public and community-driven.
 
 ---
 
@@ -163,4 +163,4 @@ Before contributing, please read [CONTRIBUTING.md](./CONTRIBUTING.md) _(coming s
 
 ---
 
-_Last updated: May 2026 · Maintained by [PandastackIO Inc.](https://pandastack.io)_
+_Last updated: May 2026 · Maintained by [PandastackIO Inc.](https://pandastack.ai)_
