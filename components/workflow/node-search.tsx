@@ -134,7 +134,7 @@ export function NodeSearch({ open, nodes, onClose, onSelect }: NodeSearchProps) 
             }}
             placeholder="Search nodes by label or name..."
             className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-          />
+           type="search" autoComplete="off" />
         </div>
         <div className="max-h-80 overflow-y-auto p-2">
           {results.length === 0 ? (

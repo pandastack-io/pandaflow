@@ -261,7 +261,7 @@ export default function ExecutionsPage() {
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               className="w-full rounded-md border border-input bg-background py-2 pl-10 pr-4 text-sm text-foreground outline-none transition focus:border-blue-500/50"
-            />
+             autoComplete="off" />
           </div>
           {['all', 'running', 'completed', 'failed', 'pending'].map((status) => (
             <button

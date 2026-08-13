@@ -546,7 +546,8 @@ function GitCloneForm({ config, onChange }: NodeFormProps) {
           value={config.token || ''}
           onChange={(e) => update('token', e.target.value)}
           placeholder="ghp_... (for private repos)"
-        />
+            autoComplete="new-password"
+          />
         <p className="text-xs text-muted-foreground mt-1">Token is redacted from output logs.</p>
       </Field>
     </div>

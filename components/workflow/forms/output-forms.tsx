@@ -527,7 +527,7 @@ function StorageOutputForm({ config, onChange }: NodeFormProps) {
         </div>
         <div>
           <Label htmlFor="storage-secret-key">Secret Access Key</Label>
-          <Input id="storage-secret-key" type="password" value={config.secretAccessKey || ''} onChange={(event) => updateConfig(config, onChange, 'secretAccessKey', event.target.value)} placeholder="••••••••" />
+          <Input id="storage-secret-key" type="password" value={config.secretAccessKey || ''} onChange={(event) => updateConfig(config, onChange, 'secretAccessKey', event.target.value)} placeholder="••••••••"  autoComplete="new-password" />
         </div>
       </div>
     </div>

@@ -168,7 +168,8 @@ function GoogleAnalyticsForm({ config, onChange }: NodeFormProps) {
                 value={config?.apiSecret || ''}
                 onChange={(event) => updateConfig(config, onChange, 'apiSecret', event.target.value)}
                 placeholder="{{secrets.gaApiSecret}}"
-              />
+            autoComplete="new-password"
+          />
             </Field>
           </div>
 
@@ -229,7 +230,8 @@ function GoogleAnalyticsForm({ config, onChange }: NodeFormProps) {
                 value={config?.accessToken || ''}
                 onChange={(event) => updateConfig(config, onChange, 'accessToken', event.target.value)}
                 placeholder="{{secrets.googleAccessToken}}"
-              />
+            autoComplete="new-password"
+          />
             </Field>
           </div>
 
@@ -285,7 +287,8 @@ function MixpanelForm({ config, onChange }: NodeFormProps) {
           value={config?.token || ''}
           onChange={(event) => updateConfig(config, onChange, 'token', event.target.value)}
           placeholder="{{secrets.mixpanelToken}}"
-        />
+            autoComplete="new-password"
+          />
       </Field>
 
       {operation === 'track_batch' ? (
@@ -389,7 +392,8 @@ function SegmentForm({ config, onChange }: NodeFormProps) {
           value={config?.writeKey || ''}
           onChange={(event) => updateConfig(config, onChange, 'writeKey', event.target.value)}
           placeholder="{{secrets.segmentWriteKey}}"
-        />
+            autoComplete="new-password"
+          />
       </Field>
 
       <div className="grid gap-3 md:grid-cols-2">
@@ -534,7 +538,8 @@ function AmplitudeForm({ config, onChange }: NodeFormProps) {
           value={config?.apiKey || ''}
           onChange={(event) => updateConfig(config, onChange, 'apiKey', event.target.value)}
           placeholder="{{secrets.amplitudeApiKey}}"
-        />
+            autoComplete="new-password"
+          />
       </Field>
 
       {operation === 'track_batch' ? (
@@ -644,7 +649,8 @@ function PostHogForm({ config, onChange }: NodeFormProps) {
           value={config?.apiKey || ''}
           onChange={(event) => updateConfig(config, onChange, 'apiKey', event.target.value)}
           placeholder="{{secrets.posthogApiKey}}"
-        />
+            autoComplete="new-password"
+          />
       </Field>
 
       <Field label="Distinct ID">

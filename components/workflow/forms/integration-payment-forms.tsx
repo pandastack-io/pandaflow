@@ -179,7 +179,8 @@ function StripeForm({ config, onChange }: NodeFormProps) {
               value={config?.secretKey || ''}
               onChange={(event) => updateConfig(config, onChange, 'secretKey', event.target.value)}
               placeholder="{{secrets.stripeSecretKey}}"
-            />
+            autoComplete="new-password"
+          />
           </Field>
         </div>
 
@@ -277,7 +278,8 @@ function PayPalForm({ config, onChange }: NodeFormProps) {
               value={config?.clientSecret || ''}
               onChange={(event) => updateConfig(config, onChange, 'clientSecret', event.target.value)}
               placeholder="{{secrets.paypalClientSecret}}"
-            />
+            autoComplete="new-password"
+          />
           </Field>
         </div>
 
@@ -287,6 +289,7 @@ function PayPalForm({ config, onChange }: NodeFormProps) {
             value={config?.accessToken || ''}
             onChange={(event) => updateConfig(config, onChange, 'accessToken', event.target.value)}
             placeholder="{{secrets.paypalAccessToken}}"
+            autoComplete="new-password"
           />
         </Field>
 
@@ -369,7 +372,8 @@ function SquareForm({ config, onChange }: NodeFormProps) {
               value={config?.accessToken || ''}
               onChange={(event) => updateConfig(config, onChange, 'accessToken', event.target.value)}
               placeholder="{{secrets.squareAccessToken}}"
-            />
+            autoComplete="new-password"
+          />
           </Field>
           <Field label="Square version" hint="Sent as the Square-Version header.">
             <Input
@@ -456,7 +460,8 @@ function PlaidForm({ config, onChange }: NodeFormProps) {
               value={config?.secret || ''}
               onChange={(event) => updateConfig(config, onChange, 'secret', event.target.value)}
               placeholder="{{secrets.plaidSecret}}"
-            />
+            autoComplete="new-password"
+          />
           </Field>
         </div>
 
@@ -477,7 +482,8 @@ function PlaidForm({ config, onChange }: NodeFormProps) {
               value={config?.accessToken || ''}
               onChange={(event) => updateConfig(config, onChange, 'accessToken', event.target.value)}
               placeholder="{{secrets.plaidAccessToken}}"
-            />
+            autoComplete="new-password"
+          />
           </Field>
         ) : null}
 
@@ -540,7 +546,8 @@ function QuickBooksForm({ config, onChange }: NodeFormProps) {
               value={config?.accessToken || ''}
               onChange={(event) => updateConfig(config, onChange, 'accessToken', event.target.value)}
               placeholder="{{secrets.quickbooksAccessToken}}"
-            />
+            autoComplete="new-password"
+          />
           </Field>
           <Field label="Realm / company ID" hint="The company identifier used in QuickBooks API paths.">
             <Input

@@ -386,7 +386,7 @@ export default function SecretsPage() {
             value={value}
             onChange={(event) => setFormValues((current) => ({ ...current, [field.key]: event.target.value }))}
             placeholder={field.placeholder}
-            autoComplete="off"
+            autoComplete={field.type === 'password' ? 'new-password' : 'off'}
             className="h-11 bg-background/80"
           />
           {field.type === 'password' ? (
@@ -532,7 +532,8 @@ export default function SecretsPage() {
         </div>
 
         <div className="rounded-3xl bg-[linear-gradient(135deg,#1d4ed8,#2563eb_45%,#60a5fa)] p-[1px] shadow-2xl shadow-blue-500/10">
-          <div className="rounded-[calc(1.5rem-1px)] border border-white/10 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-card)_92%,#0f172a),color-mix(in_srgb,var(--color-card)_98%,black))]">
+          {/* Brand banner: deliberately dark-blue in BOTH themes so the white text always reads. */}
+          <div className="rounded-[calc(1.5rem-1px)] border border-white/10 bg-[linear-gradient(180deg,#172554,#1e3a8a_55%,#1d4ed8)]">
             <div className="flex flex-col gap-5 p-6 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex items-start gap-4">
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-3xl shadow-inner shadow-white/5 backdrop-blur">
@@ -607,7 +608,7 @@ export default function SecretsPage() {
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder="Search providers..."
                   className="h-11 rounded-full border-border/70 bg-background/70 pl-10"
-                />
+                 type="search" autoComplete="off" />
               </div>
             </div>
           </CardHeader>
